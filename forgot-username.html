@@ -78,8 +78,8 @@
       <input type="text" id="fullName" placeholder="Ad Soyad" required>
       <input type="password" id="password" placeholder="Birincil veya İkincil Şifre" required>
       <button id="recoverBtn" type="submit">Kullanıcı Adını Bul</button>
+      <button id="loginBtn" type="button" onclick="window.location.href='index.html'" style="width: 50%;">Giriş Yap</button>
     </form>
-    <a href="index.html">Giriş Yap</a>
   </div>
 
   <script>
@@ -121,6 +121,7 @@
           fullName: "Ad Soyad",
           password: "Birincil veya İkincil Şifre",
           recoverBtn: "Kullanıcı Adını Bul"
+          loginBtn: "Giriş Yap"
         },
         en: {
           forgotUsernameTitle: "Forgot Username",
@@ -128,6 +129,7 @@
           fullName: "Full Name",
           password: "Primary or Secondary Password",
           recoverBtn: "Find Username"
+          loginBtn: "Log In"
         }
       };
 
@@ -137,6 +139,7 @@
       document.getElementById("fullName").placeholder = t.fullName;
       document.getElementById("password").placeholder = t.password;
       document.getElementById("recoverBtn").innerText = t.recoverBtn;
+      document.getElementById("loginBtn").innerText = t.loginBtn;
     }
   </script>
 
