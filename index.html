@@ -155,8 +155,8 @@
   <div class="slogan-floating">TuneTRa: Müziğin Doğuş Noktası</div>
 
   <div class="language-switcher">
-    <button onclick="setLang('tr')">🇹🇷 Türkçe</button>
-    <button onclick="setLang('en')">ENG English</button>
+    <button onclick="setLang('tr')">TR(Türkçe)</button>
+    <button onclick="setLang('en')">ENG(English)</button>
   </div>
 
   <img src="https://cdn-icons-png.flaticon.com/512/727/727245.png" class="note note1">
@@ -184,31 +184,35 @@
     </div>
 
   <script>
-    function setLang(lang) {
-      const elements = {
-        tr: {
-          username: "Kullanıcı Adı",
-          password: "Şifre",
-          loginBtn: "Giriş Yap",
-          forgot: "Şifremi Unuttum",
-          signup: "Kayıt Ol"
-        },
-        en: {
-          username: "Username",
-          password: "Password",
-          loginBtn: "Log In",
-          forgot: "Forgot Password",
-          signup: "Sign Up"
-        }
-      };
+      function setLang(lang) {
+          const elements = {
+              tr: {
+                  username: "Kullanıcı Adı",
+                  password: "Şifre",
+                  loginBtn: "Giriş Yap",
+                  forgot: "Şifremi Unuttum",
+                  signup: "Kayıt Ol",
+                  slogan: "TuneTRa: Müziğin Doğuş Noktası"
+              },
+              en: {
+                  username: "Username",
+                  password: "Password",
+                  loginBtn: "Log In",
+                  forgot: "Forgot Password",
+                  signup: "Sign Up",
+                  slogan: "TuneTRa: Where Music Begins"
+              }
+          };
 
-      const t = elements[lang];
-      document.getElementById("username").placeholder = t.username;
-      document.getElementById("password").placeholder = t.password;
-      document.getElementById("loginBtn").value = t.loginBtn;
-      document.getElementById("forgot").innerText = t.forgot;
-      document.getElementById("signup").innerText = t.signup;
-    }
+          const t = elements[lang];
+          document.getElementById("username").placeholder = t.username;
+          document.getElementById("password").placeholder = t.password;
+          document.getElementById("loginBtn").value = t.loginBtn;
+          document.getElementById("forgot").innerText = t.forgot;
+          document.getElementById("signup").innerText = t.signup;
+          document.getElementById("slogan").innerText = t.slogan;
+      }
   </script>
+
 </body>
 </html>
