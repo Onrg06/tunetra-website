@@ -63,19 +63,30 @@
     <button onclick="setLang('en')">ENG</button>
   </div>
 
-  <div class="container">
-    <h1 id="registerTitle">Kayıt Ol</h1>
-    <form id="registerForm">
-      <input type="text" id="fullName" placeholder="Ad Soyad" required>
-      <input type="date" id="dob" required>  <!-- EKSİK OLAN KISIM EKLENDİ -->
-      <input type="text" id="username" placeholder="Kullanıcı Adı" required>
-      <input type="password" id="password" placeholder="Birincil Şifre" required>
-      <input type="password" id="secondaryPassword" placeholder="İkincil Şifre" required>
-      <button id="registerBtn" type="submit">Kayıt Ol</button> </a>
-      <button id="loginBtn" type="button" onclick="window.location.href='index.html'">Giriş Yap</button>
-    </form>
-      <a href="index.html" id="login"
-  </div>
+<!-- Dil Seçme Butonları -->
+<div style="position: absolute; top: 20px; right: 20px; display: flex; gap: 10px;">
+  <button onclick="setLang('tr')">🇹🇷 Türkçe</button>
+  <button onclick="setLang('en')">ENG</button>
+</div>
+
+<div class="container">
+  <h1 id="registerTitle">Kayıt Ol</h1>
+  <form id="registerForm">
+    <input type="text" id="fullName" placeholder="Ad Soyad" required>
+    <input type="date" id="dob" required>
+    <input type="text" id="username" placeholder="Kullanıcı Adı" required>
+    <input type="password" id="password" placeholder="Birincil Şifre" required>
+    <input type="password" id="secondaryPassword" placeholder="İkincil Şifre" required>
+
+    <!-- Butonları yan yana koy ve aralarına boşluk ekle -->
+    <div style="display: flex; justify-content: space-between; gap: 10px;">
+      <button id="registerBtn" type="submit" style="width: 50%;">Kayıt Ol</button>
+      <button id="loginBtn" type="button" onclick="window.location.href='index.html'" style="width: 50%;">Giriş Yap</button>
+    </div>
+
+  </form>
+</div>
+
 
   <script>
     // Kayıt olma işlemi
