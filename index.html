@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TuneTRa Giriş</title>
   <style>
     * {
@@ -21,34 +21,16 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
-      position: relative;
       overflow: hidden;
       padding: 20px;
     }
 
     @keyframes gradientShift {
-      0% {background-position: 0% 50%;}
-      50% {background-position: 100% 50%;}
-      100% {background-position: 0% 50%;}
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
-    @media screen and (max-width: 600px) {
-  body {
-    transform: scale(0.85);
-    transform-origin: top center;
-    padding: 10px;
-  }
 
-  .logo {
-    width: 120px;
-    height: 120px;
-  }
-
-  .slogan-floating {
-    font-size: 1.4em;
-  }
-}
-
-    /* 📌 LOGO STİLİ */
     .logos {
       display: flex;
       justify-content: space-between;
@@ -69,7 +51,6 @@
       transform: scale(1.05);
     }
 
-    /* 📌 SLOGAN */
     .slogan-floating {
       font-size: 1.8em;
       font-weight: 800;
@@ -86,7 +67,6 @@
       100% { transform: scale(1); }
     }
 
-    /* 📌 DİL SEÇİMİ */
     .language-switcher {
       display: flex;
       justify-content: center;
@@ -111,7 +91,6 @@
       transform: scale(1.05);
     }
 
-    /* 📌 GİRİŞ FORMU */
     .login-container {
       background: rgba(0, 0, 0, 0.65);
       padding: 30px;
@@ -155,7 +134,6 @@
       background: linear-gradient(to right, #ffcc70, #6a11cb);
     }
 
-    /* 📌 BAĞLANTILAR */
     .links {
       margin-top: 20px;
       display: flex;
@@ -171,16 +149,24 @@
       padding: 10px 20px;
       border-radius: 5px;
       text-decoration: none;
-      width: 200px;
+      width: 100%;
+      max-width: 300px;
       text-align: center;
       font-weight: bold;
     }
 
-    .links a:hover {
+    .links a:nth-child(2) {
       background: linear-gradient(to right, #ffcc70, #6a11cb);
     }
 
-    /* 📱 MOBİL TASARIM İÇİN */
+    .links a:nth-child(3) {
+      background: linear-gradient(to right, #2575fc, #ffcc70);
+    }
+
+    .links a:hover {
+      background: linear-gradient(to right, #6a11cb, #ffcc70);
+    }
+
     @media screen and (max-width: 768px) {
       .logos {
         flex-direction: column;
@@ -193,34 +179,29 @@
       }
 
       .slogan-floating {
-        font-size: 1.5em;
+        font-size: 1.3em;
       }
 
       .language-switcher {
-        flex-direction: row;
-        justify-content: center;
+        flex-direction: column;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- 📌 LOGOLAR -->
   <div class="logos">
     <img src="image.png" class="logo" alt="TuneTRa Logo">
     <img src="image.png" class="logo" alt="TuneTRa Logo">
   </div>
 
-  <!-- 📌 SLOGAN -->
   <div class="slogan-floating" id="slogan">TuneTRa: Müziğin Doğuş Noktası</div>
 
-  <!-- 📌 DİL SEÇENEKLERİ -->
   <div class="language-switcher">
     <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
     <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
   </div>
 
-  <!-- 📌 GİRİŞ FORMU -->
   <div class="login-container">
     <h1>TuneTRa</h1>
     <form>
@@ -229,13 +210,46 @@
       <input type="submit" value="Giriş Yap" id="loginBtn"/>
     </form>
 
-    <!-- 📌 BAĞLANTILAR -->
     <div class="links">
       <a href="forgot-password.html" id="forgot">Şifremi Unuttum</a>
       <a href="forgot-username.html" id="forgot-username">Kullanıcı Adımı Unuttum</a>
       <a href="register.html" id="signup">Kayıt Ol</a>
     </div>
   </div>
+
+  <script>
+    function setLang(lang) {
+      const translations = {
+        tr: {
+          username: "Kullanıcı Adı",
+          password: "Şifre",
+          loginBtn: "Giriş Yap",
+          forgot: "Şifremi Unuttum",
+          forgotUsername: "Kullanıcı Adımı Unuttum",
+          signup: "Kayıt Ol",
+          slogan: "TuneTRa: Müziğin Doğuş Noktası"
+        },
+        en: {
+          username: "Username",
+          password: "Password",
+          loginBtn: "Log In",
+          forgot: "Forgot Password",
+          forgotUsername: "Forgot Username",
+          signup: "Sign Up",
+          slogan: "TuneTRa: Where Music Begins"
+        }
+      };
+
+      const t = translations[lang];
+      document.getElementById("username").placeholder = t.username;
+      document.getElementById("password").placeholder = t.password;
+      document.getElementById("loginBtn").value = t.loginBtn;
+      document.getElementById("forgot").innerText = t.forgot;
+      document.getElementById("forgot-username").innerText = t.forgotUsername;
+      document.getElementById("signup").innerText = t.signup;
+      document.getElementById("slogan").innerText = t.slogan;
+    }
+  </script>
 
 </body>
 </html>
