@@ -219,10 +219,13 @@
       }
     }[lang];
 
-    document.getElementById("username").placeholder = t.username;
-    document.getElementById("password").placeholder = t.password;
-    document.getElementById("loginBtn").value = t.loginBtn;
-    document.getElementById("slogan").innerText = lang === "tr" ? "TuneTRa: Müziğin Doğuş Noktası" : "TuneTRa: Where Music Begins";
+      document.getElementById("username").placeholder = t.username;
+      document.getElementById("password").placeholder = t.password;
+      document.getElementById("loginBtn").value = t.loginBtn;
+      document.getElementById("forgot").innerText = t.forgot;
+      document.getElementById("forgot-username").innerText = t.forgotUsername;
+      document.getElementById("signup").innerText = t.signup;
+      document.getElementById("slogan").innerText = t.slogan;
   }
 
   // Giriş Kontrolü
