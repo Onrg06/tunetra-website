@@ -56,7 +56,10 @@
   </style>
 </head>
 <body>
-
+<div style="position: absolute; top: 20px; right: 20px;">
+  <button onclick="setLang('tr')">🇹🇷 Türkçe</button>
+  <button onclick="setLang('en')">ENG</button>
+</div>
   <div class="container">
     <h1>Kayıt Ol</h1>
     <form id="registerForm">
@@ -92,7 +95,34 @@
       alert("Kayıt başarılı! Giriş yapabilirsiniz.");
       window.location.href = "index.html";
     });
-  </script>
+  <script>
+  function setLang(lang) {
+    const translations = {
+      tr: {
+        fullName: "Ad Soyad",
+        username: "Kullanıcı Adı",
+        password: "Birincil Şifre",
+        secondaryPassword: "İkincil Şifre",
+        registerBtn: "Kayıt Ol"
+      },
+      en: {
+        fullName: "Full Name",
+        username: "Username",
+        password: "Primary Password",
+        secondaryPassword: "Secondary Password",
+        registerBtn: "Register"
+      }
+    };
+
+    const t = translations[lang];
+    document.getElementById("fullName").placeholder = t.fullName;
+    document.getElementById("username").placeholder = t.username;
+    document.getElementById("password").placeholder = t.password;
+    document.getElementById("secondaryPassword").placeholder = t.secondaryPassword;
+    document.getElementById("registerBtn").innerText = t.registerBtn;
+  }
+</script>
+
 
 </body>
 </html>
