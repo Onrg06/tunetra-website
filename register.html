@@ -55,47 +55,28 @@
       border: none;
       cursor: pointer;
     }
-.language-switcher {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  display: flex;
-  gap: 10px;
-}
-
-.lang-btn {
-  background: linear-gradient(to right, #6a11cb, #2575fc);
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  font-weight: bold;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: 0.3s ease;
-}
-
-.lang-btn:hover {
-  background: linear-gradient(to right, #ffcc70, #6a11cb);
-  transform: scale(1.05);
-}
-
   </style>
 </head>
 <body>
-  <div class="language-switcher">
-    <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
-    <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
+
+  <div class="lang-buttons">
+    <button onclick="setLang('tr')">🇹🇷 Türkçe</button>
+    <button onclick="setLang('en')">🇬🇧 English</button>
   </div>
 
   <div class="container">
     <h2 id="title">Kayıt Ol</h2>
     <form id="registerForm">
-      <label id="dobLabel" for="dob">Doğum Tarihi:</label>
-      <input type="date" id="dob" required placeholder="GG.AA.YYYY">
       <input type="text" id="fullName" placeholder="Ad Soyad" required>
+      <input type="date" id="dob" required>
       <input type="text" id="username" placeholder="Kullanıcı Adı" required>
+
       <input type="password" id="password" placeholder="Birincil Şifre" required>
+      <input type="password" id="passwordConfirm" placeholder="Birincil Şifre Tekrar" required>
+
       <input type="password" id="secondaryPassword" placeholder="İkincil Şifre" required>
+      <input type="password" id="secondaryPasswordConfirm" placeholder="İkincil Şifre Tekrar" required>
+
       <button type="submit" id="registerBtn">Kayıt Ol</button>
     </form>
   </div>
@@ -104,21 +85,27 @@
     const translations = {
       tr: {
         title: "Kayıt Ol",
-        dobLabel: "Doğum Tarihi:",
         fullName: "Ad Soyad",
         username: "Kullanıcı Adı",
         password: "Birincil Şifre",
+        passwordConfirm: "Birincil Şifre Tekrar",
         secondaryPassword: "İkincil Şifre",
-        registerBtn: "Kayıt Ol"
+        secondaryPasswordConfirm: "İkincil Şifre Tekrar",
+        registerBtn: "Kayıt Ol",
+        success: "Kayıt başarılı!",
+        mismatch: "Şifreler eşleşmiyor!"
       },
       en: {
         title: "Sign Up",
-        dobLabel: "Date of Birth:",
         fullName: "Full Name",
         username: "Username",
         password: "Primary Password",
+        passwordConfirm: "Confirm Primary Password",
         secondaryPassword: "Secondary Password",
-        registerBtn: "Register"
+        secondaryPasswordConfirm: "Confirm Secondary Password",
+        registerBtn: "Register",
+        success: "Registration successful!",
+        mismatch: "Passwords do not match!"
       }
     };
 
@@ -131,24 +118,41 @@
       document.getElementById("fullName").placeholder = t.fullName;
       document.getElementById("username").placeholder = t.username;
       document.getElementById("password").placeholder = t.password;
+      document.getElementById("passwordConfirm").placeholder = t.passwordConfirm;
       document.getElementById("secondaryPassword").placeholder = t.secondaryPassword;
+      document.getElementById("secondaryPasswordConfirm").placeholder = t.secondaryPasswordConfirm;
       document.getElementById("registerBtn").innerText = t.registerBtn;
-      document.getElementById("dobLabel").innerText = t.dobLabel;
     }
 
     document.getElementById("registerForm").addEventListener("submit", function(e) {
       e.preventDefault();
+
+      const fullName = document.getElementById("fullName").value;
+      const dob = document.getElementById("dob").value;
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const passwordConfirm = document.getElementById("passwordConfirm").value;
+      const secondaryPassword = document.getElementById("secondaryPassword").value;
+      const secondaryPasswordConfirm = document.getElementById("secondaryPasswordConfirm").value;
+
+      if (password !== passwordConfirm || secondaryPassword !== secondaryPasswordConfirm) {
+        alert(translations[currentLang].mismatch);
+        return;
+      }
+
       const user = {
-        fullName: document.getElementById("fullName").value,
-        dob: document.getElementById("dob").value,
-        username: document.getElementById("username").value,
-        password: document.getElementById("password").value,
-        secondaryPassword: document.getElementById("secondaryPassword").value
+        fullName,
+        dob,
+        username,
+        password,
+        secondaryPassword
       };
-      localStorage.setItem(user.username, JSON.stringify(user));
-      alert(currentLang === "tr" ? "Kayıt başarılı!" : "Registration successful!");
+
+      localStorage.setItem(username, JSON.stringify(user));
+      alert(translations[currentLang].success);
       window.location.href = "index.html";
     });
   </script>
+
 </body>
 </html>
