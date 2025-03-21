@@ -167,24 +167,37 @@
       background: linear-gradient(to right, #6a11cb, #ffcc70);
     }
 
-    @media screen and (max-width: 768px) {
-      .logos {
-        flex-direction: column;
-        align-items: center;
-      }
+/* 📌 MASAÜSTÜ İÇİN (DEFAULT) */
+.logo {
+  width: 300px;
+  height: 300px;
+}
 
-      .logo {
-        width: 140px;
-        height: 140px;
-      }
+/* 📌 MOBİL İÇİN ÖZEL GÖRÜNÜM (max-width: 768px) */
+@media screen and (max-width: 768px) {
+  .logo {
+    width: 140px;
+    height: 140px;
+  }
 
-      .slogan-floating {
-        font-size: 1.3em;
-      }
+  .slogan-floating {
+    font-size: 1.4em;
+  }
 
-      .language-switcher {
-        flex-direction: column;
-      }
+  .login-container {
+    padding: 20px;
+  }
+
+  .lang-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .links a {
+    width: 90%;
+    font-size: 14px;
+  }
+}
     }
   </style>
 </head>
