@@ -122,7 +122,12 @@
   </style>
 </head>
 <body>
+<div class="language-switcher" style="position: absolute; top: 15px; right: 20px; z-index: 5;">
+  <button onclick="setLang('tr')">TR(TÜRKÇE)</button>
+  <button onclick="setLang('en')">ENG(ENGLISH)</button>
+</div>
 
+  
   <!-- **LOGOLAR** -->
   <img src="image.png" class="logo logo-left" alt="TuneTRa Logo">
   <img src="image.png" class="logo logo-right" alt="TuneTRa Logo">
@@ -139,6 +144,7 @@
       <input type="submit" value="Giriş Yap" id="loginBtn"/>
     </form>
 
+
     <!-- **Şifremi Unuttum, Kullanıcı Adımı Unuttum ve Kayıt Ol Butonları** -->
     <div class="links" style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px;">
       <a href="forgot-password.html" id="forgot" style="display: block; background: linear-gradient(to right, #00c6ff, #0072ff); color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; width: 200px; text-align: center;">Şifremi Unuttum</a>
@@ -146,6 +152,41 @@
       <a href="register.html" id="signup" style="display: block; background: linear-gradient(to right, #2575fc, #ffcc70); color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; width: 200px; text-align: center;">Kayıt Ol</a>
     </div>
   </div>
+
+<script>
+  function setLang(lang) {
+      const elements = {
+          tr: {
+              username: "Kullanıcı Adı",
+              password: "Şifre",
+              loginBtn: "Giriş Yap",
+              forgot: "Şifremi Unuttum",
+              forgotUsername: "Kullanıcı Adımı Unuttum",
+              signup: "Kayıt Ol",
+              slogan: "TuneTRa: Müziğin Doğuş Noktası"
+          },
+          en: {
+              username: "Username",
+              password: "Password",
+              loginBtn: "Log In",
+              forgot: "Forgot Password",
+              forgotUsername: "Forgot Username",
+              signup: "Sign Up",
+              slogan: "TuneTRa: Where Music Begins"
+          }
+      };
+
+      const t = elements[lang];
+
+      document.getElementById("username").placeholder = t.username;
+      document.getElementById("password").placeholder = t.password;
+      document.getElementById("loginBtn").value = t.loginBtn;
+      document.getElementById("forgot").innerText = t.forgot;
+      document.getElementById("forgot-username").innerText = t.forgotUsername;
+      document.getElementById("signup").innerText = t.signup;
+      document.getElementById("slogan").innerText = t.slogan;
+  }
+</script>
 
 </body>
 </html>
