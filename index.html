@@ -197,32 +197,35 @@
   </div>
 
 <script>
-  let currentLang = "tr"; // Varsayılan
+  let currentLang = "tr";
 
   function setLang(lang) {
     currentLang = lang;
+    const t = {
+      tr: {
+        username: "Kullanıcı Adı",
+        password: "Şifre",
+        loginBtn: "Giriş Yap",
+        forgot: "Şifremi Unuttum",
+        forgotUsername: "Kullanıcı Adımı Unuttum",
+        signup: "Kayıt Ol",
+        slogan: "TuneTRa: Müziğin Doğuş Noktası",
+        error: "Kullanıcı adı veya şifre hatalı!",
+        success: "Giriş başarılı!"
+      },
+      en: {
+        username: "Username",
+        password: "Password",
+        loginBtn: "Log In",
+        forgot: "Forgot Password",
+        forgotUsername: "Forgot Username",
+        signup: "Sign Up",
+        slogan: "TuneTRa: Where Music Begins",
+        error: "Incorrect username or password!",
+        success: "Login successful!"
+      }
+    }[lang];
 
-    const tr = {
-      username: "Kullanıcı Adı",
-      password: "Şifre",
-      loginBtn: "Giriş Yap",
-      forgot: "Şifremi Unuttum",
-      forgotUsername: "Kullanıcı Adımı Unuttum",
-      signup: "Kayıt Ol",
-      slogan: "TuneTRa: Müziğin Doğuş Noktası",
-      error: "Kullanıcı adı veya şifre hatalı!"
-    };
-    const en = {
-      username: "Username",
-      password: "Password",
-      loginBtn: "Log In",
-      forgot: "Forgot Password",
-      forgotUsername: "Forgot Username",
-      signup: "Sign Up",
-      slogan: "TuneTRa: Where Music Begins",
-      error: "Incorrect username or password!"
-    };
-    const t = lang === 'tr' ? tr : en;
     document.getElementById("username").placeholder = t.username;
     document.getElementById("password").placeholder = t.password;
     document.getElementById("loginBtn").value = t.loginBtn;
@@ -232,7 +235,7 @@
     document.getElementById("slogan").innerText = t.slogan;
   }
 
-  // Giriş Kontrolü
+  // Giriş kontrolü
   document.querySelector("form").addEventListener("submit", function(e) {
     e.preventDefault();
     const username = document.getElementById("username").value;
@@ -243,12 +246,13 @@
       const user = JSON.parse(userData);
       if (user.password === password) {
         alert(currentLang === "tr" ? "Giriş başarılı!" : "Login successful!");
-        // yönlendirme yapılabilir
-        return;
+        window.location.href = "anasayfa.html";  // ✅ Başarılıysa yönlendir
+      } else {
+        alert(currentLang === "tr" ? "Şifre hatalı!" : "Incorrect password!");
       }
+    } else {
+      alert(currentLang === "tr" ? "Kullanıcı bulunamadı!" : "User not found!");
     }
-
-    alert(currentLang === "tr" ? "Kullanıcı adı veya şifre hatalı!" : "Incorrect username or password!");
   });
 </script>
 
