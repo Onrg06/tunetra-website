@@ -13,13 +13,13 @@
       height: 100vh;
       color: white;
       font-family: Arial, sans-serif;
+      text-align: center;
     }
     .container {
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(0, 0, 0, 0.7);
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-      text-align: center;
       width: 350px;
     }
     input {
@@ -53,27 +53,28 @@
     a:hover {
       color: white;
     }
-    .logo-container {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .logo {
-      width: 150px;
+    .language-buttons {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
     }
   </style>
 </head>
 <body>
 
   <!-- Dil Seçme Butonları -->
-  <div style="position: absolute; top: 20px; right: 20px; display: flex; gap: 10px;">
-    <button onclick="setLang('tr')">TR(TÜRKÇE)</button>
-    <button onclick="setLang('en')">ENG(ENGLISH)</button>
+  <div class="language-buttons">
+    <button onclick="setLang('tr')">🇹🇷 Türkçe</button>
+    <button onclick="setLang('en')">ENG</button>
   </div>
 
+  <div class="container">
     <h1 id="forgotUsernameTitle">Kullanıcı Adımı Unuttum</h1>
     <form id="forgotUsernameForm">
       <label id="dobLabel" for="dob">Doğum Tarihi:</label>
-      <input type="date" id="dob" required>
+      <input type="date" id="dob" required placeholder="GG.AA.YYYY">
       <input type="text" id="fullName" placeholder="Ad Soyad" required>
       <input type="password" id="password" placeholder="Birincil veya İkincil Şifre" required>
       <button id="recoverBtn" type="submit">Kullanıcı Adını Bul</button>
@@ -92,7 +93,6 @@
 
       let foundUsername = null;
 
-      // localStorage içindeki tüm kullanıcıları kontrol et
       for (let i = 0; i < localStorage.length; i++) {
         let key = localStorage.key(i);
         let user = JSON.parse(localStorage.getItem(key));
