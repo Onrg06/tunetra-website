@@ -1,0 +1,73 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TuneTRa Kayıt Ol</title>
+  <style>
+    body {
+      background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+      text-align: center;
+      width: 350px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 5px;
+      background: #2a2a2a;
+      color: white;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      border: none;
+      border-radius: 5px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: linear-gradient(to right, #ffcc70, #6a11cb);
+    }
+    a {
+      display: block;
+      margin-top: 10px;
+      color: #ccc;
+      text-decoration: none;
+    }
+    a:hover {
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Kayıt Ol</h1>
+    <form>
+      <input type="text" placeholder="Kullanıcı Adı" required>
+      <input type="password" placeholder="Birincil Şifre" required>
+      <input type="password" placeholder="İkincil Şifre (Şifremi Unuttum için)" required>
+      <button type="submit">Kayıt Ol</button>
+    </form>
+    <a href="index.html">Giriş Yap</a>
+  </div>
+
+</body>
+</html>
