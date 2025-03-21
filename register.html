@@ -56,26 +56,28 @@
   </style>
 </head>
 <body>
-<div style="position: absolute; top: 20px; right: 20px;">
-  <div class="language-switcher">
-    <button onclick="setLang('tr')">TR(Türkçe)</button>
-    <button onclick="setLang('en')">ENG(English)</button>
+
+  <!-- Dil Seçme Butonları -->
+  <div style="position: absolute; top: 20px; right: 20px;">
+    <button onclick="setLang('tr')">🇹🇷 Türkçe</button>
+    <button onclick="setLang('en')">ENG</button>
   </div>
-</div>
+
   <div class="container">
-    <h1>Kayıt Ol</h1>
+    <h1 id="registerTitle">Kayıt Ol</h1>
     <form id="registerForm">
-  <input type="text" id="fullName" placeholder="Ad Soyad" required>
-  <input type="text" id="username" placeholder="Kullanıcı Adı" required>
-  <input type="password" id="password" placeholder="Birincil Şifre" required>
-  <input type="password" id="secondaryPassword" placeholder="İkincil Şifre" required>
-  <button id="registerBtn" type="submit">Kayıt Ol</button>
-      <button type="submit">Kayıt Ol</button>
+      <input type="text" id="fullName" placeholder="Ad Soyad" required>
+      <input type="date" id="dob" required>  <!-- EKSİK OLAN KISIM EKLENDİ -->
+      <input type="text" id="username" placeholder="Kullanıcı Adı" required>
+      <input type="password" id="password" placeholder="Birincil Şifre" required>
+      <input type="password" id="secondaryPassword" placeholder="İkincil Şifre" required>
+      <button id="registerBtn" type="submit">Kayıt Ol</button>
     </form>
     <a href="index.html">Giriş Yap</a>
   </div>
 
   <script>
+    // Kayıt olma işlemi
     document.getElementById("registerForm").addEventListener("submit", function(event) {
       event.preventDefault();
 
@@ -97,34 +99,39 @@
       alert("Kayıt başarılı! Giriş yapabilirsiniz.");
       window.location.href = "index.html";
     });
-  <script>
-  function setLang(lang) {
-    const translations = {
-      tr: {
-        fullName: "Ad Soyad",
-        username: "Kullanıcı Adı",
-        password: "Birincil Şifre",
-        secondaryPassword: "İkincil Şifre",
-        registerBtn: "Kayıt Ol"
-      },
-      en: {
-        fullName: "Full Name",
-        username: "Username",
-        password: "Primary Password",
-        secondaryPassword: "Secondary Password",
-        registerBtn: "Register"
-      }
-    };
-
-    const t = translations[lang];
-    document.getElementById("fullName").placeholder = t.fullName;
-    document.getElementById("username").placeholder = t.username;
-    document.getElementById("password").placeholder = t.password;
-    document.getElementById("secondaryPassword").placeholder = t.secondaryPassword;
-    document.getElementById("registerBtn").innerText = t.registerBtn;
-  }
   </script>
 
+  <script>
+    // Dil Değiştirme Fonksiyonu
+    function setLang(lang) {
+      const translations = {
+        tr: {
+          registerTitle: "Kayıt Ol",
+          fullName: "Ad Soyad",
+          username: "Kullanıcı Adı",
+          password: "Birincil Şifre",
+          secondaryPassword: "İkincil Şifre",
+          registerBtn: "Kayıt Ol"
+        },
+        en: {
+          registerTitle: "Sign Up",
+          fullName: "Full Name",
+          username: "Username",
+          password: "Primary Password",
+          secondaryPassword: "Secondary Password",
+          registerBtn: "Register"
+        }
+      };
+
+      const t = translations[lang];
+      document.getElementById("registerTitle").innerText = t.registerTitle;
+      document.getElementById("fullName").placeholder = t.fullName;
+      document.getElementById("username").placeholder = t.username;
+      document.getElementById("password").placeholder = t.password;
+      document.getElementById("secondaryPassword").placeholder = t.secondaryPassword;
+      document.getElementById("registerBtn").innerText = t.registerBtn;
+    }
+  </script>
 
 </body>
 </html>
