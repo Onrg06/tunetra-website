@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TuneTRa | Giriş</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+      margin: 0;
+      position: relative;
+    }
+
+    .container {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 30px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.2);
+      text-align: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 6px;
+      background: #2a2a2a;
+      color: white;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: linear-gradient(to right, #ffcc70, #6a11cb);
+    }
+
+    .language-switcher {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .lang-btn {
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    .lang-btn:hover {
+      background: linear-gradient(to right, #ffcc70, #6a11cb);
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+
+<div class="language-switcher">
+  <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
+  <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
+</div>
+
+<div class="container">
+  <h2 id="title">Giriş Yap</h2>
+  <form id="loginForm">
+    <input type="text" id="username" placeholder="Kullanıcı Adı" required>
+    <input type="password" id="password" placeholder="Şifre" required>
+    <button type="submit" id="loginBtn">Giriş Yap</button>
+  </form>
+</div>
+
+<script>
+  const translations = {
+    tr: {
+      title: "Giriş Yap",
+      username: "Kullanıcı Adı",
+      password: "Şifre",
+      loginBtn: "Giriş Yap"
+    },
+    en: {
+      title: "Log In",
+      username: "Username",
+      password: "Password",
+      loginBtn: "Log In"
+    }
+  };
+
+  let currentLang = "tr";
+
+  function setLang(lang) {
+    currentLang = lang;
+    const t = translations[lang];
+    document.getElementById("title").innerText = t.title;
+    document.getElementById("username").placeholder = t.username;
+    document.getElementById("password").placeholder = t.password;
+    document.getElementById("loginBtn").innerText = t.loginBtn;
+  }
+
+  document.getElementById("loginForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    const userData = localStorage.getItem(username);
+    if (userData) {
+      const user = JSON.parse(userData);
+      if (user.password === password) {
+        alert(currentLang === "tr" ? "Giriş başarılı!" : "Login successful!");
+      } else {
+        alert(currentLang === "tr" ? "Şifre hatalı!" : "Incorrect password!");
+      }
+    } else {
+      alert(currentLang === "tr" ? "Kullanıcı bulunamadı!" : "User not found!");
+    }
+  });
+</script>
+
+</body>
+</html>
