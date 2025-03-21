@@ -196,36 +196,53 @@
     </div>
   </div>
 
-  <script>
-    function setLang(lang) {
-      const tr = {
+<!-- Sadece <script> kısmını veriyorum çünkü senin giriş tasarımın zaten çok güzel -->
+
+<script>
+  let currentLang = "tr"; // Varsayılan
+
+  function setLang(lang) {
+    currentLang = lang;
+
+    const t = {
+      tr: {
         username: "Kullanıcı Adı",
         password: "Şifre",
         loginBtn: "Giriş Yap",
-        forgot: "Şifremi Unuttum",
-        forgotUsername: "Kullanıcı Adımı Unuttum",
-        signup: "Kayıt Ol",
-        slogan: "TuneTRa: Müziğin Doğuş Noktası"
-      };
-      const en = {
+        error: "Kullanıcı adı veya şifre hatalı!"
+      },
+      en: {
         username: "Username",
         password: "Password",
         loginBtn: "Log In",
-        forgot: "Forgot Password",
-        forgotUsername: "Forgot Username",
-        signup: "Sign Up",
-        slogan: "TuneTRa: Where Music Begins"
-      };
-      const t = lang === 'tr' ? tr : en;
-      document.getElementById("username").placeholder = t.username;
-      document.getElementById("password").placeholder = t.password;
-      document.getElementById("loginBtn").value = t.loginBtn;
-      document.getElementById("forgot").innerText = t.forgot;
-      document.getElementById("forgot-username").innerText = t.forgotUsername;
-      document.getElementById("signup").innerText = t.signup;
-      document.getElementById("slogan").innerText = t.slogan;
-    }
-  </script>
+        error: "Incorrect username or password!"
+      }
+    }[lang];
 
+    document.getElementById("username").placeholder = t.username;
+    document.getElementById("password").placeholder = t.password;
+    document.getElementById("loginBtn").value = t.loginBtn;
+    document.getElementById("slogan").innerText = lang === "tr" ? "TuneTRa: Müziğin Doğuş Noktası" : "TuneTRa: Where Music Begins";
+  }
+
+  // Giriş Kontrolü
+  document.querySelector("form").addEventListener("submit", function(e) {
+    e.preventDefault();
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    const userData = localStorage.getItem(username);
+
+    if (userData) {
+      const user = JSON.parse(userData);
+      if (user.password === password) {
+        alert(currentLang === "tr" ? "Giriş başarılı!" : "Login successful!");
+        // yönlendirme yapılabilir
+        return;
+      }
+    }
+    // Hatalı giriş
+    alert(currentLang === "tr" ? "Kullanıcı adı veya şifre hatalı!" : "Incorrect username or password!");
+  });
+</script>
 </body>
 </html>
