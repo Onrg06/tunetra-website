@@ -71,8 +71,8 @@
       <input type="text" id="username" placeholder="Kullanıcı Adı" required>
       <input type="password" id="password" placeholder="Birincil Şifre" required>
       <input type="password" id="secondaryPassword" placeholder="İkincil Şifre" required>
-      <button id="registerBtn" type="submit">Kayıt Ol</button>
-      <button id="login" type="submit">Giriş Yap</button>
+      <button id="registerBtn" type="submit">Kayıt Ol</button> </a>
+      <button id="loginBtn" type="button" onclick="window.location.href='index.html'">Giriş Yap</button>
     </form>
       <a href="index.html" id="login"
   </div>
@@ -112,7 +112,7 @@
           username: "Kullanıcı Adı",
           password: "Birincil Şifre",
           secondaryPassword: "İkincil Şifre",
-          registerBtn: "Kayıt Ol"
+          registerBtn: "Kayıt Ol",
           login: "Giriş Yap"
         },
         en: {
@@ -121,7 +121,7 @@
           username: "Username",
           password: "Primary Password",
           secondaryPassword: "Secondary Password",
-          registerBtn: "Register"
+          registerBtn: "Register",
           login: "Log In"
         }
       };
@@ -133,6 +133,7 @@
       document.getElementById("password").placeholder = t.password;
       document.getElementById("secondaryPassword").placeholder = t.secondaryPassword;
       document.getElementById("registerBtn").innerText = t.registerBtn;
+      document.getElementById("loginBtn").innerText = t.login;
     }
   </script>
 
