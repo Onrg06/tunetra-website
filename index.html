@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -30,29 +29,6 @@
       50% {background-position: 100% 50%;}
       100% {background-position: 0% 50%;}
     }
-
-    .note {
-      position: absolute;
-      width: 40px;
-      opacity: 0.15;
-      animation: float 8s infinite ease-in-out;
-    }
-
-    @keyframes float {
-      0% { transform: translateY(0) rotate(0deg); }
-      50% { transform: translateY(-20px) rotate(15deg); }
-      100% { transform: translateY(0) rotate(0deg); }
-    }
-
-    .note1 { top: 10%; left: 5%; }
-    .note2 { top: 20%; right: 10%; }
-    .note3 { bottom: 25%; left: 15%; }
-    .note4 { bottom: 10%; right: 5%; }
-    .note5 { top: 50%; left: 45%; opacity: 0.3; }
-    .note6 { top: 65%; right: 35%; }
-    .note7 { bottom: 40%; left: 40%; }
-    .note8 { top: 30%; left: 25%; }
-    .note9 { bottom: 15%; right: 20%; }
 
     .slogan-floating {
       position: absolute;
@@ -98,6 +74,7 @@
       width: 100%;
       max-width: 400px;
       z-index: 3;
+      text-align: center;
     }
 
     .login-container h1 {
@@ -106,8 +83,7 @@
       color: #ffffff;
     }
 
-    .login-container input[type="text"],
-    .login-container input[type="password"] {
+    .login-container input {
       width: 100%;
       padding: 12px;
       margin: 10px 0;
@@ -118,13 +94,7 @@
     }
 
     .login-container input[type="submit"] {
-      width: 100%;
-      padding: 12px;
-      margin-top: 20px;
-      border: none;
-      border-radius: 6px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
-      color: white;
       font-weight: bold;
       cursor: pointer;
       transition: 0.3s ease;
@@ -137,37 +107,70 @@
     .links {
       margin-top: 20px;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
     }
 
     .links a {
-      color: #ccc;
+      display: block;
+      background: linear-gradient(to right, #00c6ff, #0072ff);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
       text-decoration: none;
-      margin: 0 10px;
-      font-size: 0.9em;
+      width: 200px;
+      text-align: center;
     }
 
     .links a:hover {
-      color: #fff;
+      background: linear-gradient(to right, #ffcc70, #6a11cb);
     }
+
+    /* LOGO STİLLERİ */
+    .logo {
+      position: absolute;
+      width: 120px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0.9;
+      z-index: 2;
+    }
+
+    .logo-left {
+      left: 8%;
+    }
+
+    .logo-right {
+      right: 8%;
+    }
+
+    @media (max-width: 768px) {
+      .logo {
+        width: 80px;
+      }
+      .logo-left {
+        left: 5%;
+      }
+      .logo-right {
+        right: 5%;
+      }
+    }
+
   </style>
 </head>
 <body>
+  <!-- LOGOLAR -->
+  <img src="tunetra-logo.png" alt="TuneTRa Logo" class="logo logo-left">
+  <img src="tunetra-logo.png" alt="TuneTRa Logo" class="logo logo-right">
+
   <div class="slogan-floating" id="slogan">TuneTRa: Müziğin Doğuş Noktası</div>
 
   <div class="language-switcher">
     <button onclick="setLang('tr')">TR(TÜRKÇE)</button>
     <button onclick="setLang('en')">ENG(ENGLISH)</button>
   </div>
-
-  <img src="https://cdn-icons-png.flaticon.com/512/727/727245.png" class="note note1">
-  <img src="https://cdn-icons-png.flaticon.com/512/727/727248.png" class="note note2">
-  <img src="https://cdn-icons-png.flaticon.com/512/727/727241.png" class="note note3">
-  <img src="https://cdn-icons-png.flaticon.com/512/727/727240.png" class="note note4">
-  <img src="https://cdn-icons-png.flaticon.com/512/727/727244.png" class="note note5">
-  <img src="https://cdn-icons-png.flaticon.com/512/727/727243.png" class="note note6">
-  <img src="https://cdn-icons-png.flaticon.com/512/727/727242.png" class="note note7">
-  <img src="https://cdn-icons-png.flaticon.com/512/727/727246.png" class="note note8">
-  <img src="https://cdn-icons-png.flaticon.com/512/727/727249.png" class="note note9">
 
   <div class="login-container">
     <h1>TuneTRa</h1>
@@ -177,15 +180,13 @@
       <input type="submit" value="Giriş Yap" id="loginBtn"/>
     </form>
 
-  <div class="links" style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px;">
-  <a href="forgot-password.html" id="forgot" style="display: block; background: linear-gradient(to right, #00c6ff, #0072ff); color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; width: 200px; text-align: center;">Şifremi Unuttum</a>
-  <a href="forgot-username.html" id="forgot-username" style="display: block; background: linear-gradient(to right, #ffcc70, #6a11cb); color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; width: 200px; text-align: center;">Kullanıcı Adımı Unuttum</a>
-  <a href="register.html" id="signup" style="display: block; background: linear-gradient(to right, #2575fc, #ffcc70); color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; width: 200px; text-align: center;">Kayıt Ol</a>
-</div>
+    <div class="links">
+      <a href="forgot-password.html" id="forgot">Şifremi Unuttum</a>
+      <a href="forgot-username.html" id="forgot-username">Kullanıcı Adımı Unuttum</a>
+      <a href="register.html" id="signup">Kayıt Ol</a>
+    </div>
 
-    </div>
-    </div>
-    </div>
+  </div>
 
   <script>
       function setLang(lang) {
