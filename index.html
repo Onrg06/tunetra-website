@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TuneTRa Giriş</title>
   <style>
     * {
@@ -18,60 +18,46 @@
       animation: gradientShift 12s ease infinite;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      height: 100vh;
-      overflow: hidden;
+      min-height: 100vh;
       padding: 20px;
     }
 
     @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
     }
 
     .logos {
       display: flex;
-      justify-content: space-between;
-      width: 100%;
-      max-width: 800px;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
       margin-bottom: 20px;
     }
 
     .logo {
-      width: 300px;
-      height: 300px;
+      width: 220px;
+      height: 220px;
       border-radius: 50%;
       object-fit: cover;
       transition: 0.3s ease;
     }
 
-    .logo:hover {
-      transform: scale(1.05);
-    }
-
-    .slogan-floating {
-      font-size: 1.8em;
-      font-weight: 800;
-      color: #ffffff;
-      text-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
-      animation: pulse 3s ease-in-out infinite;
+    .slogan {
+      font-size: 2rem;
+      font-weight: bold;
+      color: white;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      margin-bottom: 20px;
       text-align: center;
-      margin-bottom: 15px;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.08); }
-      100% { transform: scale(1); }
     }
 
     .language-switcher {
       display: flex;
-      justify-content: center;
       gap: 10px;
-      margin-bottom: 15px;
+      margin-bottom: 20px;
     }
 
     .lang-btn {
@@ -80,15 +66,13 @@
       color: white;
       padding: 8px 14px;
       font-size: 14px;
-      font-weight: bold;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
-      transition: all 0.3s ease;
+      font-weight: bold;
     }
 
     .lang-btn:hover {
       background: linear-gradient(to right, #ffcc70, #6a11cb);
-      transform: scale(1.05);
     }
 
     .login-container {
@@ -96,13 +80,13 @@
       padding: 30px;
       border-radius: 12px;
       box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
-      width: 90%;
+      width: 100%;
       max-width: 400px;
       text-align: center;
     }
 
     .login-container h1 {
-      color: #ffffff;
+      color: white;
       margin-bottom: 20px;
     }
 
@@ -114,7 +98,7 @@
       border: none;
       border-radius: 6px;
       background-color: #2a2a2a;
-      color: #fff;
+      color: white;
     }
 
     .login-container input[type="submit"] {
@@ -127,7 +111,6 @@
       color: white;
       font-weight: bold;
       cursor: pointer;
-      transition: 0.3s ease;
     }
 
     .login-container input[type="submit"]:hover {
@@ -138,7 +121,6 @@
       margin-top: 20px;
       display: flex;
       flex-direction: column;
-      align-items: center;
       gap: 10px;
     }
 
@@ -147,11 +129,8 @@
       background: linear-gradient(to right, #00c6ff, #0072ff);
       color: white;
       padding: 10px 20px;
-      border-radius: 5px;
+      border-radius: 6px;
       text-decoration: none;
-      width: 100%;
-      max-width: 300px;
-      text-align: center;
       font-weight: bold;
     }
 
@@ -163,52 +142,42 @@
       background: linear-gradient(to right, #2575fc, #ffcc70);
     }
 
-    .links a:hover {
-      background: linear-gradient(to right, #6a11cb, #ffcc70);
-    }
+    /* RESPONSIVE */
+    @media screen and (max-width: 768px) {
+      .logo {
+        width: 120px;
+        height: 120px;
+      }
 
-/* 📌 MASAÜSTÜ İÇİN (DEFAULT) */
-.logo {
-  width: 300px;
-  height: 300px;
-}
+      .slogan {
+        font-size: 1.4rem;
+        margin: 10px 0;
+      }
 
-/* 📌 MOBİL İÇİN ÖZEL GÖRÜNÜM (max-width: 768px) */
-@media screen and (max-width: 768px) {
-  .logo {
-    width: 140px;
-    height: 140px;
-  }
+      .login-container {
+        padding: 20px;
+      }
 
-  .slogan-floating {
-    font-size: 1.4em;
-  }
+      .lang-btn {
+        font-size: 12px;
+        padding: 6px 10px;
+      }
 
-  .login-container {
-    padding: 20px;
-  }
-
-  .lang-btn {
-    padding: 6px 10px;
-    font-size: 12px;
-  }
-
-  .links a {
-    width: 90%;
-    font-size: 14px;
-  }
-}
+      .links a {
+        font-size: 14px;
+        padding: 8px;
+      }
     }
   </style>
 </head>
 <body>
 
   <div class="logos">
-    <img src="image.png" class="logo" alt="TuneTRa Logo">
-    <img src="image.png" class="logo" alt="TuneTRa Logo">
+    <img src="image.png" alt="Logo" class="logo">
+    <img src="image.png" alt="Logo" class="logo">
   </div>
 
-  <div class="slogan-floating" id="slogan">TuneTRa: Müziğin Doğuş Noktası</div>
+  <div class="slogan" id="slogan">TuneTRa: Müziğin Doğuş Noktası</div>
 
   <div class="language-switcher">
     <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
@@ -220,7 +189,7 @@
     <form>
       <input type="text" id="username" placeholder="Kullanıcı Adı" required />
       <input type="password" id="password" placeholder="Şifre" required />
-      <input type="submit" value="Giriş Yap" id="loginBtn"/>
+      <input type="submit" id="loginBtn" value="Giriş Yap" />
     </form>
 
     <div class="links">
@@ -232,28 +201,25 @@
 
   <script>
     function setLang(lang) {
-      const translations = {
-        tr: {
-          username: "Kullanıcı Adı",
-          password: "Şifre",
-          loginBtn: "Giriş Yap",
-          forgot: "Şifremi Unuttum",
-          forgotUsername: "Kullanıcı Adımı Unuttum",
-          signup: "Kayıt Ol",
-          slogan: "TuneTRa: Müziğin Doğuş Noktası"
-        },
-        en: {
-          username: "Username",
-          password: "Password",
-          loginBtn: "Log In",
-          forgot: "Forgot Password",
-          forgotUsername: "Forgot Username",
-          signup: "Sign Up",
-          slogan: "TuneTRa: Where Music Begins"
-        }
+      const tr = {
+        username: "Kullanıcı Adı",
+        password: "Şifre",
+        loginBtn: "Giriş Yap",
+        forgot: "Şifremi Unuttum",
+        forgotUsername: "Kullanıcı Adımı Unuttum",
+        signup: "Kayıt Ol",
+        slogan: "TuneTRa: Müziğin Doğuş Noktası"
       };
-
-      const t = translations[lang];
+      const en = {
+        username: "Username",
+        password: "Password",
+        loginBtn: "Log In",
+        forgot: "Forgot Password",
+        forgotUsername: "Forgot Username",
+        signup: "Sign Up",
+        slogan: "TuneTRa: Where Music Begins"
+      };
+      const t = lang === 'tr' ? tr : en;
       document.getElementById("username").placeholder = t.username;
       document.getElementById("password").placeholder = t.password;
       document.getElementById("loginBtn").value = t.loginBtn;
