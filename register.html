@@ -67,8 +67,9 @@
   <div class="container">
     <h2 id="title">Kayıt Ol</h2>
     <form id="registerForm">
+      <label id="dobLabel" for="dob">Doğum Tarihi:</label>
+      <input type="date" id="dob" required placeholder="GG.AA.YYYY">
       <input type="text" id="fullName" placeholder="Ad Soyad" required>
-      <input type="date" id="dob" required>
       <input type="text" id="username" placeholder="Kullanıcı Adı" required>
 
       <input type="password" id="password" placeholder="Birincil Şifre" required>
@@ -93,7 +94,8 @@
         secondaryPasswordConfirm: "İkincil Şifre Tekrar",
         registerBtn: "Kayıt Ol",
         success: "Kayıt başarılı!",
-        mismatch: "Şifreler eşleşmiyor!"
+        mismatch: "Şifreler eşleşmiyor!",
+        dobLabel: "Doğum Tarihi"
       },
       en: {
         title: "Sign Up",
@@ -105,7 +107,8 @@
         secondaryPasswordConfirm: "Confirm Secondary Password",
         registerBtn: "Register",
         success: "Registration successful!",
-        mismatch: "Passwords do not match!"
+        mismatch: "Passwords do not match!",
+        dobLabel: "Date of Birth"
       }
     };
 
@@ -122,6 +125,7 @@
       document.getElementById("secondaryPassword").placeholder = t.secondaryPassword;
       document.getElementById("secondaryPasswordConfirm").placeholder = t.secondaryPasswordConfirm;
       document.getElementById("registerBtn").innerText = t.registerBtn;
+      document.getElementById("dobLabel").innerText = t.dobLabel;
     }
 
     document.getElementById("registerForm").addEventListener("submit", function(e) {
