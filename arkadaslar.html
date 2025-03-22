@@ -186,22 +186,21 @@
     async function searchUser() {
       const queryText = document.getElementById("searchInput").value.trim().toLowerCase();
       if (!queryText) return;
-      const usersSnapshot = await getDocs(collection(db, "users"));
+      const q = query(collection(db, "users"), where("username", "==", queryText));
+      const querySnapshot = await getDocs(q);
       const resultContainer = document.getElementById("searchResults");
       resultContainer.innerHTML = "";
-      usersSnapshot.forEach(docSnap => {
+
+      querySnapshot.forEach(docSnap => {
+        if (docSnap.id === currentUser.uid) return;
         const data = docSnap.data();
-        if (!data.username) return;
-        const username = data.username.toLowerCase();
-        if (username.includes(queryText) && docSnap.id !== currentUser.uid) {
-          const div = document.createElement("div");
-          div.innerText = data.username + " ";
-          const btn = document.createElement("button");
-          btn.innerText = "➕";
-          btn.onclick = () => sendRequest(docSnap.id);
-          div.appendChild(btn);
-          resultContainer.appendChild(div);
-        }
+        const div = document.createElement("div");
+        div.innerText = data.username + " ";
+        const btn = document.createElement("button");
+        btn.innerText = "➕";
+        btn.onclick = () => sendRequest(docSnap.id);
+        div.appendChild(btn);
+        resultContainer.appendChild(div);
       });
     }
 
