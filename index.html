@@ -254,7 +254,7 @@
 
       await signInWithEmailAndPassword(auth, matchedEmail, password);
       alert(translations[currentLang].success);
-      window.location.href = "home.html"; // Anasayfa burada yönlendirilir
+      window.location.href = "anasayfa.html"; // Anasayfa burada yönlendirilir
     } catch (err) {
       console.error(err);
       alert(translations[currentLang].error);
