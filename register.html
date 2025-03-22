@@ -116,7 +116,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -147,6 +147,7 @@
         error: "Bir hata oluştu!",
         mismatch: "Şifreler uyuşmuyor!",
         emailUsed: "Bu e-posta zaten kullanılıyor.",
+        usernameUsed: "Bu kullanıcı adı zaten alınmış.",
         invalidEmail: "Geçersiz e-posta adresi.",
         weakPassword: "Şifre çok zayıf. En az 6 karakter olmalı.",
         unknown: "Bilinmeyen bir hata oluştu."
@@ -165,6 +166,7 @@
         error: "An error occurred!",
         mismatch: "Passwords do not match!",
         emailUsed: "This email is already in use.",
+        usernameUsed: "This username is already taken.",
         invalidEmail: "Invalid email address.",
         weakPassword: "Password is too weak. It should be at least 6 characters.",
         unknown: "An unknown error occurred."
@@ -197,13 +199,21 @@
 
         const fullName = document.getElementById("fullName").value;
         const dob = document.getElementById("dob").value;
-        const username = document.getElementById("username").value;
+        const username = document.getElementById("username").value.trim();
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
         const confirmPassword = document.getElementById("confirmPassword").value;
 
         if (password !== confirmPassword) {
           errorBox.innerText = translations[currentLang].mismatch;
+          return;
+        }
+
+        // Kullanıcı adı kontrolü
+        const q = query(collection(db, "users"), where("username", "==", username));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          errorBox.innerText = translations[currentLang].usernameUsed;
           return;
         }
 
