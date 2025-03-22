@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TuneTRa | Profil</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      color: white;
+    }
+    @keyframes gradientShift {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+    .container {
+      max-width: 600px;
+      margin: 60px auto;
+      background: rgba(0,0,0,0.7);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.3);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: none;
+      border-radius: 5px;
+      background: #2a2a2a;
+      color: white;
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px;
+      width: 100%;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: linear-gradient(to right, #ffcc70, #6a11cb);
+    }
+    .profile-pic {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      margin: 0 auto 20px;
+      border: 3px solid white;
+    }
+    .lang-switch {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+    .lang-btn {
+      margin-left: 10px;
+      padding: 6px 10px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="lang-switch">
+    <button class="lang-btn" onclick="setLang('tr')">🇹🇷</button>
+    <button class="lang-btn" onclick="setLang('en')">🇬🇧</button>
+  </div>
+
+  <div class="container">
+    <h2 id="profileTitle">Profil Bilgilerim</h2>
+    <img id="profileImage" src="default.png" alt="Profil Foto" class="profile-pic">
+    <input type="file" id="uploadPic">
+
+    <label id="labelFullName">Ad Soyad</label>
+    <input type="text" id="fullName" disabled>
+
+    <label id="labelEmail">E-posta</label>
+    <input type="email" id="email" disabled>
+
+    <label id="labelUsername">Kullanıcı Adı</label>
+    <input type="text" id="username">
+    <button onclick="updateUsername()">Kullanıcı Adını Güncelle</button>
+
+    <label id="labelDob">Doğum Tarihi</label>
+    <input type="date" id="dob" disabled>
+
+    <label id="labelTheme">Tema</label>
+    <select id="themeSelect">
+      <option value="light">Açık</option>
+      <option value="dark">Koyu</option>
+      <option value="purple">Mor</option>
+    </select>
+    <button onclick="saveTheme()">Temayı Kaydet</button>
+
+    <label id="labelPassword">Yeni Şifre</label>
+    <input type="password" id="newPassword">
+    <button onclick="updatePassword()">Şifreyi Güncelle</button>
+
+    <button style="background: red;" onclick="deleteAccount()">Hesabı Sil</button>
+  </div>
+
+  <!-- Firebase script burada entegre edilecek -->
+  <script>
+    function setLang(lang) {
+      // Çoklu dil desteği buraya eklenecek
+    }
+    function updateUsername() {
+      // Firestore username update
+    }
+    function updatePassword() {
+      // Firebase şifre update
+    }
+    function saveTheme() {
+      // Tercih edilen temayı kaydet (localStorage veya Firestore)
+    }
+    function deleteAccount() {
+      // Firebase Authentication & Firestore silme işlemi
+    }
+  </script>
+</body>
+</html>
