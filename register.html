@@ -99,20 +99,21 @@
           return;
         }
 
-        try {
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          const user = userCredential.user;
+try {
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  const user = userCredential.user;
 
-          await setDoc(doc(db, "users", user.uid), {
-            fullName,
-            dob,
-            username,
-            email
-          });
+  await setDoc(doc(db, "users", user.uid), {
+    fullName,
+    dob,
+    username,
+    email
+  });
 
-          alert(translations[currentLang].success);
-          window.location.href = "index.html";
-catch (err) {
+  alert(translations[currentLang].success);
+  window.location.href = "index.html";
+
+} catch (err) {
   console.error("Firebase Hatası:", err.code, err.message);
   let message;
   if (err.code === 'auth/email-already-in-use') {
@@ -126,6 +127,7 @@ catch (err) {
   }
 
   alert(message);
+}
 }
         }
       });
