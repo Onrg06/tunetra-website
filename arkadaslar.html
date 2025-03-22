@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TuneTRa | Arkadaşlar</title>
   <style>
     :root {
@@ -12,6 +12,7 @@
       --button-gradient: linear-gradient(to right, #6a11cb, #2575fc);
       --button-hover: linear-gradient(to right, #ffcc70, #6a11cb);
     }
+
     body {
       margin: 0;
       padding: 0;
@@ -21,36 +22,38 @@
       animation: gradientShift 15s ease infinite;
       color: var(--text-color);
     }
+
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-    .top-controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px;
+
+    .header {
+      position: relative;
+      height: 80px;
     }
-    .lang-btn, #homeBtn {
-      padding: 6px 10px;
-      margin-left: 10px;
-      border: none;
-      border-radius: 5px;
-      background: var(--button-gradient);
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
+
+    .left-header {
+      position: absolute;
+      top: 20px;
+      left: 20px;
     }
-    .lang-btn:hover, #homeBtn:hover {
-      background: var(--button-hover);
+
+    .lang-buttons {
+      position: absolute;
+      top: 20px;
+      right: 20px;
     }
+
     .page-title {
       text-align: center;
-      font-size: 32px;
+      font-size: 36px;
       font-weight: bold;
-      margin-top: 10px;
+      margin: 0;
+      padding-top: 20px;
     }
+
     .container {
       max-width: 800px;
       margin: 20px auto 50px;
@@ -58,6 +61,7 @@
       padding: 30px;
       border-radius: 10px;
     }
+
     input[type="text"] {
       width: 100%;
       padding: 10px;
@@ -65,9 +69,11 @@
       border: none;
       border-radius: 5px;
     }
+
     .section {
       margin-top: 30px;
     }
+
     button {
       background: var(--button-gradient);
       border: none;
@@ -78,6 +84,7 @@
       font-weight: bold;
       cursor: pointer;
     }
+
     button:hover {
       background: var(--button-hover);
     }
@@ -86,14 +93,15 @@
 <body>
   <div class="header">
     <div class="left-header">
-      <h2 id="pageTitle">Arkadaşlar</h2>
       <button class="lang-btn" id="homeBtn" onclick="goHome()">Ana Sayfa</button>
     </div>
-    <div>
+    <h2 id="pageTitle" class="page-title">Arkadaşlar</h2>
+    <div class="lang-buttons">
       <button class="lang-btn" onclick="changeLang('tr')">🇹🇷 Türkçe</button>
       <button class="lang-btn" onclick="changeLang('en')">🇬🇧 English</button>
     </div>
   </div>
+
   <div class="container">
     <div class="section">
       <h3 id="searchTitle">Kullanıcı Ara</h3>
@@ -101,19 +109,23 @@
       <button onclick="searchUser()" id="btnSearch">Ara</button>
       <div id="searchResults"></div>
     </div>
+
     <div class="section">
       <h3 id="receivedRequestsTitle">Gelen İstekler</h3>
       <div id="receivedRequests"></div>
     </div>
+
     <div class="section">
       <h3 id="sentRequestsTitle">Gönderilen İstekler</h3>
       <div id="sentRequests"></div>
     </div>
+
     <div class="section">
       <h3 id="friendsListTitle">Arkadaşlarım</h3>
       <div id="friendsList"></div>
     </div>
   </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
