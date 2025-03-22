@@ -24,6 +24,7 @@
     const db = getFirestore(app);
 
     let currentLang = "tr";
+
     const translations = {
       tr: {
         title: "Kayıt Ol",
@@ -78,6 +79,7 @@
       setLang("tr");
       document.getElementById("registerForm").addEventListener("submit", async (e) => {
         e.preventDefault();
+        document.getElementById("errorMsg").innerText = "";
 
         const fullName = document.getElementById("fullName").value;
         const dob = document.getElementById("dob").value;
@@ -87,7 +89,7 @@
         const confirmPassword = document.getElementById("confirmPassword").value;
 
         if (password !== confirmPassword) {
-          alert(translations[currentLang].mismatch);
+          document.getElementById("errorMsg").innerText = translations[currentLang].mismatch;
           return;
         }
 
@@ -117,7 +119,7 @@
             message = translations[currentLang].unknown;
           }
 
-          alert(message);
+          document.getElementById("errorMsg").innerText = message;
         }
       });
     };
@@ -142,6 +144,7 @@
       width: 90%;
       max-width: 400px;
       box-shadow: 0 0 10px rgba(255,255,255,0.2);
+      text-align: center;
     }
 
     input, button {
@@ -168,35 +171,48 @@
       background: linear-gradient(to right, #ffcc70, #6a11cb);
     }
 
-    .lang-switch {
+    .lang-buttons {
       position: absolute;
       top: 20px;
       right: 20px;
+      display: flex;
+      gap: 10px;
     }
 
-    .lang-switch button {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      border: none;
+    .lang-buttons button {
       padding: 6px 10px;
-      margin-left: 5px;
+      font-weight: bold;
       border-radius: 5px;
+      border: none;
+      background: rgba(255,255,255,0.2);
+      color: white;
       cursor: pointer;
     }
 
-    .lang-switch button:hover {
-      background: rgba(255, 255, 255, 0.4);
+    .lang-buttons button:hover {
+      background: rgba(255,255,255,0.4);
+    }
+
+    #errorMsg {
+      color: #ffcccc;
+      background: rgba(255, 0, 0, 0.2);
+      padding: 8px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      font-size: 0.9em;
     }
   </style>
 </head>
 <body>
-    <div class="lang-buttons">
+  <div class="lang-buttons">
     <button onclick="setLang('tr')">🇹🇷 Türkçe</button>
     <button onclick="setLang('en')">🇬🇧 English</button>
-    </div>
+  </div>
+
   <div class="container">
     <h2 id="form-title">Kayıt Ol</h2>
     <form id="registerForm">
+      <div id="errorMsg"></div>
       <input type="text" id="fullName" placeholder="Ad Soyad" required>
       <input type="date" id="dob" required>
       <input type="text" id="username" placeholder="Kullanıcı Adı" required>
