@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TuneTRa | Arkadaşlar</title>
+  <style>
+    :root {
+      --bg-color: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
+      --text-color: white;
+      --card-bg: rgba(0, 0, 0, 0.7);
+      --button-gradient: linear-gradient(to right, #6a11cb, #2575fc);
+      --button-hover: linear-gradient(to right, #ffcc70, #6a11cb);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg-color);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      color: var(--text-color);
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .lang-btn {
+      padding: 6px 10px;
+      margin-left: 10px;
+      border: none;
+      border-radius: 5px;
+      background: var(--button-gradient);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: var(--card-bg);
+      padding: 30px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 5px;
+    }
+
+    .section {
+      margin-top: 30px;
+    }
+
+    button {
+      background: var(--button-gradient);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--button-hover);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2 id="pageTitle">Arkadaşlar</h2>
+    <div>
+      <button class="lang-btn" onclick="changeLang('tr')">🇹🇷 Türkçe</button>
+      <button class="lang-btn" onclick="changeLang('en')">🇬🇧 English</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="section">
+      <h3 id="searchTitle">Kullanıcı Ara</h3>
+      <input type="text" id="searchInput" placeholder="Kullanıcı adı gir...">
+      <button onclick="searchUser()" id="btnSearch">Ara</button>
+    </div>
+
+    <div class="section">
+      <h3 id="sentRequestsTitle">Gönderdiğim İstekler</h3>
+      <div id="sentRequests"></div>
+    </div>
+
+    <div class="section">
+      <h3 id="receivedRequestsTitle">Gelen İstekler</h3>
+      <div id="receivedRequests"></div>
+    </div>
+
+    <div class="section">
+      <h3 id="friendsListTitle">Arkadaş Listem</h3>
+      <div id="friendsList"></div>
+    </div>
+  </div>
+
+  <script>
+    let currentLang = localStorage.getItem("lang") || "tr";
+
+    const translations = {
+      tr: {
+        pageTitle: "Arkadaşlar",
+        searchTitle: "Kullanıcı Ara",
+        sentRequestsTitle: "Gönderdiğim İstekler",
+        receivedRequestsTitle: "Gelen İstekler",
+        friendsListTitle: "Arkadaş Listem",
+        btnSearch: "Ara",
+        placeholder: "Kullanıcı adı gir..."
+      },
+      en: {
+        pageTitle: "Friends",
+        searchTitle: "Search Users",
+        sentRequestsTitle: "Sent Requests",
+        receivedRequestsTitle: "Incoming Requests",
+        friendsListTitle: "My Friends",
+        btnSearch: "Search",
+        placeholder: "Enter username..."
+      }
+    };
+
+    function changeLang(lang) {
+      currentLang = lang;
+      localStorage.setItem("lang", lang);
+      updateTexts();
+    }
+
+    function updateTexts() {
+      const t = translations[currentLang];
+      document.getElementById("pageTitle").innerText = t.pageTitle;
+      document.getElementById("searchTitle").innerText = t.searchTitle;
+      document.getElementById("sentRequestsTitle").innerText = t.sentRequestsTitle;
+      document.getElementById("receivedRequestsTitle").innerText = t.receivedRequestsTitle;
+      document.getElementById("friendsListTitle").innerText = t.friendsListTitle;
+      document.getElementById("btnSearch").innerText = t.btnSearch;
+      document.getElementById("searchInput").placeholder = t.placeholder;
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      changeLang(currentLang);
+    });
+
+    function searchUser() {
+      const username = document.getElementById("searchInput").value;
+      alert(currentLang === "tr" ? `\"${username}\" için arama yapılıyor...` : `Searching for "${username}"...`);
+    }
+  </script>
+</body>
+</html>
