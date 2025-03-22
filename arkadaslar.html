@@ -32,6 +32,10 @@
       align-items: center;
       padding: 20px;
     }
+    .left-header {
+      display: flex;
+      align-items: center;
+    }
     .lang-btn {
       padding: 6px 10px;
       margin-left: 10px;
@@ -51,8 +55,7 @@
       margin-top: 20px;
     }
     h2 {
-      text-align: center;
-      margin-bottom: 20px;
+      margin-right: 15px;
     }
     input[type="text"] {
       width: 100%;
@@ -81,7 +84,10 @@
 </head>
 <body>
   <div class="header">
-    <h2 id="pageTitle">Arkadaşlar</h2>
+    <div class="left-header">
+      <h2 id="pageTitle">Arkadaşlar</h2>
+      <button class="lang-btn" id="homeBtn" onclick="goHome()">Ana Sayfa</button>
+    </div>
     <div>
       <button class="lang-btn" onclick="changeLang('tr')">🇹🇷 Türkçe</button>
       <button class="lang-btn" onclick="changeLang('en')">🇬🇧 English</button>
@@ -141,7 +147,8 @@
         reject: "Reddet",
         cancel: "İptal Et",
         unfriend: "Arkadaşlıktan Çıkar",
-        requestSent: "İstek gönderildi!"
+        requestSent: "İstek gönderildi!",
+        home: "Ana Sayfa"
       },
       en: {
         pageTitle: "Friends",
@@ -155,7 +162,8 @@
         reject: "Reject",
         cancel: "Cancel",
         unfriend: "Unfriend",
-        requestSent: "Request sent!"
+        requestSent: "Request sent!",
+        home: "Home"
       }
     };
 
@@ -173,9 +181,14 @@
       translate("friendsListTitle", "friendsListTitle");
       translate("btnSearch", "btnSearch");
       document.getElementById("searchInput").placeholder = t[currentLang].placeholder;
+      document.getElementById("homeBtn").innerText = t[currentLang].home;
       loadReceivedRequests();
       loadSentRequests();
       loadFriends();
+    };
+
+    window.goHome = function () {
+      window.location.href = "anasayfa.html";
     };
 
     window.searchUser = async function() {
