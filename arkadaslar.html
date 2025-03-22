@@ -27,10 +27,14 @@
       100% { background-position: 0% 50%; }
     }
     .top-bar {
+      position: relative;
+      width: 100%;
+      height: 60px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 20px;
+      padding: 0 20px;
+      box-sizing: border-box;
     }
     .lang-btn {
       padding: 6px 10px;
@@ -42,7 +46,19 @@
       font-weight: bold;
       cursor: pointer;
     }
-    .page-title {
+    #homeBtn {
+      background: var(--button-gradient);
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 5px;
+      padding: 8px 14px;
+      cursor: pointer;
+    }
+    #homeBtn:hover {
+      background: var(--button-hover);
+    }
+    #pageTitle {
       text-align: center;
       font-size: 32px;
       font-weight: bold;
@@ -78,11 +94,6 @@
     }
     button:hover {
       background: var(--button-hover);
-    }
-    .home-top-left {
-      position: absolute;
-      top: 20px;
-      left: 20px;
     }
   </style>
 </head>
