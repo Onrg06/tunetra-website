@@ -41,7 +41,7 @@
     }
 
     .btn {
-      margin-top: 30px;
+      margin-top: 20px;
       padding: 12px 24px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
       border: none;
@@ -51,6 +51,7 @@
       font-weight: bold;
       cursor: pointer;
       text-decoration: none;
+      display: inline-block;
     }
 
     .btn:hover {
@@ -76,13 +77,15 @@
       cursor: pointer;
     }
 
-    .top-right-controls {
+    .top-left-controls {
       position: absolute;
       top: 20px;
       left: 20px;
+      display: flex;
+      gap: 10px;
     }
 
-    .profile-btn {
+    .profile-btn, .friends-btn {
       padding: 8px 14px;
       background: linear-gradient(to right, #00c6ff, #0072ff);
       border: none;
@@ -94,19 +97,22 @@
       transition: all 0.3s ease;
     }
 
-    .profile-btn:hover {
+    .profile-btn:hover, .friends-btn:hover {
       background: linear-gradient(to right, #ffcc70, #6a11cb);
     }
   </style>
 </head>
 <body>
+  <!-- Dil butonları -->
   <div class="language-buttons">
     <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
     <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
   </div>
 
-  <div class="top-right-controls">
-    <a href="profil.html" class="profile-btn">👤 Profilim</a>
+  <!-- Sol üst köşe: Profil ve Arkadaşlar -->
+  <div class="top-left-controls">
+    <a href="profil.html" class="profile-btn" id="btnProfile">👤 Profilim</a>
+    <a href="arkadaslar.html" class="friends-btn" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım</a>
   </div>
 
   <h1 id="welcomeMessage">🎶 Hoş Geldin!</h1>
@@ -114,7 +120,8 @@
     Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br>
     Şiirini veya melodini paylaş, şarkıya dönüşmesini izle. Birlikte müzik üretelim!
   </p>
-  <a href="index.html" class="btn" onclick="logout()">Çıkış Yap</a>
+
+  <a href="index.html" class="btn" onclick="logout()" id="logoutBtn">Çıkış Yap</a>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -139,12 +146,16 @@
       tr: {
         welcome: "🎶 Hoş Geldin, ",
         intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br>Şiirini veya melodini paylaş, şarkıya dönüşmesini izle. Birlikte müzik üretelim!",
-        logout: "Çıkış Yap"
+        logout: "Çıkış Yap",
+        profile: "👤 Profilim",
+        friends: "🧑‍🤝‍🧑 Arkadaşlarım"
       },
       en: {
         welcome: "🎶 Welcome, ",
         intro: "You're in the right place to create your dream song.<br>Share your lyrics or melody, watch it become a track. Let's make music together!",
-        logout: "Log Out"
+        logout: "Log Out",
+        profile: "👤 My Profile",
+        friends: "🧑‍🤝‍🧑 My Friends"
       }
     };
 
@@ -166,7 +177,9 @@
         const username = userDoc.data().username;
         document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
         document.getElementById("introText").innerHTML = translations[currentLang].intro;
-        document.querySelector(".btn").innerText = translations[currentLang].logout;
+        document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
+        document.getElementById("btnProfile").innerText = translations[currentLang].profile;
+        document.getElementById("btnFriends").innerText = translations[currentLang].friends;
       }
     }
 
