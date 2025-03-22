@@ -179,11 +179,24 @@
         document.getElementById("introText").innerHTML = translations[currentLang].intro;
         document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
         document.getElementById("btnProfile").innerText = translations[currentLang].profile;
-        document.getElementById("btnFriends").innerText = translations[currentLang].friends;
+
+        // ⬇️ Arkadaşlık isteklerini getir
+        const requestRef = doc(db, "friendRequests", user.uid);
+        const requestSnap = await getDoc(requestRef);
+        let count = 0;
+        if (requestSnap.exists()) {
+          const data = requestSnap.data();
+          count = data.requests?.length || 0;
+        }
+
+        // 🧑‍🤝‍🧑 Arkadaşlarım (x)
+        const baseText = translations[currentLang].friends;
+        const fullText = count > 0 ? `${baseText} (${count})` : baseText;
+        document.getElementById("btnFriends").innerText = fullText;
       }
     }
 
-    onAuthStateChanged(auth, async (user) => {
+    onAuthStateChanged(auth, (user) => {
       if (!user) {
         window.location.href = "index.html";
       } else {
