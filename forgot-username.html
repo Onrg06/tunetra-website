@@ -62,7 +62,6 @@
 </head>
 <body>
 
-  <!-- Dil Seçme Butonları -->
   <div class="language-buttons">
     <button onclick="setLang('tr')">🇹🇷 Türkçe</button>
     <button onclick="setLang('en')">🇬🇧 English</button>
@@ -72,18 +71,18 @@
     <h1 id="forgotUsernameTitle">Kullanıcı Adımı Unuttum</h1>
     <form id="forgotUsernameForm">
       <input type="email" id="email" placeholder="E-posta" required>
+      <input type="password" id="password" placeholder="Şifre" required>
       <button id="recoverBtn" type="submit">Kullanıcı Adını Bul</button>
       <button id="loginBtn" type="button" onclick="window.location.href='index.html'">Giriş Yap</button>
     </form>
     <p id="result"></p>
   </div>
 
-  <!-- Firebase & Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-    // Firebase yapılandırması
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
       authDomain: "tunetra-2579b.firebaseapp.com",
@@ -96,22 +95,25 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
     const translations = {
       tr: {
         forgotUsernameTitle: "Kullanıcı Adımı Unuttum",
         email: "E-posta",
+        password: "Şifre",
         recoverBtn: "Kullanıcı Adını Bul",
         loginBtn: "Giriş Yap",
-        notFound: "Bu e-posta ile kayıtlı hesap bulunamadı!",
+        notFound: "E-posta veya şifre hatalı!",
         found: "Kullanıcı adınız: "
       },
       en: {
         forgotUsernameTitle: "Forgot Username",
         email: "Email",
+        password: "Password",
         recoverBtn: "Find Username",
         loginBtn: "Log In",
-        notFound: "No account found with this email!",
+        notFound: "Incorrect email or password!",
         found: "Your username is: "
       }
     };
@@ -123,6 +125,7 @@
       const t = translations[lang];
       document.getElementById("forgotUsernameTitle").innerText = t.forgotUsernameTitle;
       document.getElementById("email").placeholder = t.email;
+      document.getElementById("password").placeholder = t.password;
       document.getElementById("recoverBtn").innerText = t.recoverBtn;
       document.getElementById("loginBtn").innerText = t.loginBtn;
       document.getElementById("result").innerText = "";
@@ -133,33 +136,37 @@
 
       document.getElementById("forgotUsernameForm").addEventListener("submit", async function(e) {
         e.preventDefault();
-
         const emailInput = document.getElementById("email").value.trim().toLowerCase();
+        const passwordInput = document.getElementById("password").value;
         const resultBox = document.getElementById("result");
-        let foundUsername = null;
 
         try {
+          // Şifre doğrulama
+          await signInWithEmailAndPassword(auth, emailInput, passwordInput);
+
+          // Eğer şifre doğruysa Firestore'dan username'i bul
           const querySnapshot = await getDocs(collection(db, "users"));
+          let usernameFound = null;
+
           querySnapshot.forEach((doc) => {
             const user = doc.data();
             if (user.email.toLowerCase() === emailInput) {
-              foundUsername = user.username;
+              usernameFound = user.username;
             }
           });
 
-          if (foundUsername) {
-            resultBox.innerText = translations[currentLang].found + foundUsername;
+          if (usernameFound) {
+            resultBox.innerText = translations[currentLang].found + usernameFound;
           } else {
             resultBox.innerText = translations[currentLang].notFound;
           }
 
-        } catch (err) {
-          console.error("Hata:", err);
-          resultBox.innerText = "Bir hata oluştu: " + err.message;
+        } catch (error) {
+          console.error("Doğrulama hatası:", error);
+          resultBox.innerText = translations[currentLang].notFound;
         }
       });
     });
   </script>
 </body>
 </html>
-
