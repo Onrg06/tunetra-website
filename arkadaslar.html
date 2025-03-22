@@ -98,6 +98,10 @@
       <h3 id="receivedRequestsTitle">Gelen İstekler</h3>
       <div id="receivedRequests"></div>
     </div>
+    <div class="section">
+      <h3>Gönderilen İstekler</h3>
+      <div id="sentRequests"></div>
+    </div>
   </div>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -120,27 +124,6 @@
     let currentUser;
     let currentLang = localStorage.getItem("lang") || "tr";
 
-    const translations = {
-      tr: {
-        pageTitle: "Arkadaşlar",
-        searchTitle: "Kullanıcı Ara",
-        receivedRequestsTitle: "Gelen İstekler",
-        btnSearch: "Ara",
-        placeholder: "Kullanıcı adı gir...",
-        requestSent: "İstek gönderildi!",
-        noRequests: "Gelen istek yok."
-      },
-      en: {
-        pageTitle: "Friends",
-        searchTitle: "Search Users",
-        receivedRequestsTitle: "Incoming Requests",
-        btnSearch: "Search",
-        placeholder: "Enter username...",
-        requestSent: "Request sent!",
-        noRequests: "No incoming requests."
-      }
-    };
-
     window.changeLang = function(lang) {
       currentLang = lang;
       localStorage.setItem("lang", lang);
@@ -148,12 +131,11 @@
     };
 
     function updateTexts() {
-      const t = translations[currentLang];
-      document.getElementById("pageTitle").innerText = t.pageTitle;
-      document.getElementById("searchTitle").innerText = t.searchTitle;
-      document.getElementById("receivedRequestsTitle").innerText = t.receivedRequestsTitle;
-      document.getElementById("btnSearch").innerText = t.btnSearch;
-      document.getElementById("searchInput").placeholder = t.placeholder;
+      document.getElementById("pageTitle").innerText = currentLang === "tr" ? "Arkadaşlar" : "Friends";
+      document.getElementById("searchTitle").innerText = currentLang === "tr" ? "Kullanıcı Ara" : "Search Users";
+      document.getElementById("receivedRequestsTitle").innerText = currentLang === "tr" ? "Gelen İstekler" : "Incoming Requests";
+      document.getElementById("btnSearch").innerText = currentLang === "tr" ? "Ara" : "Search";
+      document.getElementById("searchInput").placeholder = currentLang === "tr" ? "Kullanıcı adı gir..." : "Enter username...";
     }
 
     window.searchUser = async function() {
@@ -162,14 +144,9 @@
       const usersSnapshot = await getDocs(collection(db, "users"));
       const resultContainer = document.getElementById("searchResults");
       resultContainer.innerHTML = "";
-
       usersSnapshot.forEach(docSnap => {
         const data = docSnap.data();
-        if (
-          data.username &&
-          data.username.toLowerCase().includes(queryText) &&
-          docSnap.id !== currentUser.uid
-        ) {
+        if (data.username && data.username.toLowerCase().includes(queryText) && docSnap.id !== currentUser.uid) {
           const div = document.createElement("div");
           div.innerText = data.username + " ";
           const btn = document.createElement("button");
@@ -183,22 +160,17 @@
 
     async function sendRequest(targetId) {
       const ref = doc(db, "friendRequests", targetId);
-      try {
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-          await updateDoc(ref, {
-            requests: arrayUnion(currentUser.uid)
-          });
-        } else {
-          await setDoc(ref, {
-            requests: [currentUser.uid]
-          });
-        }
-        alert(translations[currentLang].requestSent);
-        console.log("İstek gönderildi:", currentUser.uid, "⇒", targetId);
-      } catch (error) {
-        console.error("İstek gönderme hatası:", error);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        await updateDoc(ref, {
+          requests: arrayUnion(currentUser.uid)
+        });
+      } else {
+        await setDoc(ref, {
+          requests: [currentUser.uid]
+        });
       }
+      alert(currentLang === "tr" ? "İstek gönderildi!" : "Request sent!");
     }
 
     async function loadReceivedRequests() {
@@ -206,17 +178,67 @@
       const snap = await getDoc(ref);
       const container = document.getElementById("receivedRequests");
       container.innerHTML = "";
-      if (!snap.exists() || !snap.data().requests || snap.data().requests.length === 0) {
-        container.innerText = translations[currentLang].noRequests;
-        return;
-      }
+      if (!snap.exists() || !snap.data().requests) return;
       for (const senderId of snap.data().requests) {
         const userDoc = await getDoc(doc(db, "users", senderId));
         const username = userDoc.exists() ? userDoc.data().username : senderId;
         const div = document.createElement("div");
-        div.innerText = username;
+        div.innerText = username + " ";
+        const acceptBtn = document.createElement("button");
+        acceptBtn.innerText = currentLang === "tr" ? "Kabul Et" : "Accept";
+        acceptBtn.onclick = () => acceptRequest(senderId);
+        const rejectBtn = document.createElement("button");
+        rejectBtn.innerText = currentLang === "tr" ? "Reddet" : "Reject";
+        rejectBtn.onclick = () => rejectRequest(senderId);
+        div.appendChild(acceptBtn);
+        div.appendChild(rejectBtn);
         container.appendChild(div);
       }
+    }
+
+    async function acceptRequest(senderId) {
+      await updateDoc(doc(db, "friendRequests", currentUser.uid), {
+        requests: arrayRemove(senderId)
+      });
+      await Promise.all([
+        updateDoc(doc(db, "friends", currentUser.uid), { list: arrayUnion(senderId) }).catch(() => setDoc(doc(db, "friends", currentUser.uid), { list: [senderId] })),
+        updateDoc(doc(db, "friends", senderId), { list: arrayUnion(currentUser.uid) }).catch(() => setDoc(doc(db, "friends", senderId), { list: [currentUser.uid] }))
+      ]);
+      loadReceivedRequests();
+    }
+
+    async function rejectRequest(senderId) {
+      await updateDoc(doc(db, "friendRequests", currentUser.uid), {
+        requests: arrayRemove(senderId)
+      });
+      loadReceivedRequests();
+    }
+
+    async function loadSentRequests() {
+      const usersSnapshot = await getDocs(collection(db, "friendRequests"));
+      const container = document.getElementById("sentRequests");
+      container.innerHTML = "";
+      for (const docSnap of usersSnapshot.docs) {
+        const data = docSnap.data();
+        if (data.requests && data.requests.includes(currentUser.uid)) {
+          const targetUser = await getDoc(doc(db, "users", docSnap.id));
+          const username = targetUser.exists() ? targetUser.data().username : docSnap.id;
+          const div = document.createElement("div");
+          div.innerText = username + " ";
+          const cancelBtn = document.createElement("button");
+          cancelBtn.innerText = currentLang === "tr" ? "İptal Et" : "Cancel";
+          cancelBtn.onclick = () => cancelRequest(docSnap.id);
+          div.appendChild(cancelBtn);
+          container.appendChild(div);
+        }
+      }
+    }
+
+    async function cancelRequest(targetId) {
+      await updateDoc(doc(db, "friendRequests", targetId), {
+        requests: arrayRemove(currentUser.uid)
+      });
+      loadSentRequests();
     }
 
     onAuthStateChanged(auth, user => {
@@ -224,6 +246,7 @@
       currentUser = user;
       updateTexts();
       loadReceivedRequests();
+      loadSentRequests();
     });
   </script>
 </body>
