@@ -85,13 +85,14 @@
       margin: 0 auto 20px;
       border: 3px solid white;
     }
-    .lang-switch {
+    .top-bar {
       position: absolute;
       top: 20px;
-      right: 20px;
+      left: 20px;
+      display: flex;
+      gap: 10px;
     }
-    .lang-btn {
-      margin-left: 10px;
+    .lang-btn, .home-btn {
       padding: 6px 10px;
       font-weight: bold;
       background: var(--button-gradient);
@@ -109,7 +110,8 @@
   </style>
 </head>
 <body>
-  <div class="lang-switch">
+  <div class="top-bar">
+    <button class="home-btn" id="homeBtn" onclick="window.location.href='anasayfa.html'">Ana Sayfa</button>
     <button class="lang-btn" onclick="changeLang('tr')">🇹🇷</button>
     <button class="lang-btn" onclick="changeLang('en')">🇬🇧</button>
   </div>
@@ -174,7 +176,8 @@
         btnDelete: "Hesabı Sil",
         updateSuccess: "Bilgiler güncellendi!",
         passwordSuccess: "Şifre güncellendi!",
-        deleted: "Hesap silindi."
+        deleted: "Hesap silindi.",
+        homeBtn: "Ana Sayfa"
       },
       en: {
         profileTitle: "My Profile",
@@ -188,7 +191,8 @@
         btnDelete: "Delete Account",
         updateSuccess: "Profile updated!",
         passwordSuccess: "Password updated!",
-        deleted: "Account deleted."
+        deleted: "Account deleted.",
+        homeBtn: "Home"
       }
     };
 
