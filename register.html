@@ -82,70 +82,89 @@
     </form>
   </div>
 
-  <script>
-    const translations = {
-      tr: {
-        title: "Kayıt Ol",
-        fullName: "Ad Soyad",
-        username: "Kullanıcı Adı",
-        email: "E-Posta",
-        password: "Şifre",
-        passwordConfirm: "Şifre Tekrar",
-        registerBtn: "Kayıt Ol",
-        dobLabel: "Doğum Tarihi",
-        success: "Kayıt başarılı!",
-        mismatch: "Şifreler eşleşmiyor!"
-      },
-      en: {
-        title: "Sign Up",
-        fullName: "Full Name",
-        username: "Username",
-        email: "Email",
-        password: "Password",
-        passwordConfirm: "Confirm Password",
-        registerBtn: "Register",
-        dobLabel: "Date of Birth",
-        success: "Registration successful!",
-        mismatch: "Passwords do not match!"
-      }
-    };
+<script>
+  const translations = {
+    tr: {
+      title: "Kayıt Ol",
+      fullName: "Ad Soyad",
+      username: "Kullanıcı Adı",
+      password: "Birincil Şifre",
+      passwordConfirm: "Birincil Şifre Tekrar",
+      secondaryPassword: "İkincil Şifre",
+      secondaryPasswordConfirm: "İkincil Şifre Tekrar",
+      registerBtn: "Kayıt Ol",
+      success: "Kayıt başarılı!",
+      mismatch: "Şifreler eşleşmiyor!",
+      exists: "Bu kullanıcı adıyla kayıtlı bir hesap zaten var!",
+      dobLabel: "Doğum Tarihi"
+    },
+    en: {
+      title: "Sign Up",
+      fullName: "Full Name",
+      username: "Username",
+      password: "Primary Password",
+      passwordConfirm: "Confirm Primary Password",
+      secondaryPassword: "Secondary Password",
+      secondaryPasswordConfirm: "Confirm Secondary Password",
+      registerBtn: "Register",
+      success: "Registration successful!",
+      mismatch: "Passwords do not match!",
+      exists: "An account with this username already exists!",
+      dobLabel: "Date of Birth"
+    }
+  };
 
-    let currentLang = "tr";
+  let currentLang = "tr";
 
-    function setLang(lang) {
-      currentLang = lang;
-      const t = translations[lang];
-      document.getElementById("title").innerText = t.title;
-      document.getElementById("fullName").placeholder = t.fullName;
-      document.getElementById("email").placeholder = t.email;
-      document.getElementById("username").placeholder = t.username;
-      document.getElementById("password").placeholder = t.password;
-      document.getElementById("passwordConfirm").placeholder = t.passwordConfirm;
-      document.getElementById("registerBtn").innerText = t.registerBtn;
-      document.getElementById("dobLabel").innerText = t.dobLabel;
+  function setLang(lang) {
+    currentLang = lang;
+    const t = translations[lang];
+    document.getElementById("title").innerText = t.title;
+    document.getElementById("fullName").placeholder = t.fullName;
+    document.getElementById("username").placeholder = t.username;
+    document.getElementById("password").placeholder = t.password;
+    document.getElementById("passwordConfirm").placeholder = t.passwordConfirm;
+    document.getElementById("secondaryPassword").placeholder = t.secondaryPassword;
+    document.getElementById("secondaryPasswordConfirm").placeholder = t.secondaryPasswordConfirm;
+    document.getElementById("registerBtn").innerText = t.registerBtn;
+    document.getElementById("dobLabel").innerText = t.dobLabel;
+  }
+
+  document.getElementById("registerForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const fullName = document.getElementById("fullName").value;
+    const dob = document.getElementById("dob").value;
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    const passwordConfirm = document.getElementById("passwordConfirm").value;
+    const secondaryPassword = document.getElementById("secondaryPassword").value;
+    const secondaryPasswordConfirm = document.getElementById("secondaryPasswordConfirm").value;
+
+    if (password !== passwordConfirm || secondaryPassword !== secondaryPasswordConfirm) {
+      alert(translations[currentLang].mismatch);
+      return;
     }
 
-    document.getElementById("registerForm").addEventListener("submit", function(e) {
-      e.preventDefault();
+    // ❗️KULLANICI ADI ZATEN VAR MI?
+    if (localStorage.getItem(username)) {
+      alert(translations[currentLang].exists);
+      return;
+    }
 
-      const fullName = document.getElementById("fullName").value;
-      const dob = document.getElementById("dob").value;
-      const email = document.getElementById("email").value;
-      const username = document.getElementById("username").value;
-      const password = document.getElementById("password").value;
-      const passwordConfirm = document.getElementById("passwordConfirm").value;
+    const user = {
+      fullName,
+      dob,
+      username,
+      password,
+      secondaryPassword
+    };
 
-      if (password !== passwordConfirm) {
-        alert(translations[currentLang].mismatch);
-        return;
-      }
+    localStorage.setItem(username, JSON.stringify(user));
+    alert(translations[currentLang].success);
+    window.location.href = "index.html";
+  });
+</script>
 
-      const user = { fullName, dob, email, username, password };
-
-      localStorage.setItem(username, JSON.stringify(user));
-      alert(translations[currentLang].success);
-      window.location.href = "index.html";
-    });
-  </script>
 </body>
 </html>
