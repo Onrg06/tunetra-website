@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TuneTRa | Kayıt Ol</title>
+
+  <!-- FIREBASE -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -24,12 +26,11 @@
     const db = getFirestore(app);
 
     let currentLang = "tr";
-
     const translations = {
       tr: {
         title: "Kayıt Ol",
         fullName: "Ad Soyad",
-        dob: "Doğum Tarihi",
+        dobLabel: "Doğum Tarihi",
         username: "Kullanıcı Adı",
         email: "E-Posta",
         password: "Şifre",
@@ -46,7 +47,7 @@
       en: {
         title: "Sign Up",
         fullName: "Full Name",
-        dob: "Date of Birth",
+        dobLabel: "Date of Birth",
         username: "Username",
         email: "Email",
         password: "Password",
@@ -67,7 +68,7 @@
       const t = translations[lang];
       document.getElementById("form-title").innerText = t.title;
       document.getElementById("fullName").placeholder = t.fullName;
-      document.getElementById("dob").placeholder = t.dob;
+      document.getElementById("dobLabel").innerText = t.dobLabel;
       document.getElementById("username").placeholder = t.username;
       document.getElementById("email").placeholder = t.email;
       document.getElementById("password").placeholder = t.password;
@@ -79,7 +80,8 @@
       setLang("tr");
       document.getElementById("registerForm").addEventListener("submit", async (e) => {
         e.preventDefault();
-        document.getElementById("errorMsg").innerText = "";
+        const errorBox = document.getElementById("errorMsg");
+        errorBox.innerText = "";
 
         const fullName = document.getElementById("fullName").value;
         const dob = document.getElementById("dob").value;
@@ -89,7 +91,7 @@
         const confirmPassword = document.getElementById("confirmPassword").value;
 
         if (password !== confirmPassword) {
-          document.getElementById("errorMsg").innerText = translations[currentLang].mismatch;
+          errorBox.innerText = translations[currentLang].mismatch;
           return;
         }
 
@@ -107,19 +109,19 @@
           alert(translations[currentLang].success);
           window.location.href = "index.html";
         } catch (err) {
-          console.error(err.code);
-          let message;
-          if (err.code === 'auth/email-already-in-use') {
-            message = translations[currentLang].emailUsed;
-          } else if (err.code === 'auth/invalid-email') {
-            message = translations[currentLang].invalidEmail;
-          } else if (err.code === 'auth/weak-password') {
-            message = translations[currentLang].weakPassword;
-          } else {
-            message = translations[currentLang].unknown;
+          console.error("HATA:", err.code, err.message);
+          let msg;
+          switch (err.code) {
+            case 'auth/email-already-in-use':
+              msg = translations[currentLang].emailUsed; break;
+            case 'auth/invalid-email':
+              msg = translations[currentLang].invalidEmail; break;
+            case 'auth/weak-password':
+              msg = translations[currentLang].weakPassword; break;
+            default:
+              msg = translations[currentLang].unknown;
           }
-
-          document.getElementById("errorMsg").innerText = message;
+          errorBox.innerText = msg;
         }
       });
     };
@@ -189,10 +191,6 @@
       cursor: pointer;
     }
 
-    .lang-buttons button:hover {
-      background: rgba(255,255,255,0.4);
-    }
-
     #errorMsg {
       color: #ffcccc;
       background: rgba(255, 0, 0, 0.2);
@@ -201,20 +199,33 @@
       margin-bottom: 10px;
       font-size: 0.9em;
     }
+
+    label {
+      display: block;
+      text-align: left;
+      margin-top: 10px;
+      margin-bottom: 5px;
+      font-size: 0.9em;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
+
+  <!-- Dil Butonları -->
   <div class="lang-buttons">
     <button onclick="setLang('tr')">🇹🇷 Türkçe</button>
     <button onclick="setLang('en')">🇬🇧 English</button>
   </div>
 
+  <!-- Form Alanı -->
   <div class="container">
     <h2 id="form-title">Kayıt Ol</h2>
     <form id="registerForm">
       <div id="errorMsg"></div>
-      <input type="text" id="fullName" placeholder="Ad Soyad" required>
+      <label id="dobLabel" for="dob">Doğum Tarihi</label>
       <input type="date" id="dob" required>
+      <input type="text" id="fullName" placeholder="Ad Soyad" required>
       <input type="text" id="username" placeholder="Kullanıcı Adı" required>
       <input type="email" id="email" placeholder="E-Posta" required>
       <input type="password" id="password" placeholder="Şifre" required>
@@ -222,5 +233,6 @@
       <button type="submit" id="registerBtn">Kayıt Ol</button>
     </form>
   </div>
+
 </body>
 </html>
