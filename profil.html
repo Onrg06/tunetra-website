@@ -85,14 +85,13 @@
       margin: 0 auto 20px;
       border: 3px solid white;
     }
-    .top-bar {
+    .lang-switch {
       position: absolute;
       top: 20px;
-      left: 20px;
-      display: flex;
-      gap: 10px;
+      right: 20px;
     }
-    .lang-btn, .home-btn {
+    .lang-btn {
+      margin-left: 10px;
       padding: 6px 10px;
       font-weight: bold;
       background: var(--button-gradient);
@@ -106,16 +105,36 @@
       margin-top: 10px;
       font-weight: bold;
       color: lime;
+      .home-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+
+#homeBtn {
+  padding: 10px 18px;
+  background: var(--button-gradient);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#homeBtn:hover {
+  background: var(--button-hover);
+}
     }
   </style>
 </head>
 <body>
-  <div class="top-bar">
-    <button class="home-btn" id="homeBtn" onclick="window.location.href='anasayfa.html'">Ana Sayfa</button>
+  <div class="lang-switch">
     <button class="lang-btn" onclick="changeLang('tr')">🇹🇷</button>
     <button class="lang-btn" onclick="changeLang('en')">🇬🇧</button>
   </div>
-
+<div class="home-button">
+  <button id="homeBtn" onclick="goHome()">Ana Sayfa</button>
+</div>
   <div class="container">
     <h2 id="profileTitle">Profil Bilgilerim</h2>
     <div id="profileLetter" class="profile-letter">?</div>
@@ -176,8 +195,7 @@
         btnDelete: "Hesabı Sil",
         updateSuccess: "Bilgiler güncellendi!",
         passwordSuccess: "Şifre güncellendi!",
-        deleted: "Hesap silindi.",
-        homeBtn: "Ana Sayfa"
+        deleted: "Hesap silindi."
       },
       en: {
         profileTitle: "My Profile",
@@ -191,8 +209,7 @@
         btnDelete: "Delete Account",
         updateSuccess: "Profile updated!",
         passwordSuccess: "Password updated!",
-        deleted: "Account deleted.",
-        homeBtn: "Home"
+        deleted: "Account deleted."
       }
     };
 
@@ -260,6 +277,16 @@
     window.addEventListener("DOMContentLoaded", () => {
       changeLang(currentLang);
     });
+    window.goHome = function () {
+  window.location.href = "anasayfa.html";
+};
+
+function updateHomeButtonText() {
+  const homeText = currentLang === "tr" ? "Ana Sayfa" : "Home";
+  const homeBtn = document.getElementById("homeBtn");
+  if (homeBtn) homeBtn.innerText = homeText;
+  updateHomeButtonText();
+}
   </script>
 </body>
 </html>
