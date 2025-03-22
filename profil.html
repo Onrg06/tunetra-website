@@ -1,122 +1,221 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TuneTRa | Arkadaşlar</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TuneTRa | Profil</title>
   <style>
     :root {
       --bg-color: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
       --text-color: white;
+      --input-bg: #2a2a2a;
       --card-bg: rgba(0, 0, 0, 0.7);
       --button-gradient: linear-gradient(to right, #6a11cb, #2575fc);
       --button-hover: linear-gradient(to right, #ffcc70, #6a11cb);
     }
+
     body {
+      font-family: 'Segoe UI', sans-serif;
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', sans-serif;
       background: var(--bg-color);
       background-size: 400% 400%;
       animation: gradientShift 15s ease infinite;
       color: var(--text-color);
+      transition: background 0.5s ease;
     }
+
     @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
     }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px;
-    }
-    .left-header {
-      display: flex;
-      align-items: center;
-    }
-    .lang-btn {
-      padding: 6px 10px;
-      margin-left: 10px;
-      border: none;
-      border-radius: 5px;
-      background: var(--button-gradient);
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
+
     .container {
-      max-width: 800px;
-      margin: auto;
+      width: 90%;
+      max-width: 600px;
+      margin: 60px auto;
       background: var(--card-bg);
       padding: 30px;
       border-radius: 10px;
-      margin-top: 20px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.3);
     }
+
     h2 {
-      margin-right: 15px;
+      text-align: center;
+      margin-bottom: 20px;
     }
-    input[type="text"] {
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    input {
       width: 100%;
       padding: 10px;
-      margin-top: 10px;
+      margin-top: 5px;
       border: none;
       border-radius: 5px;
+      background: var(--input-bg);
+      color: var(--text-color);
     }
-    .section {
-      margin-top: 30px;
-    }
+
     button {
+      margin-top: 15px;
+      padding: 12px;
+      width: 100%;
       background: var(--button-gradient);
       border: none;
-      padding: 6px 12px;
-      margin: 5px;
-      border-radius: 5px;
+      border-radius: 6px;
       color: white;
       font-weight: bold;
       cursor: pointer;
     }
+
     button:hover {
       background: var(--button-hover);
+    }
+
+    .profile-letter {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: #ffffff33;
+      color: white;
+      font-size: 48px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      border: 3px solid white;
+    }
+
+    .lang-switch {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+    }
+
+    .lang-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 10px;
+      padding: 6px 12px;
+      font-weight: bold;
+      background: var(--button-gradient);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      font-size: 14px;
+    }
+
+    .lang-btn:hover {
+      background: var(--button-hover);
+    }
+
+    #messageBox {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+      color: lime;
+    }
+
+    .home-button {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+    }
+
+    #homeBtn {
+      padding: 10px 16px;
+      font-weight: bold;
+      background: var(--button-gradient);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+    }
+
+    #homeBtn:hover {
+      background: var(--button-hover);
+    }
+
+    @media (max-width: 480px) {
+      .lang-switch {
+        top: 10px;
+        right: 10px;
+        flex-direction: column;
+      }
+
+      .home-button {
+        top: 10px;
+        left: 10px;
+      }
+
+      .container {
+        padding: 20px;
+        margin: 40px auto;
+      }
+
+      button {
+        font-size: 14px;
+        padding: 10px;
+      }
+
+      .lang-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="left-header">
-      <h2 id="pageTitle">Arkadaşlar</h2>
-      <button class="lang-btn" id="homeBtn" onclick="goHome()">Ana Sayfa</button>
-    </div>
-    <div>
-      <button class="lang-btn" onclick="changeLang('tr')">🇹🇷 Türkçe</button>
-      <button class="lang-btn" onclick="changeLang('en')">🇬🇧 English</button>
-    </div>
+  <div class="lang-switch">
+    <button class="lang-btn" onclick="changeLang('tr')">🇹🇷 <span>Türkçe</span></button>
+    <button class="lang-btn" onclick="changeLang('en')">🇬🇧 <span>English</span></button>
   </div>
+
+  <div class="home-button">
+    <button id="homeBtn" onclick="goHome()">Ana Sayfa</button>
+  </div>
+
   <div class="container">
-    <div class="section">
-      <h3 id="searchTitle">Kullanıcı Ara</h3>
-      <input type="text" id="searchInput" placeholder="Kullanıcı adı gir...">
-      <button onclick="searchUser()" id="btnSearch">Ara</button>
-      <div id="searchResults"></div>
-    </div>
-    <div class="section">
-      <h3 id="receivedRequestsTitle">Gelen İstekler</h3>
-      <div id="receivedRequests"></div>
-    </div>
-    <div class="section">
-      <h3 id="sentRequestsTitle">Gönderilen İstekler</h3>
-      <div id="sentRequests"></div>
-    </div>
-    <div class="section">
-      <h3 id="friendsListTitle">Arkadaşlarım</h3>
-      <div id="friendsList"></div>
-    </div>
+    <h2 id="profileTitle">Profil Bilgilerim</h2>
+    <div id="profileLetter" class="profile-letter">?</div>
+
+    <label id="labelFullName">Ad Soyad</label>
+    <input type="text" id="fullName">
+
+    <label id="labelEmail">E-posta</label>
+    <input type="email" id="email">
+
+    <label id="labelUsername">Kullanıcı Adı</label>
+    <input type="text" id="username">
+
+    <label id="labelDob">Doğum Tarihi</label>
+    <input type="date" id="dob">
+
+    <button onclick="updateProfile()" id="btnUpdateProfile">Bilgileri Güncelle</button>
+
+    <label id="labelPassword">Yeni Şifre</label>
+    <input type="password" id="newPassword">
+    <button onclick="updatePassword()" id="btnPassword">Şifreyi Güncelle</button>
+
+    <button style="background: red;" onclick="deleteAccount()" id="btnDelete">Hesabı Sil</button>
+    <div id="messageBox"></div>
   </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, updatePassword as firebaseUpdatePassword, deleteUser, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -134,195 +233,114 @@
     let currentUser;
     let currentLang = localStorage.getItem("lang") || "tr";
 
-    const t = {
+    const translations = {
       tr: {
-        pageTitle: "Arkadaşlar",
-        searchTitle: "Kullanıcı Ara",
-        receivedRequestsTitle: "Gelen İstekler",
-        sentRequestsTitle: "Gönderilen İstekler",
-        friendsListTitle: "Arkadaşlarım",
-        btnSearch: "Ara",
-        placeholder: "Kullanıcı adı gir...",
-        accept: "Kabul Et",
-        reject: "Reddet",
-        cancel: "İptal Et",
-        unfriend: "Arkadaşlıktan Çıkar",
-        requestSent: "İstek gönderildi!",
+        profileTitle: "Profil Bilgilerim",
+        labelFullName: "Ad Soyad",
+        labelEmail: "E-posta",
+        labelUsername: "Kullanıcı Adı",
+        labelDob: "Doğum Tarihi",
+        labelPassword: "Yeni Şifre",
+        btnUpdateProfile: "Bilgileri Güncelle",
+        btnPassword: "Şifreyi Güncelle",
+        btnDelete: "Hesabı Sil",
+        updateSuccess: "Bilgiler güncellendi!",
+        passwordSuccess: "Şifre güncellendi!",
+        deleted: "Hesap silindi.",
         home: "Ana Sayfa"
       },
       en: {
-        pageTitle: "Friends",
-        searchTitle: "Search Users",
-        receivedRequestsTitle: "Incoming Requests",
-        sentRequestsTitle: "Sent Requests",
-        friendsListTitle: "My Friends",
-        btnSearch: "Search",
-        placeholder: "Enter username...",
-        accept: "Accept",
-        reject: "Reject",
-        cancel: "Cancel",
-        unfriend: "Unfriend",
-        requestSent: "Request sent!",
+        profileTitle: "My Profile",
+        labelFullName: "Full Name",
+        labelEmail: "Email",
+        labelUsername: "Username",
+        labelDob: "Date of Birth",
+        labelPassword: "New Password",
+        btnUpdateProfile: "Update Info",
+        btnPassword: "Update Password",
+        btnDelete: "Delete Account",
+        updateSuccess: "Profile updated!",
+        passwordSuccess: "Password updated!",
+        deleted: "Account deleted.",
         home: "Home"
       }
     };
 
-    function translate(id, key) {
-      document.getElementById(id).innerText = t[currentLang][key];
+    function updateTexts() {
+      const t = translations[currentLang];
+      for (const key in t) {
+        const el = document.getElementById(key);
+        if (el) el.innerText = t[key];
+      }
+      updateHomeButtonText();
     }
 
     window.changeLang = function(lang) {
       currentLang = lang;
       localStorage.setItem("lang", lang);
-      translate("pageTitle", "pageTitle");
-      translate("searchTitle", "searchTitle");
-      translate("receivedRequestsTitle", "receivedRequestsTitle");
-      translate("sentRequestsTitle", "sentRequestsTitle");
-      translate("friendsListTitle", "friendsListTitle");
-      translate("btnSearch", "btnSearch");
-      document.getElementById("searchInput").placeholder = t[currentLang].placeholder;
-      document.getElementById("homeBtn").innerText = t[currentLang].home;
-      loadReceivedRequests();
-      loadSentRequests();
-      loadFriends();
+      updateTexts();
     };
+
+    function updateHomeButtonText() {
+      const homeBtn = document.getElementById("homeBtn");
+      if (homeBtn) homeBtn.innerText = translations[currentLang].home;
+    }
+
+    function showMessage(msg) {
+      const box = document.getElementById("messageBox");
+      box.innerText = msg;
+      setTimeout(() => box.innerText = "", 3000);
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return location.href = "index.html";
+      currentUser = user;
+      const snap = await getDoc(doc(db, "users", user.uid));
+      if (snap.exists()) {
+        const data = snap.data();
+        document.getElementById("fullName").value = data.fullName;
+        document.getElementById("email").value = data.email;
+        document.getElementById("username").value = data.username;
+        document.getElementById("dob").value = data.dob;
+        if (data.fullName) {
+          const firstLetter = data.fullName.trim().charAt(0).toUpperCase();
+          document.getElementById("profileLetter").innerText = firstLetter;
+        }
+      }
+    });
+
+    window.updateProfile = async () => {
+      await updateDoc(doc(db, "users", currentUser.uid), {
+        fullName: document.getElementById("fullName").value,
+        email: document.getElementById("email").value,
+        username: document.getElementById("username").value,
+        dob: document.getElementById("dob").value
+      });
+      showMessage(translations[currentLang].updateSuccess);
+    }
+
+    window.updatePassword = async () => {
+      const newPassword = document.getElementById("newPassword").value;
+      await firebaseUpdatePassword(currentUser, newPassword);
+      showMessage(translations[currentLang].passwordSuccess);
+    }
+
+    window.deleteAccount = async () => {
+      if (confirm("Silmek istediğine emin misin?")) {
+        await deleteUser(currentUser);
+        showMessage(translations[currentLang].deleted);
+        location.href = "index.html";
+      }
+    }
 
     window.goHome = function () {
       window.location.href = "anasayfa.html";
     };
 
-    window.searchUser = async function() {
-      const input = document.getElementById("searchInput").value.trim().toLowerCase();
-      const results = document.getElementById("searchResults");
-      results.innerHTML = "";
-      const usersSnap = await getDocs(collection(db, "users"));
-      const friendsSnap = await getDoc(doc(db, "friends", currentUser.uid));
-      const friends = friendsSnap.exists() ? friendsSnap.data().list || [] : [];
-      usersSnap.forEach(docSnap => {
-        const data = docSnap.data();
-        if (!data.username || docSnap.id === currentUser.uid) return;
-        if (data.username.toLowerCase().includes(input) && !friends.includes(docSnap.id)) {
-          const div = document.createElement("div");
-          div.innerText = data.username;
-          const btn = document.createElement("button");
-          btn.innerText = "➕";
-          btn.onclick = () => sendRequest(docSnap.id);
-          div.appendChild(btn);
-          results.appendChild(div);
-        }
-      });
-    }
-
-    async function sendRequest(targetId) {
-      const ref = doc(db, "friendRequests", targetId);
-      const snap = await getDoc(ref);
-      if (snap.exists()) {
-        await updateDoc(ref, { requests: arrayUnion(currentUser.uid) });
-      } else {
-        await setDoc(ref, { requests: [currentUser.uid] });
-      }
-      alert(t[currentLang].requestSent);
-      loadSentRequests();
-    }
-
-    async function loadReceivedRequests() {
-      const ref = doc(db, "friendRequests", currentUser.uid);
-      const snap = await getDoc(ref);
-      const container = document.getElementById("receivedRequests");
-      container.innerHTML = "";
-      if (!snap.exists()) return;
-      for (const id of snap.data().requests || []) {
-        const userSnap = await getDoc(doc(db, "users", id));
-        const username = userSnap.exists() ? userSnap.data().username : id;
-        const div = document.createElement("div");
-        div.innerText = username;
-        const accept = document.createElement("button");
-        accept.innerText = t[currentLang].accept;
-        accept.onclick = () => acceptRequest(id);
-        const reject = document.createElement("button");
-        reject.innerText = t[currentLang].reject;
-        reject.onclick = () => rejectRequest(id);
-        div.appendChild(accept);
-        div.appendChild(reject);
-        container.appendChild(div);
-      }
-    }
-
-    async function acceptRequest(id) {
-      await updateDoc(doc(db, "friendRequests", currentUser.uid), {
-        requests: arrayRemove(id)
-      });
-      await Promise.all([
-        updateDoc(doc(db, "friends", currentUser.uid), { list: arrayUnion(id) }).catch(() => setDoc(doc(db, "friends", currentUser.uid), { list: [id] })),
-        updateDoc(doc(db, "friends", id), { list: arrayUnion(currentUser.uid) }).catch(() => setDoc(doc(db, "friends", id), { list: [currentUser.uid] }))
-      ]);
-      loadReceivedRequests();
-      loadFriends();
-    }
-
-    async function rejectRequest(id) {
-      await updateDoc(doc(db, "friendRequests", currentUser.uid), {
-        requests: arrayRemove(id)
-      });
-      loadReceivedRequests();
-    }
-
-    async function loadSentRequests() {
-      const container = document.getElementById("sentRequests");
-      container.innerHTML = "";
-      const snaps = await getDocs(collection(db, "friendRequests"));
-      for (const s of snaps.docs) {
-        const data = s.data();
-        if (data.requests && data.requests.includes(currentUser.uid)) {
-          const user = await getDoc(doc(db, "users", s.id));
-          const div = document.createElement("div");
-          div.innerText = user.exists() ? user.data().username : s.id;
-          const cancel = document.createElement("button");
-          cancel.innerText = t[currentLang].cancel;
-          cancel.onclick = () => cancelRequest(s.id);
-          div.appendChild(cancel);
-          container.appendChild(div);
-        }
-      }
-    }
-
-    async function cancelRequest(targetId) {
-      await updateDoc(doc(db, "friendRequests", targetId), {
-        requests: arrayRemove(currentUser.uid)
-      });
-      loadSentRequests();
-    }
-
-    async function loadFriends() {
-      const container = document.getElementById("friendsList");
-      container.innerHTML = "";
-      const snap = await getDoc(doc(db, "friends", currentUser.uid));
-      const ids = snap.exists() ? snap.data().list || [] : [];
-      for (const id of ids) {
-        const user = await getDoc(doc(db, "users", id));
-        const div = document.createElement("div");
-        div.innerText = user.exists() ? user.data().username : id;
-        const remove = document.createElement("button");
-        remove.innerText = t[currentLang].unfriend;
-        remove.onclick = () => unfriend(id);
-        div.appendChild(remove);
-        container.appendChild(div);
-      }
-    }
-
-    async function unfriend(id) {
-      await Promise.all([
-        updateDoc(doc(db, "friends", currentUser.uid), { list: arrayRemove(id) }),
-        updateDoc(doc(db, "friends", id), { list: arrayRemove(currentUser.uid) })
-      ]);
-      loadFriends();
-    }
-
-    onAuthStateChanged(auth, user => {
-      if (!user) return location.href = "index.html";
-      currentUser = user;
+    window.addEventListener("DOMContentLoaded", () => {
       changeLang(currentLang);
     });
   </script>
 </body>
 </html>
+
