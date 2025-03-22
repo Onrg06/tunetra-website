@@ -36,6 +36,7 @@
         password: "Şifre",
         confirmPassword: "Şifre Tekrar",
         register: "Kayıt Ol",
+        loginBtn: "Giriş Yap",
         success: "Kayıt başarılı!",
         error: "Bir hata oluştu!",
         mismatch: "Şifreler uyuşmuyor!",
@@ -53,6 +54,7 @@
         password: "Password",
         confirmPassword: "Confirm Password",
         register: "Register",
+        loginBtn: "Log In",
         success: "Registration successful!",
         error: "An error occurred!",
         mismatch: "Passwords do not match!",
@@ -74,6 +76,8 @@
       document.getElementById("password").placeholder = t.password;
       document.getElementById("confirmPassword").placeholder = t.confirmPassword;
       document.getElementById("registerBtn").innerText = t.register;
+      document.getElementById("goToLoginBtn").innerText = t.loginBtn;
+
     }
 
     window.onload = () => {
@@ -232,6 +236,8 @@ catch (err) {
       <input type="password" id="password" placeholder="Şifre" required>
       <input type="password" id="confirmPassword" placeholder="Şifre Tekrar" required>
       <button type="submit" id="registerBtn">Kayıt Ol</button>
+      <!-- Formun altına ekle -->
+<button type="button" id="goToLoginBtn" onclick="window.location.href='index.html'">Giriş Yap</button>
     </form>
   </div>
 
