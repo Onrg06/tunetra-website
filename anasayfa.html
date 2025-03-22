@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -51,21 +50,119 @@
       font-size: 1rem;
       font-weight: bold;
       cursor: pointer;
-      transition: 0.3s;
       text-decoration: none;
     }
 
     .btn:hover {
       background: linear-gradient(to right, #ffcc70, #6a11cb);
     }
+
+    .language-buttons {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .lang-btn {
+      padding: 6px 10px;
+      font-size: 14px;
+      font-weight: bold;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <h1>🎶 Hoş Geldin TuneTRa!</h1>
-  <p>
+
+  <div class="language-buttons">
+    <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
+    <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
+  </div>
+
+  <h1 id="welcomeMessage">🎶 Hoş Geldin!</h1>
+  <p id="introText">
     Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br>
-    Şiirini veya melodini paylaş,şarkıya dönüşmesini izle. Birlikte müzik üretelim!
+    Şiirini veya melodini paylaş, şarkıya dönüşmesini izle. Birlikte müzik üretelim!
   </p>
-  <a href="index.html" class="btn">Çıkış Yap</a>
+  <a href="index.html" class="btn" onclick="logout()">Çıkış Yap</a>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56",
+      measurementId: "G-LRQGNS7B8X"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const translations = {
+      tr: {
+        welcome: "🎶 Hoş Geldin, ",
+        intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br>Şiirini veya melodini paylaş, şarkıya dönüşmesini izle. Birlikte müzik üretelim!",
+        logout: "Çıkış Yap"
+      },
+      en: {
+        welcome: "🎶 Welcome, ",
+        intro: "You're in the right place to create your dream song.<br>Share your lyrics or melody, watch it become a track. Let's make music together!",
+        logout: "Log Out"
+      }
+    };
+
+    let currentLang = "tr";
+
+    window.setLang = function(lang) {
+      currentLang = lang;
+      updateUI();
+    };
+
+    async function updateUI() {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const docRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(docRef);
+
+      if (userDoc.exists()) {
+        const username = userDoc.data().username;
+        document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
+        document.getElementById("introText").innerHTML = translations[currentLang].intro;
+        document.querySelector(".btn").innerText = translations[currentLang].logout;
+      }
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+      } else {
+        updateUI();
+      }
+    });
+
+    window.logout = function() {
+      signOut(auth).then(() => {
+        window.location.href = "index.html";
+      });
+    };
+
+    // Sayfa yüklendiğinde varsayılan dili ayarla
+    window.addEventListener("DOMContentLoaded", () => {
+      setLang("tr");
+    });
+  </script>
 </body>
 </html>
