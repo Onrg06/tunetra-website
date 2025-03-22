@@ -71,12 +71,17 @@
     button:hover {
       background: var(--button-hover);
     }
-    .profile-pic {
+    .profile-letter {
       width: 120px;
       height: 120px;
       border-radius: 50%;
-      object-fit: cover;
-      display: block;
+      background: #ffffff33;
+      color: white;
+      font-size: 48px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       margin: 0 auto 20px;
       border: 3px solid white;
     }
@@ -111,8 +116,7 @@
 
   <div class="container">
     <h2 id="profileTitle">Profil Bilgilerim</h2>
-    <img id="profileImage" src="default.png" alt="Profil Foto" class="profile-pic">
-    <input type="file" id="uploadPic">
+    <div id="profileLetter" class="profile-letter">?</div>
 
     <label id="labelFullName">Ad Soyad</label>
     <input type="text" id="fullName">
@@ -140,7 +144,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, updatePassword, deleteUser, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -154,7 +157,6 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const storage = getStorage(app);
 
     let currentUser;
     let currentLang = localStorage.getItem("lang") || "tr";
@@ -220,7 +222,10 @@
         document.getElementById("email").value = data.email;
         document.getElementById("username").value = data.username;
         document.getElementById("dob").value = data.dob;
-        if (data.profilePic) document.getElementById("profileImage").src = data.profilePic;
+        if (data.fullName) {
+          const firstLetter = data.fullName.trim().charAt(0).toUpperCase();
+          document.getElementById("profileLetter").innerText = firstLetter;
+        }
       }
     });
 
@@ -247,24 +252,6 @@
         location.href = "index.html";
       }
     }
-
-    document.getElementById("uploadPic").addEventListener("change", async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      try {
-        const storageRef = ref(storage, `profilePics/${currentUser.uid}`);
-        await uploadBytes(storageRef, file);
-        const url = await getDownloadURL(storageRef);
-        console.log("Profil fotoğrafı URL:", url); // Debug çıktısı
-        document.getElementById("profileImage").src = url;
-        await updateDoc(doc(db, "users", currentUser.uid), { profilePic: url });
-        showMessage("Profil fotoğrafı güncellendi!");
-      } catch (err) {
-        console.error("Profil fotoğrafı yüklenemedi:", err);
-        showMessage("Fotoğraf yüklenemedi!");
-      }
-    });
 
     window.addEventListener("DOMContentLoaded", () => {
       changeLang(currentLang);
