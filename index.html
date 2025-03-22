@@ -196,7 +196,70 @@
     </div>
   </div>
 
-<script>
+  <!-- Firebase SDK'larını import et -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+    authDomain: "tunetra-2579b.firebaseapp.com",
+    projectId: "tunetra-2579b",
+    storageBucket: "tunetra-2579b.appspot.com",
+    messagingSenderId: "576238823779",
+    appId: "1:576238823779:web:b1796f089427e3b6fecb56",
+    measurementId: "G-LRQGNS7B8X"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  // Giriş kontrolü
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      console.log("Giriş yapılmış:", user.email);
+      document.getElementById("welcome").innerText = `Hoş geldin, ${user.email}`;
+    } else {
+      // Eğer giriş yapılmamışsa login sayfasına yönlendir
+      window.location.href = "index.html";
+    }
+  });
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+    authDomain: "tunetra-2579b.firebaseapp.com",
+    projectId: "tunetra-2579b",
+    storageBucket: "tunetra-2579b.appspot.com",
+    messagingSenderId: "576238823779",
+    appId: "1:576238823779:web:b1796f089427e3b6fecb56",
+    measurementId: "G-LRQGNS7B8X"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const fullName = docSnap.data().fullName;
+        document.getElementById("welcomeMessage").innerText = `Hoş geldin, ${fullName}`;
+      } else {
+        document.getElementById("welcomeMessage").innerText = "Hoş geldin!";
+      }
+    } else {
+      // Giriş yapılmamışsa login sayfasına yönlendir
+      window.location.href = "index.html";
+    }
+  });
+</script>
   let currentLang = "tr";
 
   function setLang(lang) {
