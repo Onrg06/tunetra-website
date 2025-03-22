@@ -48,7 +48,7 @@
       margin-top: 15px;
       font-weight: bold;
     }
-    input, select {
+    input {
       width: 100%;
       padding: 10px;
       margin-top: 5px;
@@ -128,14 +128,6 @@
 
     <button onclick="updateProfile()" id="btnUpdateProfile">Bilgileri Güncelle</button>
 
-    <label id="labelTheme">Tema</label>
-    <select id="themeSelect">
-      <option value="light">Açık</option>
-      <option value="dark">Koyu</option>
-      <option value="purple">Mor</option>
-    </select>
-    <button onclick="applyTheme(true)" id="btnTheme">Temayı Kaydet</button>
-
     <label id="labelPassword">Yeni Şifre</label>
     <input type="password" id="newPassword">
     <button onclick="updatePassword()" id="btnPassword">Şifreyi Güncelle</button>
@@ -174,14 +166,11 @@
         labelEmail: "E-posta",
         labelUsername: "Kullanıcı Adı",
         labelDob: "Doğum Tarihi",
-        labelTheme: "Tema",
         labelPassword: "Yeni Şifre",
         btnUpdateProfile: "Bilgileri Güncelle",
         btnPassword: "Şifreyi Güncelle",
         btnDelete: "Hesabı Sil",
-        btnTheme: "Temayı Kaydet",
         updateSuccess: "Bilgiler güncellendi!",
-        themeSuccess: "Tema uygulandı!",
         passwordSuccess: "Şifre güncellendi!",
         deleted: "Hesap silindi."
       },
@@ -191,14 +180,11 @@
         labelEmail: "Email",
         labelUsername: "Username",
         labelDob: "Date of Birth",
-        labelTheme: "Theme",
         labelPassword: "New Password",
         btnUpdateProfile: "Update Info",
         btnPassword: "Update Password",
         btnDelete: "Delete Account",
-        btnTheme: "Save Theme",
         updateSuccess: "Profile updated!",
-        themeSuccess: "Theme applied!",
         passwordSuccess: "Password updated!",
         deleted: "Account deleted."
       }
@@ -224,39 +210,6 @@
       setTimeout(() => box.innerText = "", 3000);
     }
 
-    function applyTheme(save = false) {
-      const theme = document.getElementById("themeSelect").value;
-      localStorage.setItem("theme", theme);
-
-      if (theme === "light") {
-        document.documentElement.style.setProperty('--bg-color', '#ffffff');
-        document.documentElement.style.setProperty('--text-color', '#111111');
-        document.documentElement.style.setProperty('--input-bg', '#f0f0f0');
-        document.documentElement.style.setProperty('--card-bg', '#ffffffee');
-        document.documentElement.style.setProperty('--button-gradient', 'linear-gradient(to right, #0072ff, #00c6ff)');
-        document.documentElement.style.setProperty('--button-hover', 'linear-gradient(to right, #00c6ff, #0072ff)');
-      } else if (theme === "dark") {
-        document.documentElement.style.setProperty('--bg-color', '#0e0e0e');
-        document.documentElement.style.setProperty('--text-color', '#ffffff');
-        document.documentElement.style.setProperty('--input-bg', '#222222');
-        document.documentElement.style.setProperty('--card-bg', '#1c1c1c');
-        document.documentElement.style.setProperty('--button-gradient', 'linear-gradient(to right, #434343, #000000)');
-        document.documentElement.style.setProperty('--button-hover', 'linear-gradient(to right, #000000, #434343)');
-      } else {
-        document.documentElement.style.setProperty('--bg-color', 'linear-gradient(to right, #6a11cb, #ffcc70, #2575fc)');
-        document.documentElement.style.setProperty('--text-color', 'white');
-        document.documentElement.style.setProperty('--input-bg', '#2a2a2a');
-        document.documentElement.style.setProperty('--card-bg', 'rgba(0,0,0,0.7)');
-        document.documentElement.style.setProperty('--button-gradient', 'linear-gradient(to right, #6a11cb, #2575fc)');
-        document.documentElement.style.setProperty('--button-hover', 'linear-gradient(to right, #ffcc70, #6a11cb)');
-      }
-
-      if (save && currentUser) {
-        updateDoc(doc(db, "users", currentUser.uid), { theme });
-        showMessage(translations[currentLang].themeSuccess);
-      }
-    }
-
     onAuthStateChanged(auth, async (user) => {
       if (!user) return location.href = "index.html";
       currentUser = user;
@@ -267,9 +220,7 @@
         document.getElementById("email").value = data.email;
         document.getElementById("username").value = data.username;
         document.getElementById("dob").value = data.dob;
-        document.getElementById("themeSelect").value = data.theme || "purple";
         if (data.profilePic) document.getElementById("profileImage").src = data.profilePic;
-        applyTheme();
       }
     });
 
@@ -309,9 +260,6 @@
 
     window.addEventListener("DOMContentLoaded", () => {
       changeLang(currentLang);
-      const theme = localStorage.getItem("theme") || "purple";
-      document.getElementById("themeSelect").value = theme;
-      applyTheme();
     });
   </script>
 </body>
