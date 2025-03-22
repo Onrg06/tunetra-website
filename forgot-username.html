@@ -78,8 +78,25 @@
     <p id="result"></p>
   </div>
 
-  <script>
-    // Çoklu dil desteği
+  <!-- Firebase & Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Firebase yapılandırması
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56",
+      measurementId: "G-LRQGNS7B8X"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
     const translations = {
       tr: {
         forgotUsernameTitle: "Kullanıcı Adımı Unuttum",
@@ -101,7 +118,7 @@
 
     let currentLang = "tr";
 
-    function setLang(lang) {
+    window.setLang = function(lang) {
       currentLang = lang;
       const t = translations[lang];
       document.getElementById("forgotUsernameTitle").innerText = t.forgotUsernameTitle;
@@ -109,32 +126,40 @@
       document.getElementById("recoverBtn").innerText = t.recoverBtn;
       document.getElementById("loginBtn").innerText = t.loginBtn;
       document.getElementById("result").innerText = "";
-    }
+    };
 
-    // Kullanıcı adını e-posta üzerinden bulma
-    document.getElementById("forgotUsernameForm").addEventListener("submit", function(e) {
-      e.preventDefault();
+    window.addEventListener("DOMContentLoaded", () => {
+      setLang("tr");
 
-      const email = document.getElementById("email").value;
-      const result = document.getElementById("result");
-      let found = false;
+      document.getElementById("forgotUsernameForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
 
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        const user = JSON.parse(localStorage.getItem(key));
+        const emailInput = document.getElementById("email").value.trim().toLowerCase();
+        const resultBox = document.getElementById("result");
+        let foundUsername = null;
 
-        if (user && user.email === email) {
-          result.innerText = translations[currentLang].found + user.username;
-          found = true;
-          break;
+        try {
+          const querySnapshot = await getDocs(collection(db, "users"));
+          querySnapshot.forEach((doc) => {
+            const user = doc.data();
+            if (user.email.toLowerCase() === emailInput) {
+              foundUsername = user.username;
+            }
+          });
+
+          if (foundUsername) {
+            resultBox.innerText = translations[currentLang].found + foundUsername;
+          } else {
+            resultBox.innerText = translations[currentLang].notFound;
+          }
+
+        } catch (err) {
+          console.error("Hata:", err);
+          resultBox.innerText = "Bir hata oluştu: " + err.message;
         }
-      }
-
-      if (!found) {
-        result.innerText = translations[currentLang].notFound;
-      }
+      });
     });
   </script>
-
 </body>
 </html>
+
