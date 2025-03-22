@@ -19,6 +19,7 @@
       background-size: 400% 400%;
       animation: gradientShift 15s ease infinite;
       color: var(--text-color);
+      transition: background 0.5s ease;
     }
 
     @keyframes gradientShift {
@@ -95,8 +96,8 @@
 </head>
 <body>
   <div class="lang-switch">
-    <button class="lang-btn" onclick="setLang('tr')">🇹🇷</button>
-    <button class="lang-btn" onclick="setLang('en')">🇬🇧</button>
+    <button class="lang-btn" onclick="changeLang('tr')">🇹🇷</button>
+    <button class="lang-btn" onclick="changeLang('en')">🇬🇧</button>
   </div>
 
   <div class="container">
@@ -124,7 +125,7 @@
       <option value="dark">Koyu</option>
       <option value="purple">Mor</option>
     </select>
-    <button onclick="applyTheme()" id="btnTheme">Temayı Kaydet</button>
+    <button onclick="applyTheme(true)" id="btnTheme">Temayı Kaydet</button>
 
     <label id="labelPassword">Yeni Şifre</label>
     <input type="password" id="newPassword">
@@ -154,7 +155,7 @@
     const storage = getStorage(app);
 
     let currentUser;
-    let currentLang = "tr";
+    let currentLang = localStorage.getItem("lang") || "tr";
 
     const translations = {
       tr: {
@@ -169,9 +170,9 @@
         btnPassword: "Şifreyi Güncelle",
         btnDelete: "Hesabı Sil",
         btnTheme: "Temayı Kaydet",
-        updateSuccess: "Bilgiler başarıyla güncellendi!",
-        themeSuccess: "Tema güncellendi!",
-        passwordSuccess: "Şifre başarıyla değiştirildi!",
+        updateSuccess: "Bilgiler güncellendi!",
+        themeSuccess: "Tema uygulandı!",
+        passwordSuccess: "Şifre güncellendi!",
         deleted: "Hesap silindi."
       },
       en: {
@@ -186,48 +187,58 @@
         btnPassword: "Update Password",
         btnDelete: "Delete Account",
         btnTheme: "Save Theme",
-        updateSuccess: "Profile updated successfully!",
-        themeSuccess: "Theme updated!",
-        passwordSuccess: "Password updated successfully!",
+        updateSuccess: "Profile updated!",
+        themeSuccess: "Theme applied!",
+        passwordSuccess: "Password updated!",
         deleted: "Account deleted."
       }
     };
 
-    function setLang(lang) {
-      currentLang = lang;
-      const t = translations[lang];
-      for (let key in t) {
+    function updateTexts() {
+      const t = translations[currentLang];
+      for (const key in t) {
         const el = document.getElementById(key);
         if (el) el.innerText = t[key];
       }
     }
 
-    function applyTheme() {
+    window.changeLang = function(lang) {
+      currentLang = lang;
+      localStorage.setItem("lang", lang);
+      updateTexts();
+    };
+
+    function applyTheme(save = false) {
       const theme = document.getElementById("themeSelect").value;
-      let root = document.documentElement;
-      if (theme === "dark") {
-        root.style.setProperty('--bg-color', '#111');
-        root.style.setProperty('--text-color', 'white');
-        root.style.setProperty('--input-bg', '#222');
-      } else if (theme === "light") {
+      const root = document.documentElement;
+
+      if (theme === "light") {
         root.style.setProperty('--bg-color', '#fff');
-        root.style.setProperty('--text-color', '#111');
+        root.style.setProperty('--text-color', '#000');
         root.style.setProperty('--input-bg', '#ddd');
+      } else if (theme === "dark") {
+        root.style.setProperty('--bg-color', '#000');
+        root.style.setProperty('--text-color', '#fff');
+        root.style.setProperty('--input-bg', '#222');
       } else {
         root.style.setProperty('--bg-color', 'linear-gradient(to right, #6a11cb, #ffcc70, #2575fc)');
         root.style.setProperty('--text-color', 'white');
         root.style.setProperty('--input-bg', '#2a2a2a');
       }
-      updateDoc(doc(db, "users", currentUser.uid), { theme });
-      alert(translations[currentLang].themeSuccess);
+
+      if (save && currentUser) {
+        updateDoc(doc(db, "users", currentUser.uid), { theme });
+        localStorage.setItem("theme", theme);
+        alert(translations[currentLang].themeSuccess);
+      }
     }
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) return location.href = "index.html";
       currentUser = user;
-      const docSnap = await getDoc(doc(db, "users", user.uid));
-      if (docSnap.exists()) {
-        const data = docSnap.data();
+      const snap = await getDoc(doc(db, "users", user.uid));
+      if (snap.exists()) {
+        const data = snap.data();
         document.getElementById("fullName").value = data.fullName;
         document.getElementById("email").value = data.email;
         document.getElementById("username").value = data.username;
@@ -272,7 +283,10 @@
       await updateDoc(doc(db, "users", currentUser.uid), { profilePic: url });
     });
 
-    window.addEventListener("DOMContentLoaded", () => setLang("tr"));
+    window.addEventListener("DOMContentLoaded", () => {
+      changeLang(currentLang);
+      applyTheme();
+    });
   </script>
 </body>
 </html>
