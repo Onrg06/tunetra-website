@@ -251,11 +251,19 @@
     document.getElementById("uploadPic").addEventListener("change", async (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      const storageRef = ref(storage, `profilePics/${currentUser.uid}`);
-      await uploadBytes(storageRef, file);
-      const url = await getDownloadURL(storageRef);
-      document.getElementById("profileImage").src = url;
-      await updateDoc(doc(db, "users", currentUser.uid), { profilePic: url });
+
+      try {
+        const storageRef = ref(storage, `profilePics/${currentUser.uid}`);
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+        console.log("Profil fotoğrafı URL:", url); // Debug çıktısı
+        document.getElementById("profileImage").src = url;
+        await updateDoc(doc(db, "users", currentUser.uid), { profilePic: url });
+        showMessage("Profil fotoğrafı güncellendi!");
+      } catch (err) {
+        console.error("Profil fotoğrafı yüklenemedi:", err);
+        showMessage("Fotoğraf yüklenemedi!");
+      }
     });
 
     window.addEventListener("DOMContentLoaded", () => {
