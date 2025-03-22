@@ -65,29 +65,48 @@
       gap: 10px;
     }
 
-.lang-btn {
-  background: linear-gradient(to right, #6a11cb, #2575fc);
-  border: none;
-  color: white;
-  padding: 8px 14px;
-  font-size: 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.3s ease;
-}
+    .lang-btn {
+      padding: 6px 10px;
+      font-size: 14px;
+      font-weight: bold;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+    }
 
-.lang-btn:hover {
-  background: linear-gradient(to right, #ffcc70, #6a11cb);
-}
+    .top-right-controls {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+    }
+
+    .profile-btn {
+      padding: 8px 14px;
+      background: linear-gradient(to right, #00c6ff, #0072ff);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-weight: bold;
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .profile-btn:hover {
+      background: linear-gradient(to right, #ffcc70, #6a11cb);
     }
   </style>
 </head>
 <body>
-
   <div class="language-buttons">
     <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
     <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
+  </div>
+
+  <div class="top-right-controls">
+    <a href="profil.html" class="profile-btn">👤 Profilim</a>
   </div>
 
   <h1 id="welcomeMessage">🎶 Hoş Geldin!</h1>
@@ -165,7 +184,6 @@
       });
     };
 
-    // Sayfa yüklendiğinde varsayılan dili ayarla
     window.addEventListener("DOMContentLoaded", () => {
       setLang("tr");
     });
