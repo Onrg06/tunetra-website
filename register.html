@@ -4,8 +4,105 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TuneTRa | Kayıt Ol</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script type="module">
+    // Firebase SDK'larını içe aktar
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56",
+      measurementId: "G-LRQGNS7B8X"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentLang = "tr";
+    const translations = {
+      tr: {
+        title: "Kayıt Ol",
+        fullName: "Ad Soyad",
+        dob: "Doğum Tarihi",
+        username: "Kullanıcı Adı",
+        email: "E-Posta",
+        password: "Şifre",
+        confirmPassword: "Şifre Tekrar",
+        register: "Kayıt Ol",
+        success: "Kayıt başarılı!",
+        error: "Bir hata oluştu!",
+        mismatch: "Şifreler uyuşmuyor!"
+      },
+      en: {
+        title: "Sign Up",
+        fullName: "Full Name",
+        dob: "Date of Birth",
+        username: "Username",
+        email: "Email",
+        password: "Password",
+        confirmPassword: "Confirm Password",
+        register: "Register",
+        success: "Registration successful!",
+        error: "An error occurred!",
+        mismatch: "Passwords do not match!"
+      }
+    };
+
+    window.setLang = function(lang) {
+      currentLang = lang;
+      const t = translations[lang];
+      document.getElementById("form-title").innerText = t.title;
+      document.getElementById("fullName").placeholder = t.fullName;
+      document.getElementById("dob").placeholder = t.dob;
+      document.getElementById("username").placeholder = t.username;
+      document.getElementById("email").placeholder = t.email;
+      document.getElementById("password").placeholder = t.password;
+      document.getElementById("confirmPassword").placeholder = t.confirmPassword;
+      document.getElementById("registerBtn").innerText = t.register;
+    }
+
+    window.onload = () => {
+      setLang("tr");
+      document.getElementById("registerForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const fullName = document.getElementById("fullName").value;
+        const dob = document.getElementById("dob").value;
+        const username = document.getElementById("username").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
+
+        if (password !== confirmPassword) {
+          alert(translations[currentLang].mismatch);
+          return;
+        }
+
+        try {
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
+          await setDoc(doc(db, "users", user.uid), {
+            fullName,
+            dob,
+            username,
+            email
+          });
+
+          alert(translations[currentLang].success);
+          window.location.href = "index.html";
+        } catch (err) {
+          console.error(err);
+          alert(translations[currentLang].error);
+        }
+      });
+    };
+  </script>
   <style>
     body {
       background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
@@ -25,152 +122,49 @@
       max-width: 400px;
       box-shadow: 0 0 10px rgba(255,255,255,0.2);
     }
-    input {
+    input, button {
       width: 100%;
       padding: 10px;
       margin: 10px 0;
-      border: none;
       border-radius: 6px;
+      border: none;
+    }
+    input {
       background: #2a2a2a;
       color: white;
     }
     button {
-      width: 100%;
-      padding: 10px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
-      border: none;
-      border-radius: 6px;
       color: white;
       font-weight: bold;
       cursor: pointer;
     }
-    .lang-buttons {
+    button:hover {
+      background: linear-gradient(to right, #ffcc70, #6a11cb);
+    }
+    .lang-switch {
       position: absolute;
       top: 20px;
       right: 20px;
     }
-    .lang-buttons button {
-      margin-left: 5px;
-      padding: 6px 10px;
-      font-weight: bold;
-      border-radius: 5px;
-      border: none;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
-
-  <div class="lang-buttons">
-    <button onclick="setLang('tr')">🇹🇷 Türkçe</button>
-    <button onclick="setLang('en')">🇬🇧 English</button>
+  <div class="lang-switch">
+    <button onclick="setLang('tr')">TR</button>
+    <button onclick="setLang('en')">EN</button>
   </div>
-
   <div class="container">
-    <h2 id="title">Kayıt Ol</h2>
+    <h2 id="form-title">Kayıt Ol</h2>
     <form id="registerForm">
       <input type="text" id="fullName" placeholder="Ad Soyad" required>
       <input type="date" id="dob" required>
       <input type="text" id="username" placeholder="Kullanıcı Adı" required>
       <input type="email" id="email" placeholder="E-Posta" required>
       <input type="password" id="password" placeholder="Şifre" required>
-      <input type="password" id="passwordConfirm" placeholder="Şifre Tekrar" required>
+      <input type="password" id="confirmPassword" placeholder="Şifre Tekrar" required>
       <button type="submit" id="registerBtn">Kayıt Ol</button>
     </form>
   </div>
-
-  <script>
-    // 🌐 Dil verileri
-    const translations = {
-      tr: {
-        title: "Kayıt Ol",
-        fullName: "Ad Soyad",
-        username: "Kullanıcı Adı",
-        email: "E-Posta",
-        password: "Şifre",
-        passwordConfirm: "Şifre Tekrar",
-        registerBtn: "Kayıt Ol",
-        success: "Kayıt başarılı!",
-        duplicate: "Bu kullanıcı adı zaten kullanılıyor!",
-        mismatch: "Şifreler eşleşmiyor!"
-      },
-      en: {
-        title: "Sign Up",
-        fullName: "Full Name",
-        username: "Username",
-        email: "Email",
-        password: "Password",
-        passwordConfirm: "Confirm Password",
-        registerBtn: "Register",
-        success: "Registration successful!",
-        duplicate: "This username is already taken!",
-        mismatch: "Passwords do not match!"
-      }
-    };
-
-    let currentLang = "tr";
-
-    function setLang(lang) {
-      currentLang = lang;
-      const t = translations[lang];
-      document.getElementById("title").innerText = t.title;
-      document.getElementById("fullName").placeholder = t.fullName;
-      document.getElementById("username").placeholder = t.username;
-      document.getElementById("email").placeholder = t.email;
-      document.getElementById("password").placeholder = t.password;
-      document.getElementById("passwordConfirm").placeholder = t.passwordConfirm;
-      document.getElementById("registerBtn").innerText = t.registerBtn;
-    }
-
-    // 🔥 Firebase konfigürasyonun BURAYA
-    const firebaseConfig = {
-    apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-    authDomain: "tunetra-2579b.firebaseapp.com",
-    projectId: "tunetra-2579b",
-    storageBucket: "tunetra-2579b.firebasestorage.app",
-    messagingSenderId: "576238823779",
-    appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-    };
-
-    // Başlat
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // 📝 Kayıt işlemi
-    document.getElementById("registerForm").addEventListener("submit", async function(e) {
-      e.preventDefault();
-
-      const fullName = document.getElementById("fullName").value;
-      const dob = document.getElementById("dob").value;
-      const username = document.getElementById("username").value;
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      const passwordConfirm = document.getElementById("passwordConfirm").value;
-
-      if (password !== passwordConfirm) {
-        alert(translations[currentLang].mismatch);
-        return;
-      }
-
-      // 🔄 Aynı kullanıcı adı kontrolü
-      const snapshot = await db.collection("users").where("username", "==", username).get();
-      if (!snapshot.empty) {
-        alert(translations[currentLang].duplicate);
-        return;
-      }
-
-      // ✅ Veriyi Firebase’e gönder
-      await db.collection("users").add({
-        fullName,
-        dob,
-        username,
-        email,
-        password
-      });
-
-      alert(translations[currentLang].success);
-      window.location.href = "index.html";
-    });
-  </script>
 </body>
 </html>
