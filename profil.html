@@ -95,6 +95,12 @@
       color: white;
       cursor: pointer;
     }
+    #messageBox {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+      color: lime;
+    }
   </style>
 </head>
 <body>
@@ -135,6 +141,7 @@
     <button onclick="updatePassword()" id="btnPassword">Şifreyi Güncelle</button>
 
     <button style="background: red;" onclick="deleteAccount()" id="btnDelete">Hesabı Sil</button>
+    <div id="messageBox"></div>
   </div>
 
   <script type="module">
@@ -211,37 +218,42 @@
       updateTexts();
     };
 
+    function showMessage(msg) {
+      const box = document.getElementById("messageBox");
+      box.innerText = msg;
+      setTimeout(() => box.innerText = "", 3000);
+    }
+
     function applyTheme(save = false) {
       const theme = document.getElementById("themeSelect").value;
-      const root = document.documentElement;
+      localStorage.setItem("theme", theme);
 
       if (theme === "light") {
-        root.style.setProperty('--bg-color', '#ffffff');
-        root.style.setProperty('--text-color', '#111111');
-        root.style.setProperty('--input-bg', '#f0f0f0');
-        root.style.setProperty('--card-bg', '#ffffffee');
-        root.style.setProperty('--button-gradient', 'linear-gradient(to right, #0072ff, #00c6ff)');
-        root.style.setProperty('--button-hover', 'linear-gradient(to right, #00c6ff, #0072ff)');
+        document.documentElement.style.setProperty('--bg-color', '#ffffff');
+        document.documentElement.style.setProperty('--text-color', '#111111');
+        document.documentElement.style.setProperty('--input-bg', '#f0f0f0');
+        document.documentElement.style.setProperty('--card-bg', '#ffffffee');
+        document.documentElement.style.setProperty('--button-gradient', 'linear-gradient(to right, #0072ff, #00c6ff)');
+        document.documentElement.style.setProperty('--button-hover', 'linear-gradient(to right, #00c6ff, #0072ff)');
       } else if (theme === "dark") {
-        root.style.setProperty('--bg-color', '#0e0e0e');
-        root.style.setProperty('--text-color', '#ffffff');
-        root.style.setProperty('--input-bg', '#222222');
-        root.style.setProperty('--card-bg', '#1c1c1c');
-        root.style.setProperty('--button-gradient', 'linear-gradient(to right, #434343, #000000)');
-        root.style.setProperty('--button-hover', 'linear-gradient(to right, #000000, #434343)');
+        document.documentElement.style.setProperty('--bg-color', '#0e0e0e');
+        document.documentElement.style.setProperty('--text-color', '#ffffff');
+        document.documentElement.style.setProperty('--input-bg', '#222222');
+        document.documentElement.style.setProperty('--card-bg', '#1c1c1c');
+        document.documentElement.style.setProperty('--button-gradient', 'linear-gradient(to right, #434343, #000000)');
+        document.documentElement.style.setProperty('--button-hover', 'linear-gradient(to right, #000000, #434343)');
       } else {
-        root.style.setProperty('--bg-color', 'linear-gradient(to right, #6a11cb, #ffcc70, #2575fc)');
-        root.style.setProperty('--text-color', 'white');
-        root.style.setProperty('--input-bg', '#2a2a2a');
-        root.style.setProperty('--card-bg', 'rgba(0,0,0,0.7)');
-        root.style.setProperty('--button-gradient', 'linear-gradient(to right, #6a11cb, #2575fc)');
-        root.style.setProperty('--button-hover', 'linear-gradient(to right, #ffcc70, #6a11cb)');
+        document.documentElement.style.setProperty('--bg-color', 'linear-gradient(to right, #6a11cb, #ffcc70, #2575fc)');
+        document.documentElement.style.setProperty('--text-color', 'white');
+        document.documentElement.style.setProperty('--input-bg', '#2a2a2a');
+        document.documentElement.style.setProperty('--card-bg', 'rgba(0,0,0,0.7)');
+        document.documentElement.style.setProperty('--button-gradient', 'linear-gradient(to right, #6a11cb, #2575fc)');
+        document.documentElement.style.setProperty('--button-hover', 'linear-gradient(to right, #ffcc70, #6a11cb)');
       }
 
       if (save && currentUser) {
         updateDoc(doc(db, "users", currentUser.uid), { theme });
-        localStorage.setItem("theme", theme);
-        alert(translations[currentLang].themeSuccess);
+        showMessage(translations[currentLang].themeSuccess);
       }
     }
 
@@ -255,9 +267,8 @@
         document.getElementById("email").value = data.email;
         document.getElementById("username").value = data.username;
         document.getElementById("dob").value = data.dob;
-        document.getElementById("themeSelect").value = data.theme || "light";
+        document.getElementById("themeSelect").value = data.theme || "purple";
         if (data.profilePic) document.getElementById("profileImage").src = data.profilePic;
-        localStorage.setItem("theme", data.theme);
         applyTheme();
       }
     });
@@ -269,19 +280,19 @@
         username: document.getElementById("username").value,
         dob: document.getElementById("dob").value
       });
-      alert(translations[currentLang].updateSuccess);
+      showMessage(translations[currentLang].updateSuccess);
     }
 
     window.updatePassword = async () => {
       const newPassword = document.getElementById("newPassword").value;
       await updatePassword(currentUser, newPassword);
-      alert(translations[currentLang].passwordSuccess);
+      showMessage(translations[currentLang].passwordSuccess);
     }
 
     window.deleteAccount = async () => {
       if (confirm("Silmek istediğine emin misin?")) {
         await deleteUser(currentUser);
-        alert(translations[currentLang].deleted);
+        showMessage(translations[currentLang].deleted);
         location.href = "index.html";
       }
     }
