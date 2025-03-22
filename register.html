@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TuneTRa | Kayıt Ol</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <style>
     body {
       background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
@@ -12,16 +14,16 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
       color: white;
+      margin: 0;
     }
     .container {
-      background: rgba(0, 0, 0, 0.75);
+      background: rgba(0, 0, 0, 0.7);
       padding: 30px;
       border-radius: 12px;
       width: 90%;
       max-width: 400px;
-      box-shadow: 0 0 15px rgba(255,255,255,0.25);
+      box-shadow: 0 0 10px rgba(255,255,255,0.2);
     }
     input {
       width: 100%;
@@ -41,7 +43,6 @@
       color: white;
       font-weight: bold;
       cursor: pointer;
-      margin-top: 10px;
     }
     .lang-buttons {
       position: absolute;
@@ -68,103 +69,108 @@
   <div class="container">
     <h2 id="title">Kayıt Ol</h2>
     <form id="registerForm">
-      <label id="dobLabel" for="dob">Doğum Tarihi:</label>
-      <input type="date" id="dob" required>
-
       <input type="text" id="fullName" placeholder="Ad Soyad" required>
-      <input type="email" id="email" placeholder="E-Posta" required>
+      <input type="date" id="dob" required>
       <input type="text" id="username" placeholder="Kullanıcı Adı" required>
-
+      <input type="email" id="email" placeholder="E-Posta" required>
       <input type="password" id="password" placeholder="Şifre" required>
       <input type="password" id="passwordConfirm" placeholder="Şifre Tekrar" required>
-
       <button type="submit" id="registerBtn">Kayıt Ol</button>
     </form>
   </div>
 
-<script>
-  const translations = {
-    tr: {
-      title: "Kayıt Ol",
-      fullName: "Ad Soyad",
-      username: "Kullanıcı Adı",
-      password: "Birincil Şifre",
-      passwordConfirm: "Birincil Şifre Tekrar",
-      secondaryPassword: "İkincil Şifre",
-      secondaryPasswordConfirm: "İkincil Şifre Tekrar",
-      registerBtn: "Kayıt Ol",
-      success: "Kayıt başarılı!",
-      mismatch: "Şifreler eşleşmiyor!",
-      exists: "Bu kullanıcı adıyla kayıtlı bir hesap zaten var!",
-      dobLabel: "Doğum Tarihi"
-    },
-    en: {
-      title: "Sign Up",
-      fullName: "Full Name",
-      username: "Username",
-      password: "Primary Password",
-      passwordConfirm: "Confirm Primary Password",
-      secondaryPassword: "Secondary Password",
-      secondaryPasswordConfirm: "Confirm Secondary Password",
-      registerBtn: "Register",
-      success: "Registration successful!",
-      mismatch: "Passwords do not match!",
-      exists: "An account with this username already exists!",
-      dobLabel: "Date of Birth"
-    }
-  };
-
-  let currentLang = "tr";
-
-  function setLang(lang) {
-    currentLang = lang;
-    const t = translations[lang];
-    document.getElementById("title").innerText = t.title;
-    document.getElementById("fullName").placeholder = t.fullName;
-    document.getElementById("username").placeholder = t.username;
-    document.getElementById("password").placeholder = t.password;
-    document.getElementById("passwordConfirm").placeholder = t.passwordConfirm;
-    document.getElementById("secondaryPassword").placeholder = t.secondaryPassword;
-    document.getElementById("secondaryPasswordConfirm").placeholder = t.secondaryPasswordConfirm;
-    document.getElementById("registerBtn").innerText = t.registerBtn;
-    document.getElementById("dobLabel").innerText = t.dobLabel;
-  }
-
-  document.getElementById("registerForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-
-    const fullName = document.getElementById("fullName").value;
-    const dob = document.getElementById("dob").value;
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-    const passwordConfirm = document.getElementById("passwordConfirm").value;
-    const secondaryPassword = document.getElementById("secondaryPassword").value;
-    const secondaryPasswordConfirm = document.getElementById("secondaryPasswordConfirm").value;
-
-    if (password !== passwordConfirm || secondaryPassword !== secondaryPasswordConfirm) {
-      alert(translations[currentLang].mismatch);
-      return;
-    }
-
-    // ❗️KULLANICI ADI ZATEN VAR MI?
-    if (localStorage.getItem(username)) {
-      alert(translations[currentLang].exists);
-      return;
-    }
-
-    const user = {
-      fullName,
-      dob,
-      username,
-      password,
-      secondaryPassword
+  <script>
+    // 🌐 Dil verileri
+    const translations = {
+      tr: {
+        title: "Kayıt Ol",
+        fullName: "Ad Soyad",
+        username: "Kullanıcı Adı",
+        email: "E-Posta",
+        password: "Şifre",
+        passwordConfirm: "Şifre Tekrar",
+        registerBtn: "Kayıt Ol",
+        success: "Kayıt başarılı!",
+        duplicate: "Bu kullanıcı adı zaten kullanılıyor!",
+        mismatch: "Şifreler eşleşmiyor!"
+      },
+      en: {
+        title: "Sign Up",
+        fullName: "Full Name",
+        username: "Username",
+        email: "Email",
+        password: "Password",
+        passwordConfirm: "Confirm Password",
+        registerBtn: "Register",
+        success: "Registration successful!",
+        duplicate: "This username is already taken!",
+        mismatch: "Passwords do not match!"
+      }
     };
 
-    localStorage.setItem(username, JSON.stringify(user));
-    alert(translations[currentLang].success);
-    window.location.href = "index.html";
-  });
-</script>
+    let currentLang = "tr";
 
+    function setLang(lang) {
+      currentLang = lang;
+      const t = translations[lang];
+      document.getElementById("title").innerText = t.title;
+      document.getElementById("fullName").placeholder = t.fullName;
+      document.getElementById("username").placeholder = t.username;
+      document.getElementById("email").placeholder = t.email;
+      document.getElementById("password").placeholder = t.password;
+      document.getElementById("passwordConfirm").placeholder = t.passwordConfirm;
+      document.getElementById("registerBtn").innerText = t.registerBtn;
+    }
+
+    // 🔥 Firebase konfigürasyonun BURAYA
+    const firebaseConfig = {
+      apiKey: "API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "XXXXXXXXXXXX",
+      appId: "APP_ID"
+    };
+
+    // Başlat
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // 📝 Kayıt işlemi
+    document.getElementById("registerForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const fullName = document.getElementById("fullName").value;
+      const dob = document.getElementById("dob").value;
+      const username = document.getElementById("username").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const passwordConfirm = document.getElementById("passwordConfirm").value;
+
+      if (password !== passwordConfirm) {
+        alert(translations[currentLang].mismatch);
+        return;
+      }
+
+      // 🔄 Aynı kullanıcı adı kontrolü
+      const snapshot = await db.collection("users").where("username", "==", username).get();
+      if (!snapshot.empty) {
+        alert(translations[currentLang].duplicate);
+        return;
+      }
+
+      // ✅ Veriyi Firebase’e gönder
+      await db.collection("users").add({
+        fullName,
+        dob,
+        username,
+        email,
+        password
+      });
+
+      alert(translations[currentLang].success);
+      window.location.href = "index.html";
+    });
+  </script>
 </body>
 </html>
