@@ -12,16 +12,16 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
-      color: white;
       margin: 0;
+      color: white;
     }
     .container {
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, 0.75);
       padding: 30px;
       border-radius: 12px;
       width: 90%;
       max-width: 400px;
-      box-shadow: 0 0 10px rgba(255,255,255,0.2);
+      box-shadow: 0 0 15px rgba(255,255,255,0.25);
     }
     input {
       width: 100%;
@@ -41,6 +41,7 @@
       color: white;
       font-weight: bold;
       cursor: pointer;
+      margin-top: 10px;
     }
     .lang-buttons {
       position: absolute;
@@ -68,15 +69,14 @@
     <h2 id="title">Kayıt Ol</h2>
     <form id="registerForm">
       <label id="dobLabel" for="dob">Doğum Tarihi:</label>
-      <input type="date" id="dob" required placeholder="GG.AA.YYYY">
+      <input type="date" id="dob" required>
+
       <input type="text" id="fullName" placeholder="Ad Soyad" required>
+      <input type="email" id="email" placeholder="E-Posta" required>
       <input type="text" id="username" placeholder="Kullanıcı Adı" required>
 
-      <input type="password" id="password" placeholder="Birincil Şifre" required>
-      <input type="password" id="passwordConfirm" placeholder="Birincil Şifre Tekrar" required>
-
-      <input type="password" id="secondaryPassword" placeholder="İkincil Şifre" required>
-      <input type="password" id="secondaryPasswordConfirm" placeholder="İkincil Şifre Tekrar" required>
+      <input type="password" id="password" placeholder="Şifre" required>
+      <input type="password" id="passwordConfirm" placeholder="Şifre Tekrar" required>
 
       <button type="submit" id="registerBtn">Kayıt Ol</button>
     </form>
@@ -88,27 +88,25 @@
         title: "Kayıt Ol",
         fullName: "Ad Soyad",
         username: "Kullanıcı Adı",
-        password: "Birincil Şifre",
-        passwordConfirm: "Birincil Şifre Tekrar",
-        secondaryPassword: "İkincil Şifre",
-        secondaryPasswordConfirm: "İkincil Şifre Tekrar",
+        email: "E-Posta",
+        password: "Şifre",
+        passwordConfirm: "Şifre Tekrar",
         registerBtn: "Kayıt Ol",
+        dobLabel: "Doğum Tarihi",
         success: "Kayıt başarılı!",
-        mismatch: "Şifreler eşleşmiyor!",
-        dobLabel: "Doğum Tarihi"
+        mismatch: "Şifreler eşleşmiyor!"
       },
       en: {
         title: "Sign Up",
         fullName: "Full Name",
         username: "Username",
-        password: "Primary Password",
-        passwordConfirm: "Confirm Primary Password",
-        secondaryPassword: "Secondary Password",
-        secondaryPasswordConfirm: "Confirm Secondary Password",
+        email: "Email",
+        password: "Password",
+        passwordConfirm: "Confirm Password",
         registerBtn: "Register",
+        dobLabel: "Date of Birth",
         success: "Registration successful!",
-        mismatch: "Passwords do not match!",
-        dobLabel: "Date of Birth"
+        mismatch: "Passwords do not match!"
       }
     };
 
@@ -119,11 +117,10 @@
       const t = translations[lang];
       document.getElementById("title").innerText = t.title;
       document.getElementById("fullName").placeholder = t.fullName;
+      document.getElementById("email").placeholder = t.email;
       document.getElementById("username").placeholder = t.username;
       document.getElementById("password").placeholder = t.password;
       document.getElementById("passwordConfirm").placeholder = t.passwordConfirm;
-      document.getElementById("secondaryPassword").placeholder = t.secondaryPassword;
-      document.getElementById("secondaryPasswordConfirm").placeholder = t.secondaryPasswordConfirm;
       document.getElementById("registerBtn").innerText = t.registerBtn;
       document.getElementById("dobLabel").innerText = t.dobLabel;
     }
@@ -133,30 +130,22 @@
 
       const fullName = document.getElementById("fullName").value;
       const dob = document.getElementById("dob").value;
+      const email = document.getElementById("email").value;
       const username = document.getElementById("username").value;
       const password = document.getElementById("password").value;
       const passwordConfirm = document.getElementById("passwordConfirm").value;
-      const secondaryPassword = document.getElementById("secondaryPassword").value;
-      const secondaryPasswordConfirm = document.getElementById("secondaryPasswordConfirm").value;
 
-      if (password !== passwordConfirm || secondaryPassword !== secondaryPasswordConfirm) {
+      if (password !== passwordConfirm) {
         alert(translations[currentLang].mismatch);
         return;
       }
 
-      const user = {
-        fullName,
-        dob,
-        username,
-        password,
-        secondaryPassword
-      };
+      const user = { fullName, dob, email, username, password };
 
       localStorage.setItem(username, JSON.stringify(user));
       alert(translations[currentLang].success);
       window.location.href = "index.html";
     });
   </script>
-
 </body>
 </html>
