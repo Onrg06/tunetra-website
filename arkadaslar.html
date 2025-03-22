@@ -12,7 +12,6 @@
       --button-gradient: linear-gradient(to right, #6a11cb, #2575fc);
       --button-hover: linear-gradient(to right, #ffcc70, #6a11cb);
     }
-
     body {
       margin: 0;
       padding: 0;
@@ -22,20 +21,17 @@
       animation: gradientShift 15s ease infinite;
       color: var(--text-color);
     }
-
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 20px;
     }
-
     .lang-btn {
       padding: 6px 10px;
       margin-left: 10px;
@@ -46,7 +42,6 @@
       font-weight: bold;
       cursor: pointer;
     }
-
     .container {
       max-width: 800px;
       margin: auto;
@@ -55,12 +50,10 @@
       border-radius: 10px;
       margin-top: 20px;
     }
-
     h2 {
       text-align: center;
       margin-bottom: 20px;
     }
-
     input[type="text"] {
       width: 100%;
       padding: 10px;
@@ -68,11 +61,9 @@
       border: none;
       border-radius: 5px;
     }
-
     .section {
       margin-top: 30px;
     }
-
     button {
       background: var(--button-gradient);
       border: none;
@@ -83,7 +74,6 @@
       font-weight: bold;
       cursor: pointer;
     }
-
     button:hover {
       background: var(--button-hover);
     }
@@ -97,7 +87,6 @@
       <button class="lang-btn" onclick="changeLang('en')">🇬🇧 English</button>
     </div>
   </div>
-
   <div class="container">
     <div class="section">
       <h3 id="searchTitle">Kullanıcı Ara</h3>
@@ -105,27 +94,23 @@
       <button onclick="searchUser()" id="btnSearch">Ara</button>
       <div id="searchResults"></div>
     </div>
-
     <div class="section">
       <h3 id="sentRequestsTitle">Gönderdiğim İstekler</h3>
       <div id="sentRequests"></div>
     </div>
-
     <div class="section">
       <h3 id="receivedRequestsTitle">Gelen İstekler</h3>
       <div id="receivedRequests"></div>
     </div>
-
     <div class="section">
       <h3 id="friendsListTitle">Arkadaş Listem</h3>
       <div id="friendsList"></div>
     </div>
   </div>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, arrayUnion, arrayRemove, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -152,9 +137,7 @@
         friendsListTitle: "Arkadaş Listem",
         btnSearch: "Ara",
         placeholder: "Kullanıcı adı gir...",
-        requestSent: "İstek gönderildi!",
-        requestAccepted: "Kabul edildi!",
-        requestDeclined: "Reddedildi!"
+        requestSent: "İstek gönderildi!"
       },
       en: {
         pageTitle: "Friends",
@@ -164,9 +147,7 @@
         friendsListTitle: "My Friends",
         btnSearch: "Search",
         placeholder: "Enter username...",
-        requestSent: "Request sent!",
-        requestAccepted: "Accepted!",
-        requestDeclined: "Declined!"
+        requestSent: "Request sent!"
       }
     };
 
@@ -202,37 +183,17 @@
       alert(translations[currentLang].requestSent);
     }
 
-    async function acceptRequest(fromId) {
-      const myRef = doc(db, "friendRequests", currentUser.uid);
-      await updateDoc(myRef, {
-        requests: arrayRemove(fromId)
-      });
-      const myFriends = doc(db, "friends", currentUser.uid);
-      const theirFriends = doc(db, "friends", fromId);
-      await setDoc(myFriends, { list: arrayUnion(fromId) }, { merge: true });
-      await setDoc(theirFriends, { list: arrayUnion(currentUser.uid) }, { merge: true });
-      alert(translations[currentLang].requestAccepted);
-      loadReceivedRequests();
-      loadFriends();
-    }
-
-    async function declineRequest(fromId) {
-      const myRef = doc(db, "friendRequests", currentUser.uid);
-      await updateDoc(myRef, {
-        requests: arrayRemove(fromId)
-      });
-      alert(translations[currentLang].requestDeclined);
-      loadReceivedRequests();
-    }
-
     async function searchUser() {
-      const query = document.getElementById("searchInput").value.trim().toLowerCase();
+      const queryText = document.getElementById("searchInput").value.trim().toLowerCase();
+      if (!queryText) return;
       const usersSnapshot = await getDocs(collection(db, "users"));
       const resultContainer = document.getElementById("searchResults");
       resultContainer.innerHTML = "";
       usersSnapshot.forEach(docSnap => {
         const data = docSnap.data();
-        if (data.username.toLowerCase().includes(query) && docSnap.id !== currentUser.uid) {
+        if (!data.username) return;
+        const username = data.username.toLowerCase();
+        if (username.includes(queryText) && docSnap.id !== currentUser.uid) {
           const div = document.createElement("div");
           div.innerText = data.username + " ";
           const btn = document.createElement("button");
@@ -244,73 +205,10 @@
       });
     }
 
-    async function loadReceivedRequests() {
-      const ref = doc(db, "friendRequests", currentUser.uid);
-      const snap = await getDoc(ref);
-      const container = document.getElementById("receivedRequests");
-      container.innerHTML = "";
-      if (snap.exists()) {
-        const reqs = snap.data().requests || [];
-        for (const uid of reqs) {
-          const userDoc = await getDoc(doc(db, "users", uid));
-          const username = userDoc.exists() ? userDoc.data().username : "Kullanıcı";
-          const div = document.createElement("div");
-          div.innerText = username;
-          const acceptBtn = document.createElement("button");
-          acceptBtn.innerText = "✅";
-          acceptBtn.onclick = () => acceptRequest(uid);
-          const declineBtn = document.createElement("button");
-          declineBtn.innerText = "❌";
-          declineBtn.onclick = () => declineRequest(uid);
-          div.appendChild(acceptBtn);
-          div.appendChild(declineBtn);
-          container.appendChild(div);
-        }
-      }
-    }
-
-    async function loadSentRequests() {
-      const container = document.getElementById("sentRequests");
-      container.innerHTML = "";
-      const usersSnapshot = await getDocs(collection(db, "friendRequests"));
-      usersSnapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        if (data.requests && data.requests.includes(currentUser.uid)) {
-          getDoc(doc(db, "users", docSnap.id)).then(userDoc => {
-            if (userDoc.exists()) {
-              const div = document.createElement("div");
-              div.innerText = userDoc.data().username;
-              container.appendChild(div);
-            }
-          });
-        }
-      });
-    }
-
-    async function loadFriends() {
-      const ref = doc(db, "friends", currentUser.uid);
-      const snap = await getDoc(ref);
-      const container = document.getElementById("friendsList");
-      container.innerHTML = "";
-      if (snap.exists()) {
-        const friends = snap.data().list || [];
-        for (const uid of friends) {
-          const userDoc = await getDoc(doc(db, "users", uid));
-          const username = userDoc.exists() ? userDoc.data().username : "Kullanıcı";
-          const div = document.createElement("div");
-          div.innerText = username;
-          container.appendChild(div);
-        }
-      }
-    }
-
     onAuthStateChanged(auth, user => {
       if (!user) return location.href = "index.html";
       currentUser = user;
       updateTexts();
-      loadReceivedRequests();
-      loadSentRequests();
-      loadFriends();
     });
   </script>
 </body>
