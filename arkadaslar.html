@@ -76,12 +76,12 @@
     button {
       background: var(--button-gradient);
       border: none;
-      padding: 10px 20px;
+      padding: 6px 12px;
+      margin: 5px;
       border-radius: 5px;
       color: white;
       font-weight: bold;
       cursor: pointer;
-      margin-top: 10px;
     }
 
     button:hover {
@@ -152,7 +152,9 @@
         friendsListTitle: "Arkadaş Listem",
         btnSearch: "Ara",
         placeholder: "Kullanıcı adı gir...",
-        requestSent: "İstek gönderildi!"
+        requestSent: "İstek gönderildi!",
+        requestAccepted: "Kabul edildi!",
+        requestDeclined: "Reddedildi!"
       },
       en: {
         pageTitle: "Friends",
@@ -162,7 +164,9 @@
         friendsListTitle: "My Friends",
         btnSearch: "Search",
         placeholder: "Enter username...",
-        requestSent: "Request sent!"
+        requestSent: "Request sent!",
+        requestAccepted: "Accepted!",
+        requestDeclined: "Declined!"
       }
     };
 
@@ -183,7 +187,45 @@
       document.getElementById("searchInput").placeholder = t.placeholder;
     }
 
-    window.searchUser = async function () {
+    async function sendRequest(targetId) {
+      const ref = doc(db, "friendRequests", targetId);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        await updateDoc(ref, {
+          requests: arrayUnion(currentUser.uid)
+        });
+      } else {
+        await setDoc(ref, {
+          requests: [currentUser.uid]
+        });
+      }
+      alert(translations[currentLang].requestSent);
+    }
+
+    async function acceptRequest(fromId) {
+      const myRef = doc(db, "friendRequests", currentUser.uid);
+      await updateDoc(myRef, {
+        requests: arrayRemove(fromId)
+      });
+      const myFriends = doc(db, "friends", currentUser.uid);
+      const theirFriends = doc(db, "friends", fromId);
+      await setDoc(myFriends, { list: arrayUnion(fromId) }, { merge: true });
+      await setDoc(theirFriends, { list: arrayUnion(currentUser.uid) }, { merge: true });
+      alert(translations[currentLang].requestAccepted);
+      loadReceivedRequests();
+      loadFriends();
+    }
+
+    async function declineRequest(fromId) {
+      const myRef = doc(db, "friendRequests", currentUser.uid);
+      await updateDoc(myRef, {
+        requests: arrayRemove(fromId)
+      });
+      alert(translations[currentLang].requestDeclined);
+      loadReceivedRequests();
+    }
+
+    async function searchUser() {
       const query = document.getElementById("searchInput").value.trim().toLowerCase();
       const usersSnapshot = await getDocs(collection(db, "users"));
       const resultContainer = document.getElementById("searchResults");
@@ -192,24 +234,83 @@
         const data = docSnap.data();
         if (data.username.toLowerCase().includes(query) && docSnap.id !== currentUser.uid) {
           const div = document.createElement("div");
-          div.innerHTML = `${data.username} <button onclick=\"sendRequest('${docSnap.id}')\">➕</button>`;
+          div.innerText = data.username + " ";
+          const btn = document.createElement("button");
+          btn.innerText = "➕";
+          btn.onclick = () => sendRequest(docSnap.id);
+          div.appendChild(btn);
           resultContainer.appendChild(div);
         }
       });
-    };
+    }
 
-    async function sendRequest(targetId) {
-      const ref = doc(db, "friendRequests", targetId);
-      await setDoc(ref, {
-        requests: arrayUnion(currentUser.uid)
-      }, { merge: true });
-      alert(translations[currentLang].requestSent);
+    async function loadReceivedRequests() {
+      const ref = doc(db, "friendRequests", currentUser.uid);
+      const snap = await getDoc(ref);
+      const container = document.getElementById("receivedRequests");
+      container.innerHTML = "";
+      if (snap.exists()) {
+        const reqs = snap.data().requests || [];
+        for (const uid of reqs) {
+          const userDoc = await getDoc(doc(db, "users", uid));
+          const username = userDoc.exists() ? userDoc.data().username : "Kullanıcı";
+          const div = document.createElement("div");
+          div.innerText = username;
+          const acceptBtn = document.createElement("button");
+          acceptBtn.innerText = "✅";
+          acceptBtn.onclick = () => acceptRequest(uid);
+          const declineBtn = document.createElement("button");
+          declineBtn.innerText = "❌";
+          declineBtn.onclick = () => declineRequest(uid);
+          div.appendChild(acceptBtn);
+          div.appendChild(declineBtn);
+          container.appendChild(div);
+        }
+      }
+    }
+
+    async function loadSentRequests() {
+      const container = document.getElementById("sentRequests");
+      container.innerHTML = "";
+      const usersSnapshot = await getDocs(collection(db, "friendRequests"));
+      usersSnapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        if (data.requests && data.requests.includes(currentUser.uid)) {
+          getDoc(doc(db, "users", docSnap.id)).then(userDoc => {
+            if (userDoc.exists()) {
+              const div = document.createElement("div");
+              div.innerText = userDoc.data().username;
+              container.appendChild(div);
+            }
+          });
+        }
+      });
+    }
+
+    async function loadFriends() {
+      const ref = doc(db, "friends", currentUser.uid);
+      const snap = await getDoc(ref);
+      const container = document.getElementById("friendsList");
+      container.innerHTML = "";
+      if (snap.exists()) {
+        const friends = snap.data().list || [];
+        for (const uid of friends) {
+          const userDoc = await getDoc(doc(db, "users", uid));
+          const username = userDoc.exists() ? userDoc.data().username : "Kullanıcı";
+          const div = document.createElement("div");
+          div.innerText = username;
+          container.appendChild(div);
+        }
+      }
     }
 
     onAuthStateChanged(auth, user => {
       if (!user) return location.href = "index.html";
       currentUser = user;
       updateTexts();
+      loadReceivedRequests();
+      loadSentRequests();
+      loadFriends();
     });
   </script>
 </body>
