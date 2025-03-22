@@ -39,15 +39,18 @@
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(255,255,255,0.3);
     }
+
     h2 {
       text-align: center;
       margin-bottom: 20px;
     }
+
     label {
       display: block;
       margin-top: 15px;
       font-weight: bold;
     }
+
     input {
       width: 100%;
       padding: 10px;
@@ -57,6 +60,7 @@
       background: var(--input-bg);
       color: var(--text-color);
     }
+
     button {
       margin-top: 15px;
       padding: 12px;
@@ -68,9 +72,11 @@
       font-weight: bold;
       cursor: pointer;
     }
+
     button:hover {
       background: var(--button-hover);
     }
+
     .profile-letter {
       width: 120px;
       height: 120px;
@@ -85,14 +91,44 @@
       margin: 0 auto 20px;
       border: 3px solid white;
     }
+
     .lang-switch {
       position: absolute;
       top: 20px;
       right: 20px;
     }
+
     .lang-btn {
       margin-left: 10px;
-      padding: 6px 10px;
+      padding: 6px 12px;
+      font-weight: bold;
+      background: var(--button-gradient);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .lang-btn:hover {
+      background: var(--button-hover);
+    }
+
+    #messageBox {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+      color: lime;
+    }
+
+    .home-button {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+    }
+
+    #homeBtn {
+      padding: 10px 16px;
       font-weight: bold;
       background: var(--button-gradient);
       border: none;
@@ -100,36 +136,9 @@
       color: white;
       cursor: pointer;
     }
-    #messageBox {
-      text-align: center;
-      margin-top: 10px;
-      font-weight: bold;
-      color: lime;
-      .home-button {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-}
 
-.home-btn {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-}
-
-#homeBtn {
-  padding: 10px 16px;
-  font-weight: bold;
-  background: var(--button-gradient);
-  border: none;
-  border-radius: 6px;
-  color: white;
-  cursor: pointer;
-}
-
-#homeBtn:hover {
-  background: var(--button-hover);
-}
+    #homeBtn:hover {
+      background: var(--button-hover);
     }
   </style>
 </head>
@@ -138,9 +147,11 @@
     <button class="lang-btn" onclick="changeLang('tr')">🇹🇷</button>
     <button class="lang-btn" onclick="changeLang('en')">🇬🇧</button>
   </div>
-<div class="home-button">
-  <button id="homeBtn" onclick="goHome()">Ana Sayfa</button>
-</div>
+
+  <div class="home-button">
+    <button id="homeBtn" onclick="goHome()">Ana Sayfa</button>
+  </div>
+
   <div class="container">
     <h2 id="profileTitle">Profil Bilgilerim</h2>
     <div id="profileLetter" class="profile-letter">?</div>
@@ -169,7 +180,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, updatePassword, deleteUser, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, updatePassword as firebaseUpdatePassword, deleteUser, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -201,7 +212,8 @@
         btnDelete: "Hesabı Sil",
         updateSuccess: "Bilgiler güncellendi!",
         passwordSuccess: "Şifre güncellendi!",
-        deleted: "Hesap silindi."
+        deleted: "Hesap silindi.",
+        home: "Ana Sayfa"
       },
       en: {
         profileTitle: "My Profile",
@@ -215,7 +227,8 @@
         btnDelete: "Delete Account",
         updateSuccess: "Profile updated!",
         passwordSuccess: "Password updated!",
-        deleted: "Account deleted."
+        deleted: "Account deleted.",
+        home: "Home"
       }
     };
 
@@ -225,6 +238,7 @@
         const el = document.getElementById(key);
         if (el) el.innerText = t[key];
       }
+      updateHomeButtonText();
     }
 
     window.changeLang = function(lang) {
@@ -232,6 +246,11 @@
       localStorage.setItem("lang", lang);
       updateTexts();
     };
+
+    function updateHomeButtonText() {
+      const homeBtn = document.getElementById("homeBtn");
+      if (homeBtn) homeBtn.innerText = translations[currentLang].home;
+    }
 
     function showMessage(msg) {
       const box = document.getElementById("messageBox");
@@ -268,7 +287,7 @@
 
     window.updatePassword = async () => {
       const newPassword = document.getElementById("newPassword").value;
-      await updatePassword(currentUser, newPassword);
+      await firebaseUpdatePassword(currentUser, newPassword);
       showMessage(translations[currentLang].passwordSuccess);
     }
 
@@ -280,19 +299,13 @@
       }
     }
 
+    window.goHome = function () {
+      window.location.href = "anasayfa.html";
+    };
+
     window.addEventListener("DOMContentLoaded", () => {
       changeLang(currentLang);
     });
-    window.goHome = function () {
-  window.location.href = "anasayfa.html";
-};
-
-function updateHomeButtonText() {
-  const homeText = currentLang === "tr" ? "Ana Sayfa" : "Home";
-  const homeBtn = document.getElementById("homeBtn");
-  if (homeBtn) homeBtn.innerText = homeText;
-  updateHomeButtonText();
-}
   </script>
 </body>
 </html>
