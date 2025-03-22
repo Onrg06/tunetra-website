@@ -3,321 +3,123 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TuneTRa Giriş</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
+  <title>TuneTRa | Giriş Yap</title>
+  <script type="module">
+    // Firebase SDK'ları
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56",
+      measurementId: "G-LRQGNS7B8X"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.onload = () => {
+      const loginForm = document.getElementById("loginForm");
+      const errorBox = document.getElementById("errorBox");
+
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        try {
+          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
+
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          const userData = userDoc.exists() ? userDoc.data() : null;
+
+          if (userData) {
+            localStorage.setItem("loggedInUser", JSON.stringify(userData));
+            window.location.href = "home.html"; // Anasayfa dosyasına yönlendir
+          } else {
+            errorBox.innerText = "Kullanıcı verisi bulunamadı.";
+          }
+        } catch (err) {
+          if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
+            errorBox.innerText = "Kullanıcı adı veya şifre yanlış.";
+          } else {
+            errorBox.innerText = "Bir hata oluştu: " + err.message;
+          }
+        }
+      });
+    };
+  </script>
+
+  <style>
     body {
       background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
-      background-size: 400% 400%;
-      animation: gradientShift 12s ease infinite;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    @keyframes gradientShift {
-      0% {background-position: 0% 50%;}
-      50% {background-position: 100% 50%;}
-      100% {background-position: 0% 50%;}
-    }
-
-    .logos {
+      font-family: Arial, sans-serif;
       display: flex;
       justify-content: center;
-      gap: 40px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
-    }
-
-    .logo {
-      width: 220px;
-      height: 220px;
-      border-radius: 50%;
-      object-fit: cover;
-      transition: 0.3s ease;
-    }
-
-    .slogan {
-      font-size: 2rem;
-      font-weight: bold;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
       color: white;
-      text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-      margin-bottom: 20px;
-      text-align: center;
     }
 
-    .language-switcher {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    .lang-btn {
-      background: linear-gradient(to right, #6a11cb, #2575fc);
-      border: none;
-      color: white;
-      padding: 8px 14px;
-      font-size: 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .lang-btn:hover {
-      background: linear-gradient(to right, #ffcc70, #6a11cb);
-    }
-
-    .login-container {
-      background: rgba(0, 0, 0, 0.65);
+    .container {
+      background: rgba(0, 0, 0, 0.7);
       padding: 30px;
       border-radius: 12px;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
-      width: 100%;
+      width: 90%;
       max-width: 400px;
-      text-align: center;
+      box-shadow: 0 0 10px rgba(255,255,255,0.2);
     }
 
-    .login-container h1 {
-      color: white;
-      margin-bottom: 20px;
-    }
-
-    .login-container input[type="text"],
-    .login-container input[type="password"] {
+    input, button {
       width: 100%;
-      padding: 12px;
+      padding: 10px;
       margin: 10px 0;
-      border: none;
       border-radius: 6px;
-      background-color: #2a2a2a;
+      border: none;
+    }
+
+    input {
+      background: #2a2a2a;
       color: white;
     }
 
-    .login-container input[type="submit"] {
-      width: 100%;
-      padding: 12px;
-      margin-top: 20px;
-      border: none;
-      border-radius: 6px;
+    button {
       background: linear-gradient(to right, #6a11cb, #2575fc);
       color: white;
       font-weight: bold;
       cursor: pointer;
     }
 
-    .login-container input[type="submit"]:hover {
+    button:hover {
       background: linear-gradient(to right, #ffcc70, #6a11cb);
     }
 
-    .links {
-      margin-top: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-.links a {
-  display: block;
-  background: linear-gradient(to right, #00c6ff, #0072ff);
-  color: white;
-  padding: 10px 20px;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: bold;
-  transition: all 0.3s ease;
-}
-
-.links a:hover {
-  background: linear-gradient(to right, #ffcc70, #6a11cb); /* Renk değişimi burada */
-}
-
-    /* RESPONSIVE */
-    @media screen and (max-width: 768px) {
-      .logo {
-        width: 120px;
-        height: 120px;
-      }
-
-      .slogan {
-        font-size: 1.4rem;
-        margin: 10px 0;
-      }
-
-      .login-container {
-        padding: 20px;
-      }
-
-      .lang-btn {
-        font-size: 12px;
-        padding: 6px 10px;
-      }
-
-      .links a {
-        font-size: 14px;
-        padding: 8px;
-      }
+    #errorBox {
+      color: #ff7070;
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
-
-  <div class="logos">
-    <img src="image.png" alt="Logo" class="logo">
-    <img src="image.png" alt="Logo" class="logo">
-  </div>
-
-  <div class="slogan" id="slogan">TuneTRa: Müziğin Doğuş Noktası</div>
-
-  <div class="language-switcher">
-    <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
-    <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
-  </div>
-
-  <div class="login-container">
-    <h1>TuneTRa</h1>
-    <form>
-      <input type="text" id="username" placeholder="Kullanıcı Adı" required />
+  <div class="container">
+    <h2>TuneTRa | Giriş Yap</h2>
+    <form id="loginForm">
+      <input type="email" id="email" placeholder="E-Posta" required />
       <input type="password" id="password" placeholder="Şifre" required />
-      <input type="submit" id="loginBtn" value="Giriş Yap" />
+      <div id="errorBox"></div>
+      <button type="submit">Giriş Yap</button>
     </form>
 
-    <div class="links">
-      <a href="forgot-password.html" id="forgot">Şifremi Unuttum</a>
-      <a href="forgot-username.html" id="forgot-username">Kullanıcı Adımı Unuttum</a>
-      <a href="register.html" id="signup">Kayıt Ol</a>
-    </div>
+    <button onclick="window.location.href='register.html'">Hesabın yok mu? Kayıt Ol</button>
   </div>
-
-  <!-- Firebase SDK'larını import et -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-    authDomain: "tunetra-2579b.firebaseapp.com",
-    projectId: "tunetra-2579b",
-    storageBucket: "tunetra-2579b.appspot.com",
-    messagingSenderId: "576238823779",
-    appId: "1:576238823779:web:b1796f089427e3b6fecb56",
-    measurementId: "G-LRQGNS7B8X"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-
-  // Giriş kontrolü
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      console.log("Giriş yapılmış:", user.email);
-      document.getElementById("welcome").innerText = `Hoş geldin, ${user.email}`;
-    } else {
-      // Eğer giriş yapılmamışsa login sayfasına yönlendir
-      window.location.href = "index.html";
-    }
-  });
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-    authDomain: "tunetra-2579b.firebaseapp.com",
-    projectId: "tunetra-2579b",
-    storageBucket: "tunetra-2579b.appspot.com",
-    messagingSenderId: "576238823779",
-    appId: "1:576238823779:web:b1796f089427e3b6fecb56",
-    measurementId: "G-LRQGNS7B8X"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      const docRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        const fullName = docSnap.data().fullName;
-        document.getElementById("welcomeMessage").innerText = `Hoş geldin, ${fullName}`;
-      } else {
-        document.getElementById("welcomeMessage").innerText = "Hoş geldin!";
-      }
-    } else {
-      // Giriş yapılmamışsa login sayfasına yönlendir
-      window.location.href = "index.html";
-    }
-  });
-</script>
-  let currentLang = "tr";
-
-  function setLang(lang) {
-    currentLang = lang;
-    const t = {
-      tr: {
-        username: "Kullanıcı Adı",
-        password: "Şifre",
-        loginBtn: "Giriş Yap",
-        forgot: "Şifremi Unuttum",
-        forgotUsername: "Kullanıcı Adımı Unuttum",
-        signup: "Kayıt Ol",
-        slogan: "TuneTRa: Müziğin Doğuş Noktası",
-        error: "Kullanıcı adı veya şifre hatalı!",
-        success: "Giriş başarılı!"
-      },
-      en: {
-        username: "Username",
-        password: "Password",
-        loginBtn: "Log In",
-        forgot: "Forgot Password",
-        forgotUsername: "Forgot Username",
-        signup: "Sign Up",
-        slogan: "TuneTRa: Where Music Begins",
-        error: "Incorrect username or password!",
-        success: "Login successful!"
-      }
-    }[lang];
-
-    document.getElementById("username").placeholder = t.username;
-    document.getElementById("password").placeholder = t.password;
-    document.getElementById("loginBtn").value = t.loginBtn;
-    document.getElementById("forgot").innerText = t.forgot;
-    document.getElementById("forgot-username").innerText = t.forgotUsername;
-    document.getElementById("signup").innerText = t.signup;
-    document.getElementById("slogan").innerText = t.slogan;
-  }
-
-  // Giriş kontrolü
-  document.querySelector("form").addEventListener("submit", function(e) {
-    e.preventDefault();
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-    const userData = localStorage.getItem(username);
-
-    if (userData) {
-      const user = JSON.parse(userData);
-      if (user.password === password) {
-        alert(currentLang === "tr" ? "Giriş başarılı!" : "Login successful!");
-        window.location.href = "anasayfa.html";  // ✅ Başarılıysa yönlendir
-      } else {
-        alert(currentLang === "tr" ? "Şifre hatalı!" : "Incorrect password!");
-      }
-    } else {
-      alert(currentLang === "tr" ? "Kullanıcı bulunamadı!" : "User not found!");
-    }
-  });
-</script>
-
 </body>
 </html>
