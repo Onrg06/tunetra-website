@@ -108,20 +108,21 @@
 
           alert(translations[currentLang].success);
           window.location.href = "index.html";
-        } catch (err) {
-          console.error("HATA:", err.code, err.message);
-          let msg;
-          switch (err.code) {
-            case 'auth/email-already-in-use':
-              msg = translations[currentLang].emailUsed; break;
-            case 'auth/invalid-email':
-              msg = translations[currentLang].invalidEmail; break;
-            case 'auth/weak-password':
-              msg = translations[currentLang].weakPassword; break;
-            default:
-              msg = translations[currentLang].unknown;
-          }
-          errorBox.innerText = msg;
+catch (err) {
+  console.error("Firebase Hatası:", err.code, err.message);
+  let message;
+  if (err.code === 'auth/email-already-in-use') {
+    message = translations[currentLang].emailUsed;
+  } else if (err.code === 'auth/invalid-email') {
+    message = translations[currentLang].invalidEmail;
+  } else if (err.code === 'auth/weak-password') {
+    message = translations[currentLang].weakPassword;
+  } else {
+    message = `${translations[currentLang].unknown}\n(${err.code}: ${err.message})`;
+  }
+
+  alert(message);
+}
         }
       });
     };
