@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TuneTRa | Kayıt Ol</title>
   <script type="module">
-    // Firebase SDK'larını içe aktar
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -37,7 +36,11 @@
         register: "Kayıt Ol",
         success: "Kayıt başarılı!",
         error: "Bir hata oluştu!",
-        mismatch: "Şifreler uyuşmuyor!"
+        mismatch: "Şifreler uyuşmuyor!",
+        emailUsed: "Bu e-posta zaten kullanılıyor.",
+        invalidEmail: "Geçersiz e-posta adresi.",
+        weakPassword: "Şifre çok zayıf. En az 6 karakter olmalı.",
+        unknown: "Bilinmeyen bir hata oluştu."
       },
       en: {
         title: "Sign Up",
@@ -50,7 +53,11 @@
         register: "Register",
         success: "Registration successful!",
         error: "An error occurred!",
-        mismatch: "Passwords do not match!"
+        mismatch: "Passwords do not match!",
+        emailUsed: "This email is already in use.",
+        invalidEmail: "Invalid email address.",
+        weakPassword: "Password is too weak. It should be at least 6 characters.",
+        unknown: "An unknown error occurred."
       }
     };
 
@@ -87,6 +94,7 @@
         try {
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           const user = userCredential.user;
+
           await setDoc(doc(db, "users", user.uid), {
             fullName,
             dob,
@@ -97,12 +105,24 @@
           alert(translations[currentLang].success);
           window.location.href = "index.html";
         } catch (err) {
-          console.error(err);
-          alert(translations[currentLang].error);
+          console.error(err.code);
+          let message;
+          if (err.code === 'auth/email-already-in-use') {
+            message = translations[currentLang].emailUsed;
+          } else if (err.code === 'auth/invalid-email') {
+            message = translations[currentLang].invalidEmail;
+          } else if (err.code === 'auth/weak-password') {
+            message = translations[currentLang].weakPassword;
+          } else {
+            message = translations[currentLang].unknown;
+          }
+
+          alert(message);
         }
       });
     };
   </script>
+
   <style>
     body {
       background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
@@ -111,9 +131,10 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
-      color: white;
       margin: 0;
+      color: white;
     }
+
     .container {
       background: rgba(0, 0, 0, 0.7);
       padding: 30px;
@@ -122,6 +143,7 @@
       max-width: 400px;
       box-shadow: 0 0 10px rgba(255,255,255,0.2);
     }
+
     input, button {
       width: 100%;
       padding: 10px;
@@ -129,31 +151,49 @@
       border-radius: 6px;
       border: none;
     }
+
     input {
       background: #2a2a2a;
       color: white;
     }
+
     button {
       background: linear-gradient(to right, #6a11cb, #2575fc);
       color: white;
       font-weight: bold;
       cursor: pointer;
     }
+
     button:hover {
       background: linear-gradient(to right, #ffcc70, #6a11cb);
     }
+
     .lang-switch {
       position: absolute;
       top: 20px;
       right: 20px;
     }
+
+    .lang-switch button {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      margin-left: 5px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .lang-switch button:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
   </style>
 </head>
 <body>
-  <div class="lang-switch">
-    <button onclick="setLang('tr')">TR</button>
-    <button onclick="setLang('en')">EN</button>
-  </div>
+    <div class="lang-buttons">
+    <button onclick="setLang('tr')">🇹🇷 Türkçe</button>
+    <button onclick="setLang('en')">🇬🇧 English</button>
+    </div>
   <div class="container">
     <h2 id="form-title">Kayıt Ol</h2>
     <form id="registerForm">
