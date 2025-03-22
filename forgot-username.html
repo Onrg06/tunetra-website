@@ -7,46 +7,45 @@
   <style>
     body {
       background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
+      font-family: Arial, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
       color: white;
-      font-family: Arial, sans-serif;
+      margin: 0;
       text-align: center;
     }
     .container {
       background: rgba(0, 0, 0, 0.7);
       padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-      width: 350px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.2);
     }
     input {
       width: 100%;
       padding: 10px;
       margin: 10px 0;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       background: #2a2a2a;
       color: white;
     }
     button {
       width: 100%;
-      padding: 12px;
-      background: linear-gradient(to right, #6a11cb, #2575fc);
+      padding: 10px;
+      margin-top: 10px;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
       color: white;
       font-weight: bold;
       cursor: pointer;
-      margin-top: 10px; /* Butonlar arasında boşluk bırak */
     }
     button:hover {
       background: linear-gradient(to right, #ffcc70, #6a11cb);
-    }
-    #recoverBtn {
-      margin-bottom: 10px; /* "Find Username" ile "Log In" arasında boşluk ekler */
     }
     .language-buttons {
       position: absolute;
@@ -55,87 +54,86 @@
       display: flex;
       gap: 10px;
     }
+    #result {
+      margin-top: 15px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
 
   <!-- Dil Seçme Butonları -->
   <div class="language-buttons">
-    <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
-    <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
+    <button onclick="setLang('tr')">🇹🇷 Türkçe</button>
+    <button onclick="setLang('en')">🇬🇧 English</button>
   </div>
 
   <div class="container">
     <h1 id="forgotUsernameTitle">Kullanıcı Adımı Unuttum</h1>
     <form id="forgotUsernameForm">
-      <label id="dobLabel" for="dob">Doğum Tarihi:</label>
-      <input type="date" id="dob" required placeholder="GG.AA.YYYY">
-      <input type="text" id="fullName" placeholder="Ad Soyad" required>
-      <input type="password" id="password" placeholder="Şifre" required>
+      <input type="email" id="email" placeholder="E-posta" required>
       <button id="recoverBtn" type="submit">Kullanıcı Adını Bul</button>
       <button id="loginBtn" type="button" onclick="window.location.href='index.html'">Giriş Yap</button>
     </form>
+    <p id="result"></p>
   </div>
 
   <script>
-    // Kullanıcı Adını Bulma İşlemi
-    document.getElementById("forgotUsernameForm").addEventListener("submit", function(event) {
-      event.preventDefault();
+    // Çoklu dil desteği
+    const translations = {
+      tr: {
+        forgotUsernameTitle: "Kullanıcı Adımı Unuttum",
+        email: "E-posta",
+        recoverBtn: "Kullanıcı Adını Bul",
+        loginBtn: "Giriş Yap",
+        notFound: "Bu e-posta ile kayıtlı hesap bulunamadı!",
+        found: "Kullanıcı adınız: "
+      },
+      en: {
+        forgotUsernameTitle: "Forgot Username",
+        email: "Email",
+        recoverBtn: "Find Username",
+        loginBtn: "Log In",
+        notFound: "No account found with this email!",
+        found: "Your username is: "
+      }
+    };
 
-      let dob = document.getElementById("dob").value;
-      let fullName = document.getElementById("fullName").value;
-      let password = document.getElementById("password").value;
+    let currentLang = "tr";
 
-      let foundUsername = null;
+    function setLang(lang) {
+      currentLang = lang;
+      const t = translations[lang];
+      document.getElementById("forgotUsernameTitle").innerText = t.forgotUsernameTitle;
+      document.getElementById("email").placeholder = t.email;
+      document.getElementById("recoverBtn").innerText = t.recoverBtn;
+      document.getElementById("loginBtn").innerText = t.loginBtn;
+      document.getElementById("result").innerText = "";
+    }
+
+    // Kullanıcı adını e-posta üzerinden bulma
+    document.getElementById("forgotUsernameForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const result = document.getElementById("result");
+      let found = false;
 
       for (let i = 0; i < localStorage.length; i++) {
-        let key = localStorage.key(i);
-        let user = JSON.parse(localStorage.getItem(key));
+        const key = localStorage.key(i);
+        const user = JSON.parse(localStorage.getItem(key));
 
-        if (user && user.fullName === fullName && user.dob === dob && (user.password === password || user.secondaryPassword === password)) {
-          foundUsername = key;
+        if (user && user.email === email) {
+          result.innerText = translations[currentLang].found + user.username;
+          found = true;
           break;
         }
       }
 
-      if (foundUsername) {
-        alert("Kullanıcı adınız: " + foundUsername);
-      } else {
-        alert("Bilgiler yanlış veya kayıtlı hesap bulunamadı!");
+      if (!found) {
+        result.innerText = translations[currentLang].notFound;
       }
     });
-  </script>
-
-  <script>
-    // Dil Değiştirme Fonksiyonu
-    function setLang(lang) {
-      const translations = {
-        tr: {
-          forgotUsernameTitle: "Kullanıcı Adımı Unuttum",
-          dobLabel: "Doğum Tarihi:",
-          fullName: "Ad Soyad",
-          password: "Şifre",
-          recoverBtn: "Kullanıcı Adını Bul",
-          loginBtn: "Giriş Yap"
-        },
-        en: {
-          forgotUsernameTitle: "Forgot Username",
-          dobLabel: "Date of Birth:",
-          fullName: "Full Name",
-          password: "Password",
-          recoverBtn: "Find Username",
-          loginBtn: "Log In"
-        }
-      };
-
-      const t = translations[lang];
-      document.getElementById("forgotUsernameTitle").innerText = t.forgotUsernameTitle;
-      document.getElementById("dobLabel").innerText = t.dobLabel;
-      document.getElementById("fullName").placeholder = t.fullName;
-      document.getElementById("password").placeholder = t.password;
-      document.getElementById("recoverBtn").innerText = t.recoverBtn;
-      document.getElementById("loginBtn").innerText = t.loginBtn;
-    }
   </script>
 
 </body>
