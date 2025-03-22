@@ -81,6 +81,7 @@
       color: white;
       font-weight: bold;
       cursor: pointer;
+      margin-top: 10px;
     }
 
     button:hover {
@@ -102,6 +103,7 @@
       <h3 id="searchTitle">Kullanıcı Ara</h3>
       <input type="text" id="searchInput" placeholder="Kullanıcı adı gir...">
       <button onclick="searchUser()" id="btnSearch">Ara</button>
+      <div id="searchResults"></div>
     </div>
 
     <div class="section">
@@ -120,7 +122,25 @@
     </div>
   </div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser;
     let currentLang = localStorage.getItem("lang") || "tr";
 
     const translations = {
@@ -131,7 +151,8 @@
         receivedRequestsTitle: "Gelen İstekler",
         friendsListTitle: "Arkadaş Listem",
         btnSearch: "Ara",
-        placeholder: "Kullanıcı adı gir..."
+        placeholder: "Kullanıcı adı gir...",
+        requestSent: "İstek gönderildi!"
       },
       en: {
         pageTitle: "Friends",
@@ -140,7 +161,8 @@
         receivedRequestsTitle: "Incoming Requests",
         friendsListTitle: "My Friends",
         btnSearch: "Search",
-        placeholder: "Enter username..."
+        placeholder: "Enter username...",
+        requestSent: "Request sent!"
       }
     };
 
@@ -161,14 +183,34 @@
       document.getElementById("searchInput").placeholder = t.placeholder;
     }
 
-    window.addEventListener("DOMContentLoaded", () => {
-      changeLang(currentLang);
-    });
+    window.searchUser = async function () {
+      const query = document.getElementById("searchInput").value.trim().toLowerCase();
+      const usersSnapshot = await getDocs(collection(db, "users"));
+      const resultContainer = document.getElementById("searchResults");
+      resultContainer.innerHTML = "";
+      usersSnapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        if (data.username.toLowerCase().includes(query) && docSnap.id !== currentUser.uid) {
+          const div = document.createElement("div");
+          div.innerHTML = `${data.username} <button onclick=\"sendRequest('${docSnap.id}')\">➕</button>`;
+          resultContainer.appendChild(div);
+        }
+      });
+    };
 
-    function searchUser() {
-      const username = document.getElementById("searchInput").value;
-      alert(currentLang === "tr" ? `\"${username}\" için arama yapılıyor...` : `Searching for "${username}"...`);
+    async function sendRequest(targetId) {
+      const ref = doc(db, "friendRequests", targetId);
+      await setDoc(ref, {
+        requests: arrayUnion(currentUser.uid)
+      }, { merge: true });
+      alert(translations[currentLang].requestSent);
     }
+
+    onAuthStateChanged(auth, user => {
+      if (!user) return location.href = "index.html";
+      currentUser = user;
+      updateTexts();
+    });
   </script>
 </body>
 </html>
