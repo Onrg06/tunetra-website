@@ -110,7 +110,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, arrayUnion, arrayRemove, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -151,11 +151,11 @@
       }
     };
 
-    function changeLang(lang) {
+    window.changeLang = function(lang) {
       currentLang = lang;
       localStorage.setItem("lang", lang);
       updateTexts();
-    }
+    };
 
     function updateTexts() {
       const t = translations[currentLang];
@@ -166,6 +166,31 @@
       document.getElementById("friendsListTitle").innerText = t.friendsListTitle;
       document.getElementById("btnSearch").innerText = t.btnSearch;
       document.getElementById("searchInput").placeholder = t.placeholder;
+    }
+
+    window.searchUser = async function() {
+      const queryText = document.getElementById("searchInput").value.trim().toLowerCase();
+      if (!queryText) return;
+      const usersSnapshot = await getDocs(collection(db, "users"));
+      const resultContainer = document.getElementById("searchResults");
+      resultContainer.innerHTML = "";
+
+      usersSnapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        if (
+          data.username &&
+          data.username.toLowerCase().includes(queryText) &&
+          docSnap.id !== currentUser.uid
+        ) {
+          const div = document.createElement("div");
+          div.innerText = data.username + " ";
+          const btn = document.createElement("button");
+          btn.innerText = "➕";
+          btn.onclick = () => sendRequest(docSnap.id);
+          div.appendChild(btn);
+          resultContainer.appendChild(div);
+        }
+      });
     }
 
     async function sendRequest(targetId) {
@@ -181,27 +206,6 @@
         });
       }
       alert(translations[currentLang].requestSent);
-    }
-
-    async function searchUser() {
-      const queryText = document.getElementById("searchInput").value.trim().toLowerCase();
-      if (!queryText) return;
-      const q = query(collection(db, "users"), where("username", "==", queryText));
-      const querySnapshot = await getDocs(q);
-      const resultContainer = document.getElementById("searchResults");
-      resultContainer.innerHTML = "";
-
-      querySnapshot.forEach(docSnap => {
-        if (docSnap.id === currentUser.uid) return;
-        const data = docSnap.data();
-        const div = document.createElement("div");
-        div.innerText = data.username + " ";
-        const btn = document.createElement("button");
-        btn.innerText = "➕";
-        btn.onclick = () => sendRequest(docSnap.id);
-        div.appendChild(btn);
-        resultContainer.appendChild(div);
-      });
     }
 
     onAuthStateChanged(auth, user => {
