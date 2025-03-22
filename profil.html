@@ -76,7 +76,8 @@
     .lang-btn {
       margin-left: 10px;
       padding: 6px 10px;
-      background: rgba(255,255,255,0.2);
+      font-weight: bold;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
       border: none;
       border-radius: 6px;
       color: white;
@@ -123,23 +124,129 @@
     <button style="background: red;" onclick="deleteAccount()">Hesabı Sil</button>
   </div>
 
-  <!-- Firebase script burada entegre edilecek -->
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, updatePassword, deleteUser, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    let currentLang = "tr";
+
+    const translations = {
+      tr: {
+        profileTitle: "Profil Bilgilerim",
+        labelFullName: "Ad Soyad",
+        labelEmail: "E-posta",
+        labelUsername: "Kullanıcı Adı",
+        labelDob: "Doğum Tarihi",
+        labelTheme: "Tema",
+        labelPassword: "Yeni Şifre",
+        updateUsername: "Kullanıcı Adını Güncelle",
+        updatePassword: "Şifreyi Güncelle",
+        delete: "Hesabı Sil",
+        saveTheme: "Temayı Kaydet"
+      },
+      en: {
+        profileTitle: "My Profile",
+        labelFullName: "Full Name",
+        labelEmail: "Email",
+        labelUsername: "Username",
+        labelDob: "Date of Birth",
+        labelTheme: "Theme",
+        labelPassword: "New Password",
+        updateUsername: "Update Username",
+        updatePassword: "Update Password",
+        delete: "Delete Account",
+        saveTheme: "Save Theme"
+      }
+    };
+
     function setLang(lang) {
-      // Çoklu dil desteği buraya eklenecek
+      currentLang = lang;
+      const t = translations[lang];
+      document.getElementById("profileTitle").innerText = t.profileTitle;
+      document.getElementById("labelFullName").innerText = t.labelFullName;
+      document.getElementById("labelEmail").innerText = t.labelEmail;
+      document.getElementById("labelUsername").innerText = t.labelUsername;
+      document.getElementById("labelDob").innerText = t.labelDob;
+      document.getElementById("labelTheme").innerText = t.labelTheme;
+      document.getElementById("labelPassword").innerText = t.labelPassword;
+      document.querySelector("button[onclick='updateUsername()']").innerText = t.updateUsername;
+      document.querySelector("button[onclick='updatePassword()']").innerText = t.updatePassword;
+      document.querySelector("button[onclick='deleteAccount()']").innerText = t.delete;
+      document.querySelector("button[onclick='saveTheme()']").innerText = t.saveTheme;
     }
-    function updateUsername() {
-      // Firestore username update
+
+    let currentUser;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return window.location.href = "index.html";
+      currentUser = user;
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        document.getElementById("fullName").value = data.fullName;
+        document.getElementById("email").value = data.email;
+        document.getElementById("username").value = data.username;
+        document.getElementById("dob").value = data.dob;
+        document.getElementById("themeSelect").value = data.theme || "light";
+        if (data.profilePic) document.getElementById("profileImage").src = data.profilePic;
+      }
+    });
+
+    window.updateUsername = async function() {
+      const newUsername = document.getElementById("username").value;
+      await updateDoc(doc(db, "users", currentUser.uid), { username: newUsername });
+      alert("Kullanıcı adı güncellendi!");
     }
-    function updatePassword() {
-      // Firebase şifre update
+
+    window.updatePassword = async function() {
+      const newPassword = document.getElementById("newPassword").value;
+      await updatePassword(currentUser, newPassword);
+      alert("Şifre güncellendi!");
     }
-    function saveTheme() {
-      // Tercih edilen temayı kaydet (localStorage veya Firestore)
+
+    window.saveTheme = async function() {
+      const newTheme = document.getElementById("themeSelect").value;
+      await updateDoc(doc(db, "users", currentUser.uid), { theme: newTheme });
+      alert("Tema kaydedildi!");
     }
-    function deleteAccount() {
-      // Firebase Authentication & Firestore silme işlemi
+
+    window.deleteAccount = async function() {
+      if (confirm("Hesabınızı silmek istediğinizden emin misiniz?")) {
+        await deleteUser(currentUser);
+        alert("Hesabınız silindi");
+        window.location.href = "index.html";
+      }
     }
+
+    document.getElementById("uploadPic").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const storageRef = ref(storage, `profilePics/${currentUser.uid}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      document.getElementById("profileImage").src = url;
+      await updateDoc(doc(db, "users", currentUser.uid), { profilePic: url });
+      alert("Profil fotoğrafı güncellendi!");
+    });
+
+    window.addEventListener("DOMContentLoaded", () => setLang("tr"));
   </script>
 </body>
 </html>
