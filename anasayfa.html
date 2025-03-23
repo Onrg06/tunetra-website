@@ -1,7 +1,3 @@
-from pathlib import Path
-
-# Full corrected homepage HTML with fixed desktop layout and username display
-corrected_homepage_code = """
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -230,8 +226,3 @@ corrected_homepage_code = """
   </script>
 </body>
 </html>
-"""
-
-file_path = Path("/mnt/data/anasayfa_duzenlenmis_tam.html")
-file_path.write_text(corrected_homepage_code, encoding="utf-8")
-file_path.name
