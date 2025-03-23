@@ -55,8 +55,10 @@
       margin-bottom: 10px;
       border-radius: 6px;
       cursor: pointer;
+      transition: background 0.3s;
     }
     .chat-item:hover { background: rgba(255, 255, 255, 0.2); }
+    .chat-item.active { background: #007bff; font-weight: bold; }
     .chat-window {
       flex: 1;
       padding: 20px;
@@ -123,12 +125,12 @@
   </header>
 
   <div class="container">
-    <div class="chat-list" id="chatList"></div>
+    <div class="chat-list" id="chatList">Yükleniyor...</div>
     <div class="chat-window">
       <div class="messages" id="messageArea"></div>
       <div class="send-box">
         <input type="text" id="messageInput" placeholder="Mesaj yaz...">
-        <button class="send-btn" onclick="sendMessage()">Gönder</button>
+        <button class="send-btn" onclick="sendMessage()" id="sendBtn">Gönder</button>
       </div>
     </div>
   </div>
@@ -153,25 +155,29 @@
 
     let currentUser = null;
     let selectedFriendId = null;
+    let lang = localStorage.getItem("lang") || "tr";
 
     const translations = {
       tr: {
         pageTitle: "Mesajlar",
         placeholder: "Mesaj yaz...",
-        send: "Gönder"
+        send: "Gönder",
+        loading: "Yükleniyor..."
       },
       en: {
         pageTitle: "Messages",
         placeholder: "Type a message...",
-        send: "Send"
+        send: "Send",
+        loading: "Loading..."
       }
     };
 
-    function setLang(lang) {
-      localStorage.setItem("lang", lang);
+    function setLang(newLang) {
+      lang = newLang;
+      localStorage.setItem("lang", newLang);
       document.getElementById("pageTitle").innerText = translations[lang].pageTitle;
       document.getElementById("messageInput").placeholder = translations[lang].placeholder;
-      document.querySelector(".send-btn").innerText = translations[lang].send;
+      document.getElementById("sendBtn").innerText = translations[lang].send;
     }
 
     function getConversationId(uid1, uid2) {
@@ -180,10 +186,15 @@
 
     async function loadFriends(uid) {
       const snap = await getDoc(doc(db, "friends", uid));
-      if (!snap.exists()) return;
-      const friends = snap.data().list || [];
       const chatList = document.getElementById("chatList");
       chatList.innerHTML = "";
+
+      if (!snap.exists()) {
+        chatList.innerText = "Arkadaş yok.";
+        return;
+      }
+
+      const friends = snap.data().list || [];
       for (const fid of friends) {
         const fdoc = await getDoc(doc(db, "users", fid));
         if (!fdoc.exists()) continue;
@@ -191,13 +202,20 @@
         const div = document.createElement("div");
         div.className = "chat-item";
         div.innerText = name;
-        div.onclick = () => openChat(fid);
+        div.onclick = () => openChat(fid, div);
         chatList.appendChild(div);
       }
+
+      // İlk arkadaş otomatik seçilsin
+      const first = document.querySelector(".chat-item");
+      if (first) first.click();
     }
 
-    async function openChat(friendId) {
+    async function openChat(friendId, element) {
       selectedFriendId = friendId;
+      document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
+      element.classList.add("active");
+
       const convoId = getConversationId(currentUser.uid, friendId);
       const convoRef = doc(db, "conversations", convoId);
       const convoSnap = await getDoc(convoRef);
@@ -220,12 +238,12 @@
     async function sendMessage() {
       const input = document.getElementById("messageInput");
       const text = input.value.trim();
-      if (text === "" || !selectedFriendId) return;
+      if (!text || !selectedFriendId) return;
 
       const convoId = getConversationId(currentUser.uid, selectedFriendId);
       const convoRef = doc(db, "conversations", convoId);
-      const convoSnap = await getDoc(convoRef);
       const newMsg = { sender: currentUser.uid, text: text, timestamp: Date.now() };
+      const convoSnap = await getDoc(convoRef);
 
       if (convoSnap.exists()) {
         await updateDoc(convoRef, { messages: arrayUnion(newMsg) });
@@ -234,13 +252,12 @@
       }
 
       input.value = "";
-      openChat(selectedFriendId);
+      openChat(selectedFriendId, document.querySelector(".chat-item.active"));
     }
 
     onAuthStateChanged(auth, user => {
       if (!user) return location.href = "index.html";
       currentUser = user;
-      const lang = localStorage.getItem("lang") || "tr";
       setLang(lang);
       loadFriends(user.uid);
     });
