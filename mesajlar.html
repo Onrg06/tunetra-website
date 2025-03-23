@@ -84,17 +84,6 @@
       opacity: 0.7;
       margin-top: 5px;
     }
-    .actions {
-      position: absolute;
-      top: 5px;
-      right: 8px;
-      font-size: 0.8rem;
-    }
-    .actions span {
-      cursor: pointer;
-      margin-left: 8px;
-      text-decoration: underline;
-    }
     .send-box {
       display: flex;
       gap: 10px;
@@ -140,187 +129,277 @@
   <!-- Firebase ve JS kodu ayrı dosyada devam edecek şekilde bölünebilir -->
 </body>
 </html>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-    authDomain: "tunetra-2579b.firebaseapp.com",
-    projectId: "tunetra-2579b",
-    storageBucket: "tunetra-2579b.appspot.com",
-    messagingSenderId: "576238823779",
-    appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  let currentUser = null;
-  let selectedFriendId = null;
-  let unsubscribe = null;
-  let lang = localStorage.getItem("lang") || "tr";
-
-  const t = {
-    tr: {
-      pageTitle: "Mesajlar",
-      placeholder: "Mesaj yaz...",
-      send: "Gönder",
-      edit: "Düzenle",
-      delete: "Sil",
-      sentAt: "Gönderildi",
-      home: "Ana Sayfa",
-      turkish: "🇹🇷 Türkçe",
-      english: "🇬🇧 English"
-    },
-    en: {
-      pageTitle: "Messages",
-      placeholder: "Type a message...",
-      send: "Send",
-      edit: "Edit",
-      delete: "Delete",
-      sentAt: "Sent at",
-      home: "Home Page",
-      turkish: "🇹🇷 Turkish",
-      english: "🇬🇧 English"
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TuneTRa | Mesajlar</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    body {
+      background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
-  };
-
-  function setLang(l) {
-    lang = l;
-    localStorage.setItem("lang", lang);
-    document.getElementById("pageTitle").innerText = t[lang].pageTitle;
-    document.getElementById("messageInput").placeholder = t[lang].placeholder;
-    document.querySelector(".send-btn").innerText = t[lang].send;
-    document.getElementById("homeBtn").innerText = "🏠 " + t[lang].home;
-    document.getElementById("btnTr").innerText = t[lang].turkish;
-    document.getElementById("btnEn").innerText = t[lang].english;
-  }
-
-  function formatTimestamp(ts) {
-    const d = new Date(ts);
-    return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
-  }
-
-  function getConversationId(uid1, uid2) {
-    return [uid1, uid2].sort().join("_");
-  }
-
-  async function loadFriends(uid) {
-    const snap = await getDoc(doc(db, "friends", uid));
-    const list = document.getElementById("chatList");
-    list.innerHTML = "";
-
-    const friends = snap.exists() ? snap.data().list || [] : [];
-    for (const fid of friends) {
-      const fdoc = await getDoc(doc(db, "users", fid));
-      if (!fdoc.exists()) continue;
-      const name = fdoc.data().username;
-      const div = document.createElement("div");
-      div.className = "chat-item";
-      div.innerText = name;
-      div.onclick = () => openChat(fid, div);
-      list.appendChild(div);
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
-  }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      flex-wrap: wrap;
+    }
+    .lang-btn {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    .container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    .chat-list {
+      width: 30%;
+      max-width: 250px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .chat-item {
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      margin-bottom: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .chat-item.active { background: #007bff; font-weight: bold; }
+    .chat-window {
+      flex: 1;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+    .message {
+      padding: 10px;
+      margin-bottom: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      max-width: 80%;
+      position: relative;
+    }
+    .message.you { background: rgba(0, 255, 127, 0.3); align-self: flex-end; }
+    .timestamp {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      margin-top: 5px;
+    }
+    .send-box {
+      display: flex;
+      gap: 10px;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+    }
+    button.send-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2 id="pageTitle">Mesajlar</h2>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button class="lang-btn" onclick="goHome()" id="homeBtn">🏠 Ana Sayfa</button>
+      <button class="lang-btn" onclick="setLang('tr')" id="btnTr">🇹🇷 Türkçe</button>
+      <button class="lang-btn" onclick="setLang('en')" id="btnEn">🇬🇧 English</button>
+    </div>
+  </header>
 
-  async function openChat(fid, el) {
-    selectedFriendId = fid;
-    document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
-    el.classList.add("active");
+  <div class="container">
+    <div class="chat-list" id="chatList">Yükleniyor...</div>
+    <div class="chat-window">
+      <div class="messages" id="messageArea"></div>
+      <div class="send-box">
+        <input type="text" id="messageInput" placeholder="Mesaj yaz...">
+        <button class="send-btn" onclick="sendMessage()">Gönder</button>
+      </div>
+    </div>
+  </div>
 
-    if (unsubscribe) unsubscribe();
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const convoId = getConversationId(currentUser.uid, fid);
-    const convoRef = doc(db, "conversations", convoId);
-    const area = document.getElementById("messageArea");
-    area.innerHTML = "";
-
-    unsubscribe = onSnapshot(convoRef, async snap => {
-      area.innerHTML = "";
-      if (!snap.exists()) return;
-
-      let data = snap.data();
-      let msgs = data.messages || [];
-      let changed = false;
-
-      msgs = msgs.map(m => {
-        if (m.sender !== currentUser.uid) {
-          m.seenBy = m.seenBy || [];
-          if (!m.seenBy.includes(currentUser.uid)) {
-            m.seenBy.push(currentUser.uid);
-            changed = true;
-          }
-        }
-        return m;
-      });
-
-      if (changed) {
-        await setDoc(convoRef, { ...data, messages: msgs });
-      }
-
-      msgs.sort((a, b) => a.timestamp - b.timestamp);
-      for (const msg of msgs) {
-        const msgDiv = document.createElement("div");
-        msgDiv.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
-        msgDiv.innerHTML = `
-          <div>${msg.text}</div>
-          <div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>
-          ${msg.sender === currentUser.uid ? `
-          
-          `;
-        area.appendChild(msgDiv);
-      }
-      area.scrollTop = area.scrollHeight;
-    });
-  }
-
-  window.sendMessage = async () => {
-    const input = document.getElementById("messageInput");
-    const text = input.value.trim();
-    if (!text || !selectedFriendId || !currentUser) return;
-
-    const id = crypto.randomUUID();
-    const msg = {
-      id, sender: currentUser.uid,
-      text, timestamp: Date.now(),
-      seenBy: []
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
     };
 
-    const convoId = getConversationId(currentUser.uid, selectedFriendId);
-    const convoRef = doc(db, "conversations", convoId);
-    const snap = await getDoc(convoRef);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    if (snap.exists()) {
-      const oldMsgs = snap.data().messages || [];
-      await setDoc(convoRef, {
-        ...snap.data(),
-        messages: [...oldMsgs, msg]
-      });
-    } else {
-      await setDoc(convoRef, {
-        users: [currentUser.uid, selectedFriendId],
-        messages: [msg]
+    let currentUser = null;
+    let selectedFriendId = null;
+    let unsubscribe = null;
+    let lang = localStorage.getItem("lang") || "tr";
+
+    const t = {
+      tr: {
+        pageTitle: "Mesajlar",
+        placeholder: "Mesaj yaz...",
+        send: "Gönder",
+        home: "Ana Sayfa",
+        turkish: "🇹🇷 Türkçe",
+        english: "🇬🇧 English"
+      },
+      en: {
+        pageTitle: "Messages",
+        placeholder: "Type a message...",
+        send: "Send",
+        home: "Home Page",
+        turkish: "🇹🇷 Turkish",
+        english: "🇬🇧 English"
+      }
+    };
+
+    function setLang(l) {
+      lang = l;
+      localStorage.setItem("lang", lang);
+      document.getElementById("pageTitle").innerText = t[lang].pageTitle;
+      document.getElementById("messageInput").placeholder = t[lang].placeholder;
+      document.querySelector(".send-btn").innerText = t[lang].send;
+      document.getElementById("homeBtn").innerText = "🏠 " + t[lang].home;
+      document.getElementById("btnTr").innerText = t[lang].turkish;
+      document.getElementById("btnEn").innerText = t[lang].english;
+    }
+
+    function getConversationId(uid1, uid2) {
+      return [uid1, uid2].sort().join("_");
+    }
+
+    async function loadFriends(uid) {
+      const snap = await getDoc(doc(db, "friends", uid));
+      const list = document.getElementById("chatList");
+      list.innerHTML = "";
+
+      const friends = snap.exists() ? snap.data().list || [] : [];
+      for (const fid of friends) {
+        const fdoc = await getDoc(doc(db, "users", fid));
+        if (!fdoc.exists()) continue;
+        const name = fdoc.data().username;
+        const div = document.createElement("div");
+        div.className = "chat-item";
+        div.innerText = name;
+        div.onclick = () => openChat(fid, div);
+        list.appendChild(div);
+      }
+    }
+
+    async function openChat(fid, el) {
+      selectedFriendId = fid;
+      document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
+      el.classList.add("active");
+
+      if (unsubscribe) unsubscribe();
+
+      const convoId = getConversationId(currentUser.uid, fid);
+      const convoRef = doc(db, "conversations", convoId);
+      const area = document.getElementById("messageArea");
+      area.innerHTML = "";
+
+      unsubscribe = onSnapshot(convoRef, snap => {
+        area.innerHTML = "";
+        if (!snap.exists()) return;
+        const msgs = snap.data().messages || [];
+        msgs.sort((a, b) => a.timestamp - b.timestamp);
+        for (const msg of msgs) {
+          const msgDiv = document.createElement("div");
+          msgDiv.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
+          msgDiv.innerHTML = `<div>${msg.text}</div>`;
+          area.appendChild(msgDiv);
+        }
+        area.scrollTop = area.scrollHeight;
       });
     }
 
-    input.value = "";
-  };
+    window.sendMessage = async () => {
+      const input = document.getElementById("messageInput");
+      const text = input.value.trim();
+      if (!text || !selectedFriendId || !currentUser) return;
 
+      const id = crypto.randomUUID();
+      const msg = {
+        id, sender: currentUser.uid,
+        text, timestamp: Date.now(),
+        seenBy: []
+      };
 
+      const convoId = getConversationId(currentUser.uid, selectedFriendId);
+      const convoRef = doc(db, "conversations", convoId);
+      const snap = await getDoc(convoRef);
 
+      if (snap.exists()) {
+        const oldMsgs = snap.data().messages || [];
+        await setDoc(convoRef, {
+          ...snap.data(),
+          messages: [...oldMsgs, msg]
+        });
+      } else {
+        await setDoc(convoRef, {
+          users: [currentUser.uid, selectedFriendId],
+          messages: [msg]
+        });
+      }
 
-  window.goHome = () => location.href = "anasayfa.html";
-  window.setLang = setLang;
+      input.value = "";
+    };
 
-  onAuthStateChanged(auth, user => {
-    if (!user) return location.href = "index.html";
-    currentUser = user;
-    setLang(lang);
-    loadFriends(user.uid);
-  });
-</script>
+    window.goHome = () => location.href = "anasayfa.html";
+    window.setLang = setLang;
+
+    onAuthStateChanged(auth, user => {
+      if (!user) return location.href = "index.html";
+      currentUser = user;
+      setLang(lang);
+      loadFriends(user.uid);
+    });
+  </script>
 </body>
 </html>
