@@ -40,16 +40,35 @@
     .confirmation {
       margin-top: 20px;
       font-weight: bold;
-      color: lightgreen;
+      color: yellow;
+    }
+    .lang-buttons {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+    .lang-btn {
+      padding: 6px 12px;
+      margin: 0 5px;
+      border-radius: 6px;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <h1>📮 Dilek & Şikayet Kutusu</h1>
-  <p>Görüşlerinizi bizimle paylaşın. Tüm yazdıklarınız gizli tutulacaktır.</p>
+  <div class="lang-buttons">
+    <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
+    <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
+  </div>
+
+  <h1 id="title">📮 Dilek & Şikayet Kutusu</h1>
+  <p id="desc">Görüşlerinizi bizimle paylaşın. Tüm yazdıklarınız gizli tutulacaktır.</p>
+
   <textarea id="feedbackText" placeholder="Buraya yazınız..."></textarea>
   <br />
-  <button onclick="submitFeedback()">Gönder</button>
+  <button onclick="submitFeedback()" id="sendBtn">Gönder</button>
   <div class="confirmation" id="confirmationMsg"></div>
 
   <script type="module">
@@ -71,17 +90,48 @@
     const db = getFirestore(app);
 
     let currentUser = null;
+    let currentLang = "tr";
+
+    const translations = {
+      tr: {
+        title: "📮 Dilek & Şikayet Kutusu",
+        desc: "Görüşlerinizi bizimle paylaşın. Tüm yazdıklarınız gizli tutulacaktır.",
+        placeholder: "Buraya yazınız...",
+        send: "Gönder",
+        success: "Teşekkür ederiz! Mesajınız alındı.",
+        error: "Bir hata oluştu. Lütfen tekrar deneyin.",
+        empty: "Lütfen mesajınızı yazın."
+      },
+      en: {
+        title: "📮 Feedback & Complaints",
+        desc: "Share your thoughts with us. Everything you write will be kept private.",
+        placeholder: "Write your message here...",
+        send: "Send",
+        success: "Thank you! Your message has been received.",
+        error: "Something went wrong. Please try again.",
+        empty: "Please write your message."
+      }
+    };
 
     onAuthStateChanged(auth, (user) => {
       if (user) currentUser = user;
     });
+
+    window.setLang = function(lang) {
+      currentLang = lang;
+      document.getElementById("title").innerText = translations[lang].title;
+      document.getElementById("desc").innerText = translations[lang].desc;
+      document.getElementById("feedbackText").placeholder = translations[lang].placeholder;
+      document.getElementById("sendBtn").innerText = translations[lang].send;
+      document.getElementById("confirmationMsg").innerText = "";
+    }
 
     window.submitFeedback = async function () {
       const text = document.getElementById("feedbackText").value.trim();
       const confirmation = document.getElementById("confirmationMsg");
 
       if (!text) {
-        confirmation.textContent = "Lütfen mesajınızı yazın.";
+        confirmation.textContent = translations[currentLang].empty;
         return;
       }
 
@@ -91,12 +141,16 @@
           text,
           timestamp: serverTimestamp()
         });
-        confirmation.textContent = "Teşekkür ederiz! Mesajınız alındı.";
+        confirmation.textContent = translations[currentLang].success;
         document.getElementById("feedbackText").value = "";
       } catch (e) {
-        confirmation.textContent = "Bir hata oluştu. Lütfen tekrar deneyin.";
+        confirmation.textContent = translations[currentLang].error;
       }
     };
+
+    window.addEventListener("DOMContentLoaded", () => {
+      setLang("tr");
+    });
   </script>
 </body>
 </html>
