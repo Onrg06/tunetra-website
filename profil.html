@@ -14,15 +14,19 @@
       --button-hover: linear-gradient(to right, #ffcc70, #6a11cb);
     }
 
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
-      padding: 0;
+      padding: 10px;
       background: var(--bg-color);
       background-size: 400% 400%;
       animation: gradientShift 15s ease infinite;
       color: var(--text-color);
-      transition: background 0.5s ease;
+      overflow-x: hidden;
     }
 
     @keyframes gradientShift {
@@ -32,9 +36,9 @@
     }
 
     .container {
-      width: 90%;
+      width: 100%;
       max-width: 600px;
-      margin: 60px auto;
+      margin: 70px auto 50px;
       background: var(--card-bg);
       padding: 30px;
       border-radius: 10px;
@@ -147,7 +151,7 @@
       background: var(--button-hover);
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 768px) {
       .lang-switch {
         top: 10px;
         right: 10px;
@@ -161,7 +165,7 @@
 
       .container {
         padding: 20px;
-        margin: 40px auto;
+        margin-top: 90px;
       }
 
       button {
@@ -172,6 +176,14 @@
       .lang-btn {
         padding: 6px 10px;
         font-size: 12px;
+        margin-left: 0;
+        margin-top: 5px;
+      }
+
+      .profile-letter {
+        width: 90px;
+        height: 90px;
+        font-size: 36px;
       }
     }
   </style>
@@ -343,4 +355,3 @@
   </script>
 </body>
 </html>
-
