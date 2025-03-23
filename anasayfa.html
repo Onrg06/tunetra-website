@@ -33,7 +33,7 @@
       max-width: 600px;
       margin-bottom: 20px;
     }
-    .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn {
+    .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn, .extra-btn {
       padding: 10px 20px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
       border: none;
@@ -45,7 +45,7 @@
       cursor: pointer;
       transition: background 0.3s;
     }
-    .btn:hover, .profile-btn:hover, .friends-btn:hover, .messages-btn:hover, .lang-btn:hover {
+    .btn:hover, .profile-btn:hover, .friends-btn:hover, .messages-btn:hover, .lang-btn:hover, .extra-btn:hover {
       background: linear-gradient(to right, #2575fc, #6a11cb);
     }
     .top-left-controls, .language-buttons {
@@ -55,6 +55,7 @@
     }
     .top-left-controls {
       top: 20px; left: 20px;
+      flex-wrap: wrap;
     }
     .language-buttons {
       top: 20px; right: 20px;
@@ -62,7 +63,7 @@
     @media (max-width: 768px) {
       h1 { font-size: 2rem; }
       p { font-size: 1rem; }
-      .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn { font-size: 0.9rem; padding: 8px 16px; }
+      .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn, .extra-btn { font-size: 0.9rem; padding: 8px 16px; }
       .top-left-controls, .language-buttons { flex-direction: column; align-items: flex-start; }
     }
   </style>
@@ -79,6 +80,13 @@
   </div>
   <h1 id="welcomeMessage">🎶 Hoş Geldin!</h1>
   <p id="introText"></p>
+
+  <a href="dilek.html" class="extra-btn" id="btnFeedback">📮 Dilek & Şikayet Kutusu</a>
+  <a href="hakkimizda.html" class="extra-btn" id="btnAbout">ℹ️ Hakkımızda</a>
+  <a href="lyrics.html" class="extra-btn" id="btnLyrics">✍️ Sözler / Şiirler</a>
+  <a href="melody.html" class="extra-btn" id="btnMelody">🎵 Melodi</a>
+  <a href="hazir.html" class="extra-btn" id="btnSongs">🎶 Hazır Şarkılar</a>
+
   <a href="index.html" class="btn" onclick="logout()" id="logoutBtn">Çıkış Yap</a>
 
   <script type="module">
@@ -109,7 +117,12 @@
         logout: "Çıkış Yap",
         profile: "👤 Profilim",
         friends: "🧑‍🤝‍🧑 Arkadaşlarım",
-        messages: "Mesajlarım"
+        messages: "Mesajlarım",
+        feedback: "📮 Dilek & Şikayet Kutusu",
+        about: "ℹ️ Hakkımızda",
+        lyrics: "✍️ Sözler / Şiirler",
+        melody: "🎵 Melodi",
+        songs: "🎶 Hazır Şarkılar"
       },
       en: {
         welcome: "🎶 Welcome, ",
@@ -117,7 +130,12 @@
         logout: "Log Out",
         profile: "👤 My Profile",
         friends: "🧑‍🤝‍🧑 My Friends",
-        messages: "My Messages"
+        messages: "My Messages",
+        feedback: "📮 Feedback & Complaints",
+        about: "ℹ️ About",
+        lyrics: "✍️ Lyrics",
+        melody: "🎵 Melody",
+        songs: "🎶 Ready Songs"
       }
     };
 
@@ -140,6 +158,11 @@
           document.getElementById("introText").innerHTML = translations[currentLang].intro;
           document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
           document.getElementById("btnProfile").innerText = translations[currentLang].profile;
+          document.getElementById("btnFeedback").innerText = translations[currentLang].feedback;
+          document.getElementById("btnAbout").innerText = translations[currentLang].about;
+          document.getElementById("btnLyrics").innerText = translations[currentLang].lyrics;
+          document.getElementById("btnMelody").innerText = translations[currentLang].melody;
+          document.getElementById("btnSongs").innerText = translations[currentLang].songs;
         }
       });
 
@@ -197,4 +220,3 @@
   </script>
 </body>
 </html>
-
