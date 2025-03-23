@@ -156,7 +156,8 @@
         send: "Gönder",
         home: "Ana Sayfa",
         turkish: "🇹🇷 Türkçe",
-        english: "🇬🇧 English"
+        english: "🇬🇧 English",
+        sentAt: "Gönderildi"
       },
       en: {
         pageTitle: "Messages",
@@ -164,7 +165,8 @@
         send: "Send",
         home: "Home Page",
         turkish: "🇹🇷 Turkish",
-        english: "🇬🇧 English"
+        english: "🇬🇧 English",
+        sentAt: "Sent at"
       }
     };
 
@@ -181,6 +183,11 @@
 
     function getConversationId(uid1, uid2) {
       return [uid1, uid2].sort().join("_");
+    }
+
+    function formatTimestamp(ts) {
+      const d = new Date(ts);
+      return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
     }
 
     async function loadFriends(uid) {
@@ -221,7 +228,10 @@
         for (const msg of msgs) {
           const msgDiv = document.createElement("div");
           msgDiv.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
-          msgDiv.innerHTML = `<div>${msg.text}</div>`;
+          msgDiv.innerHTML = `
+            <div>${msg.text}</div>
+            <div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>
+          `;
           area.appendChild(msgDiv);
         }
         area.scrollTop = area.scrollHeight;
