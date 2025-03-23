@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TuneTRa | Mesajlar</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
@@ -25,6 +25,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 15px 20px;
+      flex-wrap: wrap;
     }
     .lang-btn {
       padding: 6px 10px;
@@ -116,15 +117,14 @@
   </style>
 </head>
 <body>
-<header>
-  <h2 id="pageTitle">Mesajlar</h2>
-  <div style="display: flex; gap: 10px;">
-    <button class="lang-btn" onclick="goHome()" id="homeBtn">🏠 Ana Sayfa</button>
-    <button class="lang-btn" onclick="setLang('tr')">🇹🇷</button>
-    <button class="lang-btn" onclick="setLang('en')">🇬🇧</button>
-  </div>
-</header>
-
+  <header>
+    <h2 id="pageTitle">Mesajlar</h2>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button class="lang-btn" onclick="goHome()" id="homeBtn">🏠 Ana Sayfa</button>
+      <button class="lang-btn" onclick="setLang('tr')" id="btnTr">🇹🇷 Türkçe</button>
+      <button class="lang-btn" onclick="setLang('en')" id="btnEn">🇬🇧 English</button>
+    </div>
+  </header>
 
   <div class="container">
     <div class="chat-list" id="chatList">Yükleniyor...</div>
@@ -167,8 +167,10 @@
         send: "Gönder",
         edit: "Düzenle",
         delete: "Sil",
-        sentAt: "Gönderildi"
-        home: "Ana Sayfa", // Türkçe için
+        sentAt: "Gönderildi",
+        home: "Ana Sayfa",
+        turkish: "🇹🇷 Türkçe",
+        english: "🇬🇧 English"
       },
       en: {
         pageTitle: "Messages",
@@ -176,8 +178,10 @@
         send: "Send",
         edit: "Edit",
         delete: "Delete",
-        sentAt: "Sent at"
-        home: "Home Page", // İngilizce için
+        sentAt: "Sent at",
+        home: "Home Page",
+        turkish: "🇹🇷 Turkish",
+        english: "🇬🇧 English"
       }
     };
 
@@ -187,7 +191,12 @@
       document.getElementById("pageTitle").innerText = t[lang].pageTitle;
       document.getElementById("messageInput").placeholder = t[lang].placeholder;
       document.querySelector(".send-btn").innerText = t[lang].send;
+      document.getElementById("homeBtn").innerText = "🏠 " + t[lang].home;
+      document.getElementById("btnTr").innerText = t[lang].turkish;
+      document.getElementById("btnEn").innerText = t[lang].english;
     }
+
+    window.goHome = () => location.href = "anasayfa.html";
 
     function getConversationId(uid1, uid2) {
       return [uid1, uid2].sort().join("_");
@@ -233,12 +242,11 @@
         if (!snap.exists()) return;
 
         let msgs = snap.data().messages || [];
-
-        // Mark as seen
         let changed = false;
+
         msgs = msgs.map(m => {
           if (m.sender !== currentUser.uid) {
-            if (!m.seenBy) m.seenBy = [];
+            m.seenBy = m.seenBy || [];
             if (!m.seenBy.includes(currentUser.uid)) {
               m.seenBy.push(currentUser.uid);
               changed = true;
@@ -248,7 +256,6 @@
         });
         if (changed) await updateDoc(convoRef, { messages: msgs });
 
-        // Show messages
         msgs.sort((a, b) => a.timestamp - b.timestamp);
         for (const msg of msgs) {
           const msgDiv = document.createElement("div");
@@ -318,10 +325,6 @@
       const msgs = snap.data().messages.filter(m => m.id !== msgId);
       await updateDoc(convoRef, { messages: msgs });
     };
-    window.goHome = () => {
-    location.href = "anasayfa.html";
-    };
-
 
     onAuthStateChanged(auth, user => {
       if (!user) return location.href = "index.html";
