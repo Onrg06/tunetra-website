@@ -10,7 +10,6 @@
       background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
       background-size: 400% 400%;
       animation: gradientShift 15s ease infinite;
-
       color: white;
       min-height: 100vh;
       display: flex;
@@ -20,11 +19,19 @@
       text-align: center;
       padding: 20px;
     }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
     .lang-buttons {
       position: absolute;
       top: 20px;
       right: 20px;
     }
+
     .lang-btn {
       padding: 6px 12px;
       margin: 0 5px;
@@ -32,17 +39,31 @@
       border: none;
       font-weight: bold;
       cursor: pointer;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: white;
+      transition: background 0.3s;
     }
+
+    .lang-btn:hover {
+      background: linear-gradient(to right, #2575fc, #6a11cb);
+    }
+
     .home-btn {
       margin-top: 30px;
       padding: 10px 20px;
-      background: #ffffff44;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
       color: white;
       font-weight: bold;
-      border: 2px solid white;
+      border: none;
       border-radius: 6px;
       text-decoration: none;
+      transition: background 0.3s;
     }
+
+    .home-btn:hover {
+      background: linear-gradient(to right, #2575fc, #6a11cb);
+    }
+
     p {
       max-width: 700px;
       font-size: 1.1rem;
@@ -71,17 +92,17 @@
       tr: {
         title: "Hakkımızda",
         text: `TuneTRa, müzik tutkunlarını bir araya getiren yaratıcı bir platformdur. 
-        Kullanıcılar şiirlerini ve melodilerini paylaşarak birlikte şarkı oluşturabilir.
-        TuneTRa, genç yeteneklerin fikirlerini hayata geçirmeleri için güvenli ve eğlenceli bir ortam sunar. 
-        Ayrıca, arkadaşlık sistemi sayesinde kullanıcılar arkadaşlarıyla mesajlaşabilir ve iş birliği yapabilir.`,
+Kullanıcılar şiirlerini ve melodilerini paylaşarak birlikte şarkı oluşturabilir.
+TuneTRa, genç yeteneklerin fikirlerini hayata geçirmeleri için güvenli ve eğlenceli bir ortam sunar. 
+Ayrıca, arkadaşlık sistemi sayesinde kullanıcılar arkadaşlarıyla mesajlaşabilir ve iş birliği yapabilir.`,
         home: "🏠 Anasayfaya Dön"
       },
       en: {
         title: "About Us",
         text: `TuneTRa is a creative platform that brings music lovers together.
-        Users can share their lyrics and melodies to collaboratively create songs.
-        TuneTRa provides a safe and fun space for young talents to bring their ideas to life.
-        Additionally, the friend system allows users to chat and collaborate with their friends.`,
+Users can share their lyrics and melodies to collaboratively create songs.
+TuneTRa provides a safe and fun space for young talents to bring their ideas to life.
+Additionally, the friend system allows users to chat and collaborate with their friends.`,
         home: "🏠 Back to Homepage"
       }
     };
