@@ -88,9 +88,10 @@
       left: 20px;
       display: flex;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
-    .profile-btn, .friends-btn {
+    .profile-btn, .friends-btn, .messages-btn {
       padding: 8px 14px;
       background: linear-gradient(to right, #00c6ff, #0072ff);
       border: none;
@@ -102,7 +103,7 @@
       transition: all 0.3s ease;
     }
 
-    .profile-btn:hover, .friends-btn:hover {
+    .profile-btn:hover, .friends-btn:hover, .messages-btn:hover {
       background: linear-gradient(to right, #ffcc70, #6a11cb);
     }
 
@@ -122,7 +123,7 @@
         padding: 10px 20px;
       }
 
-      .profile-btn, .friends-btn {
+      .profile-btn, .friends-btn, .messages-btn {
         padding: 6px 10px;
         font-size: 12px;
       }
@@ -134,6 +135,7 @@
 
       .top-left-controls {
         flex-direction: column;
+        align-items: flex-start;
         gap: 6px;
         top: 10px;
         left: 10px;
@@ -154,10 +156,11 @@
     <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
   </div>
 
-  <!-- Sol üst köşe: Profil ve Arkadaşlar -->
+  <!-- Sol üst köşe: Profil, Arkadaşlar, Mesajlar -->
   <div class="top-left-controls">
     <a href="profil.html" class="profile-btn" id="btnProfile">👤 Profilim</a>
     <a href="arkadaslar.html" class="friends-btn" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım</a>
+    <a href="mesajlar.html" class="messages-btn" id="btnMessages">📨 Mesajlarım (0)</a>
   </div>
 
   <h1 id="welcomeMessage">🎶 Hoş Geldin!</h1>
@@ -193,14 +196,16 @@
         intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br>Şiirini veya melodini paylaş, şarkıya dönüşmesini izle. Birlikte müzik üretelim!",
         logout: "Çıkış Yap",
         profile: "👤 Profilim",
-        friends: "🧑‍🤝‍🧑 Arkadaşlarım"
+        friends: "🧑‍🤝‍🧑 Arkadaşlarım",
+        messages: "Mesajlarım"
       },
       en: {
         welcome: "🎶 Welcome, ",
         intro: "You're in the right place to create your dream song.<br>Share your lyrics or melody, watch it become a track. Let's make music together!",
         logout: "Log Out",
         profile: "👤 My Profile",
-        friends: "🧑‍🤝‍🧑 My Friends"
+        friends: "🧑‍🤝‍🧑 My Friends",
+        messages: "My Messages"
       }
     };
 
@@ -233,11 +238,12 @@
           const data = requestSnap.data();
           count = data.requests?.length || 0;
         }
+        const friendsBase = translations[currentLang].friends;
+        document.getElementById("btnFriends").innerText = `${friendsBase} (${count})`;
 
-        // 🧑‍🤝‍🧑 Arkadaşlarım (x)
-        const baseText = translations[currentLang].friends;
-        const fullText = count > 0 ? `${baseText} (${count})` : baseText;
-        document.getElementById("btnFriends").innerText = fullText;
+        // ⬇️ Mesajlarım butonunu ayarla (şimdilik sabit 0)
+        const messagesBase = translations[currentLang].messages;
+        document.getElementById("btnMessages").innerText = `📨 ${messagesBase} (0)`;
       }
     }
 
