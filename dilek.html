@@ -55,6 +55,16 @@
       font-weight: bold;
       cursor: pointer;
     }
+    .home-btn {
+      margin-top: 30px;
+      padding: 10px 20px;
+      background: #ffffff44;
+      color: white;
+      font-weight: bold;
+      border: 2px solid white;
+      border-radius: 6px;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
@@ -70,6 +80,8 @@
   <br />
   <button onclick="submitFeedback()" id="sendBtn">Gönder</button>
   <div class="confirmation" id="confirmationMsg"></div>
+
+  <a href="anasayfa.html" class="home-btn" id="homeBtn">🏠 Anasayfaya Dön</a>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -100,7 +112,8 @@
         send: "Gönder",
         success: "Teşekkür ederiz! Mesajınız alındı.",
         error: "Bir hata oluştu. Lütfen tekrar deneyin.",
-        empty: "Lütfen mesajınızı yazın."
+        empty: "Lütfen mesajınızı yazın.",
+        home: "🏠 Anasayfaya Dön"
       },
       en: {
         title: "📮 Feedback & Complaints",
@@ -109,7 +122,8 @@
         send: "Send",
         success: "Thank you! Your message has been received.",
         error: "Something went wrong. Please try again.",
-        empty: "Please write your message."
+        empty: "Please write your message.",
+        home: "🏠 Back to Homepage"
       }
     };
 
@@ -123,6 +137,7 @@
       document.getElementById("desc").innerText = translations[lang].desc;
       document.getElementById("feedbackText").placeholder = translations[lang].placeholder;
       document.getElementById("sendBtn").innerText = translations[lang].send;
+      document.getElementById("homeBtn").innerText = translations[lang].home;
       document.getElementById("confirmationMsg").innerText = "";
     }
 
