@@ -105,22 +105,21 @@
       cursor: pointer;
     }
 
-    /* --- Mobil Düzen --- */
+    /* Mobil Görünüm */
     @media (max-width: 768px) {
       .container {
         flex-direction: column;
       }
       .chat-list {
         width: 100%;
-        max-width: none;
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
+        max-width: none;
       }
       .chat-item {
         flex: 1 1 calc(50% - 10px);
         text-align: center;
-        word-break: break-word;
       }
       .chat-window {
         padding: 10px;
@@ -135,6 +134,27 @@
   </style>
 </head>
 <body>
-  <!-- Geri kalan içerik ve JavaScript aynı kalabilir -->
+  <header>
+    <h2 id="pageTitle">Mesajlar</h2>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button class="lang-btn" onclick="goHome()" id="homeBtn">🏠 Ana Sayfa</button>
+      <button class="lang-btn" onclick="setLang('tr')" id="btnTr">🇹🇷 Türkçe</button>
+      <button class="lang-btn" onclick="setLang('en')" id="btnEn">🇬🇧 English</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="chat-list" id="chatList">Yükleniyor...</div>
+    <div class="chat-window">
+      <div class="messages" id="messageArea"></div>
+      <div class="send-box">
+        <input type="text" id="messageInput" placeholder="Mesaj yaz...">
+        <button class="send-btn" onclick="sendMessage()">Gönder</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Firebase kodları burada yer alacak -->
+  <!-- Senin önceki mesajında yazdığın <script type="module"> bloğunu buraya yapıştırabilirsin -->
 </body>
 </html>
