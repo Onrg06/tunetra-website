@@ -212,29 +212,38 @@
       if (first) first.click();
     }
 
-    async function openChat(friendId, element) {
-      selectedFriendId = friendId;
-      document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
-      element.classList.add("active");
+let unsubscribe = null;
 
-      const convoId = getConversationId(currentUser.uid, friendId);
-      const convoRef = doc(db, "conversations", convoId);
-      const convoSnap = await getDoc(convoRef);
-      const area = document.getElementById("messageArea");
-      area.innerHTML = "";
+async function openChat(friendId, element) {
+  selectedFriendId = friendId;
+  document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
+  element.classList.add("active");
 
-      if (convoSnap.exists()) {
-        const msgs = convoSnap.data().messages || [];
-        msgs.sort((a, b) => a.timestamp - b.timestamp);
-        msgs.forEach(m => {
-          const msgDiv = document.createElement("div");
-          msgDiv.className = "message" + (m.sender === currentUser.uid ? " you" : "");
-          msgDiv.innerText = m.text;
-          area.appendChild(msgDiv);
-        });
-        area.scrollTop = area.scrollHeight;
-      }
+  // 🔁 Daha önce açılmış bir dinleyici varsa kapat
+  if (unsubscribe) unsubscribe();
+
+  const convoId = getConversationId(currentUser.uid, friendId);
+  const convoRef = doc(db, "conversations", convoId);
+  const area = document.getElementById("messageArea");
+  area.innerHTML = "";
+
+  // 🔥 CANLI DİNLEYİCİ BURADA
+  unsubscribe = onSnapshot(convoRef, (convoSnap) => {
+    area.innerHTML = "";
+    if (convoSnap.exists()) {
+      const msgs = convoSnap.data().messages || [];
+      msgs.sort((a, b) => a.timestamp - b.timestamp);
+      msgs.forEach(m => {
+        const msgDiv = document.createElement("div");
+        msgDiv.className = "message" + (m.sender === currentUser.uid ? " you" : "");
+        msgDiv.innerText = m.text;
+        area.appendChild(msgDiv);
+      });
+      area.scrollTop = area.scrollHeight;
     }
+  });
+}
+
 
     async function sendMessage() {
       const input = document.getElementById("messageInput");
