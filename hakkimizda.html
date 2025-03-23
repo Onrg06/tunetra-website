@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hakkımızda | TuneTRa</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+    }
+    .lang-buttons {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+    .lang-btn {
+      padding: 6px 12px;
+      margin: 0 5px;
+      border-radius: 6px;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .home-btn {
+      margin-top: 30px;
+      padding: 10px 20px;
+      background: #ffffff44;
+      color: white;
+      font-weight: bold;
+      border: 2px solid white;
+      border-radius: 6px;
+      text-decoration: none;
+    }
+    p {
+      max-width: 700px;
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="lang-buttons">
+    <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
+    <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
+  </div>
+
+  <h1 id="title">Hakkımızda</h1>
+  <p id="aboutText">
+    TuneTRa, müzik tutkunlarını bir araya getiren yaratıcı bir platformdur. 
+    Kullanıcılar şiirlerini ve melodilerini paylaşarak birlikte şarkı oluşturabilir.
+    TuneTRa, genç yeteneklerin fikirlerini hayata geçirmeleri için güvenli ve eğlenceli bir ortam sunar. 
+    Ayrıca, arkadaşlık sistemi sayesinde kullanıcılar arkadaşlarıyla mesajlaşabilir ve iş birliği yapabilir.
+  </p>
+
+  <a href="anasayfa.html" class="home-btn" id="homeBtn">🏠 Anasayfaya Dön</a>
+
+  <script>
+    const translations = {
+      tr: {
+        title: "Hakkımızda",
+        text: `TuneTRa, müzik tutkunlarını bir araya getiren yaratıcı bir platformdur. 
+        Kullanıcılar şiirlerini ve melodilerini paylaşarak birlikte şarkı oluşturabilir.
+        TuneTRa, genç yeteneklerin fikirlerini hayata geçirmeleri için güvenli ve eğlenceli bir ortam sunar. 
+        Ayrıca, arkadaşlık sistemi sayesinde kullanıcılar arkadaşlarıyla mesajlaşabilir ve iş birliği yapabilir.`,
+        home: "🏠 Anasayfaya Dön"
+      },
+      en: {
+        title: "About Us",
+        text: `TuneTRa is a creative platform that brings music lovers together.
+        Users can share their lyrics and melodies to collaboratively create songs.
+        TuneTRa provides a safe and fun space for young talents to bring their ideas to life.
+        Additionally, the friend system allows users to chat and collaborate with their friends.`,
+        home: "🏠 Back to Homepage"
+      }
+    };
+
+    let currentLang = "tr";
+
+    function setLang(lang) {
+      currentLang = lang;
+      document.getElementById("title").innerText = translations[lang].title;
+      document.getElementById("aboutText").innerText = translations[lang].text;
+      document.getElementById("homeBtn").innerText = translations[lang].home;
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      setLang("tr");
+    });
+  </script>
+</body>
+</html>
