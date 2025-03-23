@@ -33,7 +33,7 @@
       max-width: 600px;
       margin-bottom: 20px;
     }
-    .btn, .profile-btn, .friends-btn, .messages-btn {
+    .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn {
       padding: 10px 20px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
       border: none;
@@ -43,6 +43,10 @@
       text-decoration: none;
       margin: 5px;
       cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn:hover, .profile-btn:hover, .friends-btn:hover, .messages-btn:hover, .lang-btn:hover {
+      background: linear-gradient(to right, #2575fc, #6a11cb);
     }
     .top-left-controls, .language-buttons {
       position: absolute;
@@ -58,7 +62,7 @@
     @media (max-width: 768px) {
       h1 { font-size: 2rem; }
       p { font-size: 1rem; }
-      .btn, .profile-btn, .friends-btn, .messages-btn { font-size: 0.9rem; padding: 8px 16px; }
+      .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn { font-size: 0.9rem; padding: 8px 16px; }
       .top-left-controls, .language-buttons { flex-direction: column; align-items: flex-start; }
     }
   </style>
@@ -160,8 +164,13 @@
         snapshot.forEach((doc) => {
           const data = doc.data();
           const messages = data.messages || [];
-          const unread = messages.some(m => m.sender !== user.uid && (!m.seenBy || !m.seenBy.includes(user.uid)));
-          if (unread) msgCount++;
+          const hasUnread = messages.some(m =>
+            m.sender !== user.uid &&
+            (!m.seenBy || !m.seenBy.includes(user.uid))
+          );
+          if (hasUnread) {
+            msgCount++;
+          }
         });
         const messagesBase = translations[currentLang].messages;
         document.getElementById("btnMessages").innerText = `📨 ${messagesBase} (${msgCount})`;
@@ -188,3 +197,4 @@
   </script>
 </body>
 </html>
+
