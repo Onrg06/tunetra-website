@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TuneTRa | Mesajlar</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
@@ -138,7 +138,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -155,6 +155,7 @@
 
     let currentUser = null;
     let selectedFriendId = null;
+    let unsubscribe = null;
     let lang = localStorage.getItem("lang") || "tr";
 
     const translations = {
@@ -196,6 +197,7 @@
         return;
       }
 
+      const lastFriend = localStorage.getItem("lastFriend");
       const friends = snap.data().list || [];
       for (const fid of friends) {
         const fdoc = await getDoc(doc(db, "users", fid));
@@ -206,44 +208,42 @@
         div.innerText = name;
         div.onclick = () => openChat(fid, div);
         chatList.appendChild(div);
+
+        if (fid === lastFriend) openChat(fid, div);
       }
 
       const first = document.querySelector(".chat-item");
-      if (first) first.click();
+      if (first && !lastFriend) first.click();
     }
 
-let unsubscribe = null;
+    async function openChat(friendId, element) {
+      selectedFriendId = friendId;
+      localStorage.setItem("lastFriend", friendId);
+      document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
+      element.classList.add("active");
 
-async function openChat(friendId, element) {
-  selectedFriendId = friendId;
-  document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
-  element.classList.add("active");
+      if (unsubscribe) unsubscribe();
 
-  // 🔁 Daha önce açılmış bir dinleyici varsa kapat
-  if (unsubscribe) unsubscribe();
+      const convoId = getConversationId(currentUser.uid, friendId);
+      const convoRef = doc(db, "conversations", convoId);
+      const area = document.getElementById("messageArea");
+      area.innerHTML = "";
 
-  const convoId = getConversationId(currentUser.uid, friendId);
-  const convoRef = doc(db, "conversations", convoId);
-  const area = document.getElementById("messageArea");
-  area.innerHTML = "";
-
-  // 🔥 CANLI DİNLEYİCİ BURADA
-  unsubscribe = onSnapshot(convoRef, (convoSnap) => {
-    area.innerHTML = "";
-    if (convoSnap.exists()) {
-      const msgs = convoSnap.data().messages || [];
-      msgs.sort((a, b) => a.timestamp - b.timestamp);
-      msgs.forEach(m => {
-        const msgDiv = document.createElement("div");
-        msgDiv.className = "message" + (m.sender === currentUser.uid ? " you" : "");
-        msgDiv.innerText = m.text;
-        area.appendChild(msgDiv);
+      unsubscribe = onSnapshot(convoRef, (convoSnap) => {
+        area.innerHTML = "";
+        if (convoSnap.exists()) {
+          const msgs = convoSnap.data().messages || [];
+          msgs.sort((a, b) => a.timestamp - b.timestamp);
+          msgs.forEach(m => {
+            const msgDiv = document.createElement("div");
+            msgDiv.className = "message" + (m.sender === currentUser.uid ? " you" : "");
+            msgDiv.innerText = m.text;
+            area.appendChild(msgDiv);
+          });
+          area.scrollTop = area.scrollHeight;
+        }
       });
-      area.scrollTop = area.scrollHeight;
     }
-  });
-}
-
 
     async function sendMessage() {
       const input = document.getElementById("messageInput");
@@ -262,8 +262,6 @@ async function openChat(friendId, element) {
       }
 
       input.value = "";
-      const activeChat = document.querySelector(".chat-item.active");
-      if (activeChat) openChat(selectedFriendId, activeChat);
     }
 
     document.getElementById("trBtn").addEventListener("click", () => setLang("tr"));
