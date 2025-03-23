@@ -298,31 +298,44 @@
     input.value = "";
   };
 
-  window.editMessage = async (msgId) => {
-    const newText = prompt(t[lang].edit + ":", "");
-    if (!newText) return;
+window.editMessage = async (msgId) => {
+  const newText = prompt(t[lang].edit + ":", "");
+  if (!newText) return;
 
-    const convoId = getConversationId(currentUser.uid, selectedFriendId);
-    const convoRef = doc(db, "conversations", convoId);
-    const snap = await getDoc(convoRef);
-    if (!snap.exists()) return;
+  const convoId = getConversationId(currentUser.uid, selectedFriendId);
+  const convoRef = doc(db, "conversations", convoId);
+  const snap = await getDoc(convoRef);
+  if (!snap.exists()) return;
 
-    let msgs = snap.data().messages || [];
-    msgs = msgs.map(m => m.id === msgId ? { ...m, text: newText } : m);
-    await updateDoc(convoRef, { messages: msgs });
-  };
+  let data = snap.data();
+  let msgs = data.messages || [];
 
-  window.deleteMessage = async (msgId) => {
-    if (!confirm(t[lang].delete + "?")) return;
+  msgs = msgs.map(m => m.id === msgId ? { ...m, text: newText } : m);
 
-    const convoId = getConversationId(currentUser.uid, selectedFriendId);
-    const convoRef = doc(db, "conversations", convoId);
-    const snap = await getDoc(convoRef);
-    if (!snap.exists()) return;
+  await setDoc(convoRef, {
+    ...data,
+    messages: msgs
+  });
+};
 
-    const msgs = snap.data().messages.filter(m => m.id !== msgId);
-    await updateDoc(convoRef, { messages: msgs });
-  };
+
+window.deleteMessage = async (msgId) => {
+  if (!confirm(t[lang].delete + "?")) return;
+
+  const convoId = getConversationId(currentUser.uid, selectedFriendId);
+  const convoRef = doc(db, "conversations", convoId);
+  const snap = await getDoc(convoRef);
+  if (!snap.exists()) return;
+
+  let data = snap.data();
+  const msgs = data.messages.filter(m => m.id !== msgId);
+
+  await setDoc(convoRef, {
+    ...data,
+    messages: msgs
+  });
+};
+
 
   window.goHome = () => location.href = "anasayfa.html";
   window.setLang = setLang;
