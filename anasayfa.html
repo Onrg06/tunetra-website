@@ -11,6 +11,7 @@
       padding: 0;
       font-family: 'Segoe UI', sans-serif;
     }
+
     body {
       background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
       background-size: 400% 400%;
@@ -23,236 +24,105 @@
       text-align: center;
       padding: 20px;
     }
+
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
+
     h1 {
       font-size: 2.5rem;
       margin-bottom: 20px;
     }
+
     p {
       font-size: 1.1rem;
       max-width: 600px;
       margin-bottom: 20px;
     }
-    .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn, .extra-btn {
-      padding: 10px 20px;
+
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 15px 0;
+      width: 100%;
+      max-width: 400px;
+      padding: 15px;
+      border-radius: 10px;
+      background-color: rgba(255,255,255,0.05);
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    .btn {
+      padding: 12px 20px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       color: white;
       font-weight: bold;
       text-decoration: none;
-      margin: 5px;
-      cursor: pointer;
+      text-align: center;
       transition: background 0.3s;
     }
-    .btn:hover, .profile-btn:hover, .friends-btn:hover, .messages-btn:hover, .lang-btn:hover, .extra-btn:hover {
+
+    .btn:hover {
       background: linear-gradient(to right, #2575fc, #6a11cb);
     }
 
-    .top-left-controls,
     .language-buttons {
-      position: absolute;
       display: flex;
       gap: 10px;
-      flex-wrap: wrap;
+      margin-top: 10px;
+      justify-content: center;
     }
 
-    .top-left-controls {
-      top: 20px;
-      left: 20px;
-    }
-
-    .language-buttons {
-      top: 20px;
-      right: 20px;
-    }
-
-    @media (max-width: 768px) {
-      body {
-        align-items: stretch;
-        justify-content: flex-start;
+    @media (min-width: 769px) {
+      .button-group {
+        all: unset;
       }
 
-      h1 { font-size: 2rem; }
-      p { font-size: 1rem; }
-
-      .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn, .extra-btn {
-        font-size: 0.9rem;
-        padding: 10px;
-        width: 100%;
-        text-align: center;
-      }
-
-      .top-left-controls,
       .language-buttons {
-        position: static;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-        margin-bottom: 15px;
-      }
-
-      .top-left-controls {
-        margin-top: 15px;
+        position: absolute;
+        top: 20px;
+        right: 20px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="language-buttons">
-    <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
-    <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
-  </div>
-
-  <div class="top-left-controls">
-    <a href="profil.html" class="profile-btn" id="btnProfile">👤 Profilim</a>
-    <a href="arkadaslar.html" class="friends-btn" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım</a>
-    <a href="mesajlar.html" class="messages-btn" id="btnMessages">📨 Mesajlarım (0)</a>
-    <a href="dilek.html" class="extra-btn" id="btnFeedback">📮 Dilek & Şikayet Kutusu</a>
-    <a href="hakkimizda.html" class="extra-btn" id="btnAbout">ℹ️ Hakkımızda</a>
-  </div>
-
   <h1 id="welcomeMessage">🎶 Hoş Geldin!</h1>
-  <p id="introText">Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br>Şiirini veya melodini paylaş, şarkıya dönüşmesini izle. Birlikte müzik üretelim!</p>
+  <p id="introText">
+    Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br>
+    Şiirini veya melodini paylaş, şarkıya dönüşmesini izle. Birlikte müzik üretelim!
+  </p>
 
-  <a href="lyrics.html" class="extra-btn" id="btnLyrics">✍️ Sözler / Şiirler</a>
-  <a href="melody.html" class="extra-btn" id="btnMelody">🎵 Melodi</a>
-  <a href="hazir.html" class="extra-btn" id="btnSongs">🎶 Hazır Şarkılar</a>
+  <!-- Grup 1: Hesap Bilgileri -->
+  <div class="button-group">
+    <a href="profil.html" class="btn" id="btnProfile">👤 Profilim</a>
+    <a href="arkadaslar.html" class="btn" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım (0)</a>
+    <a href="mesajlar.html" class="btn" id="btnMessages">📨 Mesajlarım (0)</a>
+    <div class="language-buttons">
+      <button class="btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
+      <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
+    </div>
+  </div>
 
-  <a href="index.html" class="btn" onclick="logout()" id="logoutBtn">Çıkış Yap</a>
+  <!-- Grup 2: Müzik İçerikleri -->
+  <div class="button-group">
+    <a href="lyrics.html" class="btn" id="btnLyrics">✍️ Sözler / Şiirler</a>
+    <a href="melody.html" class="btn" id="btnMelody">🎵 Melodi</a>
+    <a href="hazir.html" class="btn" id="btnSongs">🎶 Hazır Şarkılar</a>
+  </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import {
-      getFirestore, doc, getDoc,
-      collection, query, where, onSnapshot
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-      authDomain: "tunetra-2579b.firebaseapp.com",
-      projectId: "tunetra-2579b",
-      storageBucket: "tunetra-2579b.appspot.com",
-      messagingSenderId: "576238823779",
-      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    const translations = {
-      tr: {
-        welcome: "🎶 Hoş Geldin, ",
-        intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br>Şiirini veya melodini paylaş, şarkıya dönüşmesini izle. Birlikte müzik üretelim!",
-        logout: "Çıkış Yap",
-        profile: "👤 Profilim",
-        friends: "🧑‍🤝‍🧑 Arkadaşlarım",
-        messages: "Mesajlarım",
-        feedback: "📮 Dilek & Şikayet Kutusu",
-        about: "ℹ️ Hakkımızda",
-        lyrics: "✍️ Sözler / Şiirler",
-        melody: "🎵 Melodi",
-        songs: "🎶 Hazır Şarkılar"
-      },
-      en: {
-        welcome: "🎶 Welcome, ",
-        intro: "You're in the right place to create your dream song.<br>Share your lyrics or melody, watch it become a track. Let's make music together!",
-        logout: "Log Out",
-        profile: "👤 My Profile",
-        friends: "🧑‍🤝‍🧑 My Friends",
-        messages: "My Messages",
-        feedback: "📮 Feedback & Complaints",
-        about: "ℹ️ About",
-        lyrics: "✍️ Lyrics",
-        melody: "🎵 Melody",
-        songs: "🎶 Ready Songs"
-      }
-    };
-
-    let currentLang = "tr";
-
-    window.setLang = function(lang) {
-      currentLang = lang;
-      updateUI();
-    };
-
-    function updateUI() {
-      const user = auth.currentUser;
-      if (!user) return;
-
-      const docRef = doc(db, "users", user.uid);
-      getDoc(docRef).then(userDoc => {
-        if (userDoc.exists()) {
-          const username = userDoc.data().username;
-          document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
-          document.getElementById("introText").innerHTML = translations[currentLang].intro;
-          document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
-          document.getElementById("btnProfile").innerText = translations[currentLang].profile;
-          document.getElementById("btnFeedback").innerText = translations[currentLang].feedback;
-          document.getElementById("btnAbout").innerText = translations[currentLang].about;
-          document.getElementById("btnLyrics").innerText = translations[currentLang].lyrics;
-          document.getElementById("btnMelody").innerText = translations[currentLang].melody;
-          document.getElementById("btnSongs").innerText = translations[currentLang].songs;
-        }
-      });
-
-      const requestRef = doc(db, "friendRequests", user.uid);
-      getDoc(requestRef).then(requestSnap => {
-        let count = 0;
-        if (requestSnap.exists()) {
-          const data = requestSnap.data();
-          count = data.requests?.length || 0;
-        }
-        const friendsBase = translations[currentLang].friends;
-        document.getElementById("btnFriends").innerText = `${friendsBase} (${count})`;
-      });
-
-      const convoQuery = query(
-        collection(db, "conversations"),
-        where("users", "array-contains", user.uid)
-      );
-
-      onSnapshot(convoQuery, (snapshot) => {
-        let msgCount = 0;
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          const messages = data.messages || [];
-          const hasUnread = messages.some(m =>
-            m.sender !== user.uid &&
-            (!m.seenBy || !m.seenBy.includes(user.uid))
-          );
-          if (hasUnread) {
-            msgCount++;
-          }
-        });
-        const messagesBase = translations[currentLang].messages;
-        document.getElementById("btnMessages").innerText = `📨 ${messagesBase} (${msgCount})`;
-      });
-    }
-
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = "index.html";
-      } else {
-        updateUI();
-      }
-    });
-
-    window.logout = function() {
-      signOut(auth).then(() => {
-        window.location.href = "index.html";
-      });
-    };
-
-    window.addEventListener("DOMContentLoaded", () => {
-      setLang("tr");
-    });
-  </script>
+  <!-- Grup 3: Bilgilendirme -->
+  <div class="button-group">
+    <a href="dilek.html" class="btn" id="btnFeedback">📮 Dilek & Şikayet Kutusu</a>
+    <a href="hakkimizda.html" class="btn" id="btnAbout">ℹ️ Hakkımızda</a>
+    <a href="index.html" class="btn" onclick="logout()" id="logoutBtn">🚪 Çıkış Yap</a>
+  </div>
 </body>
 </html>
+
+
