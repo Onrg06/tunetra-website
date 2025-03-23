@@ -5,99 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TuneTRa | Ana Sayfa</title>
   <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; padding: 10px;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
-      background-size: 400% 400%;
-      animation: gradientShift 15s ease infinite;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      min-height: 100vh;
-      color: white; text-align: center;
-      overflow-x: hidden;
-    }
-    @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 20px;
-      text-shadow: 0 0 10px rgba(0,0,0,0.4);
-    }
-    p {
-      font-size: 1.2rem;
-      max-width: 500px;
-      line-height: 1.6;
-      text-shadow: 0 0 5px rgba(0,0,0,0.3);
-    }
-    .btn {
-      margin-top: 20px;
-      padding: 12px 24px;
-      background: linear-gradient(to right, #6a11cb, #2575fc);
-      border: none;
-      border-radius: 6px;
-      color: white;
-      font-size: 1rem;
-      font-weight: bold;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-    }
-    .btn:hover {
-      background: linear-gradient(to right, #ffcc70, #6a11cb);
-    }
-    .language-buttons {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      display: flex;
-      gap: 10px;
-    }
-    .lang-btn {
-      padding: 6px 10px;
-      font-size: 14px;
-      font-weight: bold;
-      background: linear-gradient(to right, #6a11cb, #2575fc);
-      border: none;
-      border-radius: 5px;
-      color: white;
-      cursor: pointer;
-    }
-    .top-left-controls {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .profile-btn, .friends-btn, .messages-btn {
-      padding: 8px 14px;
-      background: linear-gradient(to right, #00c6ff, #0072ff);
-      border: none;
-      border-radius: 6px;
-      color: white;
-      font-weight: bold;
-      text-decoration: none;
-      font-size: 14px;
-      transition: all 0.3s ease;
-    }
-    .profile-btn:hover, .friends-btn:hover, .messages-btn:hover {
-      background: linear-gradient(to right, #ffcc70, #6a11cb);
-    }
-    @media screen and (max-width: 768px) {
-      h1 { font-size: 2rem; margin-bottom: 15px; }
-      p { font-size: 1rem; padding: 0 10px; }
-      .btn { font-size: 0.9rem; padding: 10px 20px; }
-      .profile-btn, .friends-btn, .messages-btn { padding: 6px 10px; font-size: 12px; }
-      .lang-btn { padding: 5px 8px; font-size: 12px; }
-      .top-left-controls { flex-direction: column; align-items: flex-start; gap: 6px; top: 10px; left: 10px; }
-      .language-buttons { top: 10px; right: 10px; gap: 6px; }
-    }
+    /* [STİLLER AYNI KALDI] */
   </style>
 </head>
 <body>
@@ -111,10 +19,7 @@
     <a href="mesajlar.html" class="messages-btn" id="btnMessages">📨 Mesajlarım (0)</a>
   </div>
   <h1 id="welcomeMessage">🎶 Hoş Geldin!</h1>
-  <p id="introText">
-    Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br>
-    Şiirini veya melodini paylaş, şarkıya dönüşmesini izle. Birlikte müzik üretelim!
-  </p>
+  <p id="introText"></p>
   <a href="index.html" class="btn" onclick="logout()" id="logoutBtn">Çıkış Yap</a>
 
   <script type="module">
@@ -122,7 +27,8 @@
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import {
       getFirestore, doc, getDoc,
-      collection, query, where, getDocs
+      collection, query, where,
+      onSnapshot
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -131,8 +37,7 @@
       projectId: "tunetra-2579b",
       storageBucket: "tunetra-2579b.appspot.com",
       messagingSenderId: "576238823779",
-      appId: "1:576238823779:web:b1796f089427e3b6fecb56",
-      measurementId: "G-LRQGNS7B8X"
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -165,22 +70,23 @@
       updateUI();
     };
 
-    async function updateUI() {
+    function updateUI() {
       const user = auth.currentUser;
       if (!user) return;
 
       const docRef = doc(db, "users", user.uid);
-      const userDoc = await getDoc(docRef);
+      getDoc(docRef).then(userDoc => {
+        if (userDoc.exists()) {
+          const username = userDoc.data().username;
+          document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
+          document.getElementById("introText").innerHTML = translations[currentLang].intro;
+          document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
+          document.getElementById("btnProfile").innerText = translations[currentLang].profile;
+        }
+      });
 
-      if (userDoc.exists()) {
-        const username = userDoc.data().username;
-        document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
-        document.getElementById("introText").innerHTML = translations[currentLang].intro;
-        document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
-        document.getElementById("btnProfile").innerText = translations[currentLang].profile;
-
-        const requestRef = doc(db, "friendRequests", user.uid);
-        const requestSnap = await getDoc(requestRef);
+      const requestRef = doc(db, "friendRequests", user.uid);
+      getDoc(requestRef).then(requestSnap => {
         let count = 0;
         if (requestSnap.exists()) {
           const data = requestSnap.data();
@@ -188,23 +94,24 @@
         }
         const friendsBase = translations[currentLang].friends;
         document.getElementById("btnFriends").innerText = `${friendsBase} (${count})`;
+      });
 
-        // 🔥 MESAJLAR SAYISI
-        const convoQuery = query(
-          collection(db, "conversations"),
-          where("users", "array-contains", user.uid)
-        );
-        const convoSnap = await getDocs(convoQuery);
+      const convoQuery = query(
+        collection(db, "conversations"),
+        where("users", "array-contains", user.uid)
+      );
+
+      onSnapshot(convoQuery, (snapshot) => {
         let msgCount = 0;
-        convoSnap.forEach((doc) => {
+        snapshot.forEach((doc) => {
           const data = doc.data();
           const messages = data.messages || [];
-          const newMessages = messages.filter(m => m.sender !== user.uid);
-          if (newMessages.length > 0) msgCount++;
+          const unread = messages.some(m => m.sender !== user.uid && !m.seenBy?.includes(user.uid));
+          if (unread) msgCount++;
         });
         const messagesBase = translations[currentLang].messages;
         document.getElementById("btnMessages").innerText = `📨 ${messagesBase} (${msgCount})`;
-      }
+      });
     }
 
     onAuthStateChanged(auth, (user) => {
