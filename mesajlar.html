@@ -130,7 +130,7 @@
       <div class="messages" id="messageArea"></div>
       <div class="send-box">
         <input type="text" id="messageInput" placeholder="Mesaj yaz...">
-        <button class="send-btn" onclick="sendMessage()" id="sendBtn">Gönder</button>
+        <button class="send-btn" id="sendBtn">Gönder</button>
       </div>
     </div>
   </div>
@@ -174,7 +174,7 @@
 
     function setLang(newLang) {
       lang = newLang;
-      localStorage.setItem("lang", newLang);
+      localStorage.setItem("lang", lang);
       document.getElementById("pageTitle").innerText = translations[lang].pageTitle;
       document.getElementById("messageInput").placeholder = translations[lang].placeholder;
       document.getElementById("sendBtn").innerText = translations[lang].send;
@@ -190,7 +190,7 @@
       chatList.innerHTML = "";
 
       if (!snap.exists()) {
-        chatList.innerText = "Arkadaş yok.";
+        chatList.innerText = translations[lang].loading;
         return;
       }
 
@@ -206,7 +206,7 @@
         chatList.appendChild(div);
       }
 
-      // İlk arkadaş otomatik seçilsin
+      // İlk arkadaşı seç
       const first = document.querySelector(".chat-item");
       if (first) first.click();
     }
@@ -254,6 +254,8 @@
       input.value = "";
       openChat(selectedFriendId, document.querySelector(".chat-item.active"));
     }
+
+    document.getElementById("sendBtn").addEventListener("click", sendMessage);
 
     onAuthStateChanged(auth, user => {
       if (!user) return location.href = "index.html";
