@@ -136,6 +136,10 @@
       </div>
     </div>
   </div>
+
+  <!-- Firebase ve JS kodu ayrı dosyada devam edecek şekilde bölünebilir -->
+</body>
+</html>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -195,13 +199,13 @@
     document.getElementById("btnEn").innerText = t[lang].english;
   }
 
-  function getConversationId(uid1, uid2) {
-    return [uid1, uid2].sort().join("_");
-  }
-
   function formatTimestamp(ts) {
     const d = new Date(ts);
-    return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+    return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+  }
+
+  function getConversationId(uid1, uid2) {
+    return [uid1, uid2].sort().join("_");
   }
 
   async function loadFriends(uid) {
@@ -238,7 +242,8 @@
       area.innerHTML = "";
       if (!snap.exists()) return;
 
-      let msgs = snap.data().messages || [];
+      let data = snap.data();
+      let msgs = data.messages || [];
       let changed = false;
 
       msgs = msgs.map(m => {
@@ -251,7 +256,10 @@
         }
         return m;
       });
-      if (changed) await updateDoc(convoRef, { messages: msgs });
+
+      if (changed) {
+        await setDoc(convoRef, { ...data, messages: msgs });
+      }
 
       msgs.sort((a, b) => a.timestamp - b.timestamp);
       for (const msg of msgs) {
@@ -286,56 +294,60 @@
 
     const convoId = getConversationId(currentUser.uid, selectedFriendId);
     const convoRef = doc(db, "conversations", convoId);
-    const convoSnap = await getDoc(convoRef);
+    const snap = await getDoc(convoRef);
 
-    if (convoSnap.exists()) {
-      const oldMsgs = convoSnap.data().messages || [];
-      await updateDoc(convoRef, { messages: [...oldMsgs, msg] });
+    if (snap.exists()) {
+      const oldMsgs = snap.data().messages || [];
+      await setDoc(convoRef, {
+        ...snap.data(),
+        messages: [...oldMsgs, msg]
+      });
     } else {
-      await setDoc(convoRef, { users: [currentUser.uid, selectedFriendId], messages: [msg] });
+      await setDoc(convoRef, {
+        users: [currentUser.uid, selectedFriendId],
+        messages: [msg]
+      });
     }
 
     input.value = "";
   };
 
-window.editMessage = async (msgId) => {
-  const newText = prompt(t[lang].edit + ":", "");
-  if (!newText) return;
+  window.editMessage = async (msgId) => {
+    const newText = prompt(t[lang].edit + ":", "");
+    if (!newText) return;
 
-  const convoId = getConversationId(currentUser.uid, selectedFriendId);
-  const convoRef = doc(db, "conversations", convoId);
-  const snap = await getDoc(convoRef);
-  if (!snap.exists()) return;
+    const convoId = getConversationId(currentUser.uid, selectedFriendId);
+    const convoRef = doc(db, "conversations", convoId);
+    const snap = await getDoc(convoRef);
+    if (!snap.exists()) return;
 
-  let data = snap.data();
-  let msgs = data.messages || [];
+    let data = snap.data();
+    let msgs = data.messages || [];
 
-  msgs = msgs.map(m => m.id === msgId ? { ...m, text: newText } : m);
+    msgs = msgs.map(m => m.id === msgId ? { ...m, text: newText } : m);
 
-  await setDoc(convoRef, {
-    ...data,
-    messages: msgs
-  });
-};
+    await setDoc(convoRef, {
+      ...data,
+      messages: msgs
+    });
+  };
 
+  window.deleteMessage = async (msgId) => {
+    if (!confirm(t[lang].delete + "?")) return;
 
-window.deleteMessage = async (msgId) => {
-  if (!confirm(t[lang].delete + "?")) return;
+    const convoId = getConversationId(currentUser.uid, selectedFriendId);
+    const convoRef = doc(db, "conversations", convoId);
+    const snap = await getDoc(convoRef);
+    if (!snap.exists()) return;
 
-  const convoId = getConversationId(currentUser.uid, selectedFriendId);
-  const convoRef = doc(db, "conversations", convoId);
-  const snap = await getDoc(convoRef);
-  if (!snap.exists()) return;
+    let data = snap.data();
+    const msgs = data.messages.filter(m => m.id !== msgId);
 
-  let data = snap.data();
-  const msgs = data.messages.filter(m => m.id !== msgId);
-
-  await setDoc(convoRef, {
-    ...data,
-    messages: msgs
-  });
-};
-
+    await setDoc(convoRef, {
+      ...data,
+      messages: msgs
+    });
+  };
 
   window.goHome = () => location.href = "anasayfa.html";
   window.setLang = setLang;
