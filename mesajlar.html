@@ -269,11 +269,8 @@
           <div>${msg.text}</div>
           <div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>
           ${msg.sender === currentUser.uid ? `
-            <div class="actions">
-              <span onclick="editMessage('${msg.id}')">${t[lang].edit}</span>
-              <span onclick="deleteMessage('${msg.id}')">${t[lang].delete}</span>
-            </div>` : ""}
-        `;
+          
+          `;
         area.appendChild(msgDiv);
       }
       area.scrollTop = area.scrollHeight;
@@ -312,42 +309,8 @@
     input.value = "";
   };
 
-  window.editMessage = async (msgId) => {
-    const newText = prompt(t[lang].edit + ":", "");
-    if (!newText) return;
 
-    const convoId = getConversationId(currentUser.uid, selectedFriendId);
-    const convoRef = doc(db, "conversations", convoId);
-    const snap = await getDoc(convoRef);
-    if (!snap.exists()) return;
 
-    let data = snap.data();
-    let msgs = data.messages || [];
-
-    msgs = msgs.map(m => m.id === msgId ? { ...m, text: newText } : m);
-
-    await setDoc(convoRef, {
-      ...data,
-      messages: msgs
-    });
-  };
-
-  window.deleteMessage = async (msgId) => {
-    if (!confirm(t[lang].delete + "?")) return;
-
-    const convoId = getConversationId(currentUser.uid, selectedFriendId);
-    const convoRef = doc(db, "conversations", convoId);
-    const snap = await getDoc(convoRef);
-    if (!snap.exists()) return;
-
-    let data = snap.data();
-    const msgs = data.messages.filter(m => m.id !== msgId);
-
-    await setDoc(convoRef, {
-      ...data,
-      messages: msgs
-    });
-  };
 
   window.goHome = () => location.href = "anasayfa.html";
   window.setLang = setLang;
