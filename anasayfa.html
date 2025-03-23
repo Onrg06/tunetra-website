@@ -15,6 +15,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       text-align: center;
       padding: 20px;
     }
@@ -32,76 +33,69 @@
       max-width: 600px;
       margin-bottom: 20px;
     }
-    .btn {
-      padding: 12px 20px;
+    .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn, .extra-btn {
+      padding: 10px 20px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       color: white;
       font-weight: bold;
       text-decoration: none;
-      text-align: center;
-      transition: background 0.3s;
       margin: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
     }
-    .btn:hover {
+    .btn:hover, .profile-btn:hover, .friends-btn:hover, .messages-btn:hover, .lang-btn:hover, .extra-btn:hover {
       background: linear-gradient(to right, #2575fc, #6a11cb);
     }
-    .top-left-controls {
+    .top-left-controls, .language-buttons {
+      position: absolute;
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
       gap: 10px;
-      margin-bottom: 20px;
+    }
+    .top-left-controls {
+      top: 20px; left: 20px;
+      flex-wrap: wrap;
     }
     .language-buttons {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      display: flex;
-      gap: 10px;
+      top: 20px; right: 20px;
     }
     @media (max-width: 768px) {
-      .top-left-controls {
-        flex-direction: column;
-        align-items: center;
-      }
-      .language-buttons {
-        position: static;
-        margin-bottom: 20px;
-        justify-content: center;
-      }
+      h1 { font-size: 2rem; }
+      p { font-size: 1rem; }
+      .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn, .extra-btn { font-size: 0.9rem; padding: 8px 16px; }
+      .top-left-controls, .language-buttons { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
 <body>
   <div class="language-buttons">
-    <button class="btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
-    <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
+    <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
+    <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
   </div>
-
-  <h1 id="welcomeMessage">🎶 Hoş Geldin!</h1>
-  <p id="introText">
-    Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br>
-    Şiirini veya melodini paylaş, şarkıya dönüşmesini izle. Birlikte müzik üretelim!
-  </p>
-
   <div class="top-left-controls">
-    <a href="profil.html" class="btn" id="btnProfile">👤 Profilim</a>
-    <a href="arkadaslar.html" class="btn" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım (0)</a>
-    <a href="mesajlar.html" class="btn" id="btnMessages">📨 Mesajlarım (0)</a>
-    <a href="dilek.html" class="btn" id="btnFeedback">📮 Dilek & Şikayet Kutusu</a>
-    <a href="hakkimizda.html" class="btn" id="btnAbout">ℹ️ Hakkımızda</a>
-    <a href="lyrics.html" class="btn" id="btnLyrics">✍️ Sözler / Şiirler</a>
-    <a href="melody.html" class="btn" id="btnMelody">🎵 Melodi</a>
-    <a href="hazir.html" class="btn" id="btnSongs">🎶 Hazır Şarkılar</a>
-    <a href="index.html" class="btn" onclick="logout()" id="logoutBtn">🚪 Çıkış Yap</a>
+    <a href="profil.html" class="profile-btn" id="btnProfile">👤 Profilim</a>
+    <a href="arkadaslar.html" class="friends-btn" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım</a>
+    <a href="mesajlar.html" class="messages-btn" id="btnMessages">📨 Mesajlarım (0)</a>
+    <a href="dilek.html" class="extra-btn" id="btnFeedback">📮 Dilek & Şikayet Kutusu</a>
+    <a href="hakkimizda.html" class="extra-btn" id="btnAbout">ℹ️ Hakkımızda</a>
   </div>
+  <h1 id="welcomeMessage">🎶 Hoş Geldin!</h1>
+  <p id="introText">Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br>Şiirini veya melodini paylaş, şarkıya dönüşmesini izle. Birlikte müzik üretelim!</p>
+
+  <a href="lyrics.html" class="extra-btn" id="btnLyrics">✍️ Sözler / Şiirler</a>
+  <a href="melody.html" class="extra-btn" id="btnMelody">🎵 Melodi</a>
+  <a href="hazir.html" class="extra-btn" id="btnSongs">🎶 Hazır Şarkılar</a>
+
+  <a href="index.html" class="btn" onclick="logout()" id="logoutBtn">Çıkış Yap</a>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import {
+      getFirestore, doc, getDoc,
+      collection, query, where, onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -120,7 +114,7 @@
       tr: {
         welcome: "🎶 Hoş Geldin, ",
         intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br>Şiirini veya melodini paylaş, şarkıya dönüşmesini izle. Birlikte müzik üretelim!",
-        logout: "🚪 Çıkış Yap",
+        logout: "Çıkış Yap",
         profile: "👤 Profilim",
         friends: "🧑‍🤝‍🧑 Arkadaşlarım",
         messages: "Mesajlarım",
@@ -133,7 +127,7 @@
       en: {
         welcome: "🎶 Welcome, ",
         intro: "You're in the right place to create your dream song.<br>Share your lyrics or melody, watch it become a track. Let's make music together!",
-        logout: "🚪 Log Out",
+        logout: "Log Out",
         profile: "👤 My Profile",
         friends: "🧑‍🤝‍🧑 My Friends",
         messages: "My Messages",
