@@ -129,6 +129,12 @@
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUsername = user.displayName || "Bilinmeyen Kullanıcı";
+    }
+});
         
         document.getElementById("share-button").addEventListener("click", async () => {
             const songLyrics = document.getElementById("song-lyrics").value.trim();
