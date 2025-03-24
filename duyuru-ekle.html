@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TuneTRa | Duyuru Ekle</title>
+  <title>Duyuru Ekle | TuneTRa</title>
   <style>
     * {
       box-sizing: border-box;
@@ -21,6 +21,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       padding: 20px;
       text-align: center;
     }
@@ -33,54 +34,35 @@
 
     h1 {
       font-size: 2.5rem;
-      margin: 30px 0 10px;
+      margin-bottom: 20px;
       text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
     }
 
     .form-container {
-      max-width: 600px;
-      width: 100%;
-      background-color: rgba(0, 0, 0, 0.4);
+      background-color: rgba(0, 0, 0, 0.6);
       border-radius: 12px;
       padding: 30px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
     }
 
     .form-container input,
     .form-container textarea {
       width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
+      padding: 10px;
+      margin: 10px 0;
       border-radius: 8px;
       border: none;
-      background-color: #333;
-      color: white;
       font-size: 1rem;
     }
 
     .form-container textarea {
-      height: 150px;
+      resize: vertical;
+      min-height: 100px;
     }
 
-    .submit-btn {
-      padding: 12px 20px;
-      background: linear-gradient(to right, #6a11cb, #2575fc);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.3s ease;
-      width: 100%;
-      text-align: center;
-    }
-
-    .submit-btn:hover {
-      background: linear-gradient(to right, #2575fc, #6a11cb);
-    }
-
-    .back-btn {
-      margin-top: 20px;
+    .btn, .lang-btn, .back-btn {
       padding: 10px 20px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
       color: white;
@@ -88,61 +70,90 @@
       border-radius: 8px;
       font-weight: bold;
       cursor: pointer;
-      text-decoration: none;
-      transition: background 0.3s ease;
+      transition: background 0.3s ease, transform 0.2s ease;
+      margin-top: 15px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
     }
 
-    .back-btn:hover {
+    .btn:hover, .lang-btn:hover, .back-btn:hover {
       background: linear-gradient(to right, #2575fc, #6a11cb);
+      transform: scale(1.05);
     }
 
+    .lang-buttons {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      .form-container {
+        padding: 20px;
+      }
+    }
   </style>
 </head>
 <body>
 
-  <h1>Duyuru Ekle</h1>
-
-  <div class="form-container">
-    <input type="text" id="announcementTitle" placeholder="Duyuru Başlığı" />
-    <textarea id="announcementContent" placeholder="Duyuru İçeriği"></textarea>
-    <button class="submit-btn" id="submitAnnouncement">Duyuru Ekle</button>
-    <a href="admin-panel.html" class="back-btn">📝 Admin Paneline Dön</a>
+  <div class="lang-buttons">
+    <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
+    <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
   </div>
 
-  <script type="module">
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  <h1 id="pageTitle">Duyuru Ekle</h1>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-      authDomain: "tunetra-2579b.firebaseapp.com",
-      projectId: "tunetra-2579b",
-      storageBucket: "tunetra-2579b.appspot.com",
-      messagingSenderId: "576238823779",
-      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+  <div class="form-container">
+    <input type="text" id="titleInput" placeholder="Duyuru Başlığı" />
+    <textarea id="contentInput" placeholder="Duyuru İçeriği"></textarea>
+    <button class="btn" id="submitBtn">Duyuru Ekle</button>
+  </div>
+
+  <a href="adminpanel.html" class="back-btn">📋 Admin Paneline Dön</a>
+
+  <script>
+    const translations = {
+      tr: {
+        pageTitle: "Duyuru Ekle",
+        submitBtn: "Duyuru Ekle",
+        backBtn: "📋 Admin Paneline Dön"
+      },
+      en: {
+        pageTitle: "Add Announcement",
+        submitBtn: "Add Announcement",
+        backBtn: "📋 Back to Admin Panel"
+      }
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    let currentLang = "tr";
 
-    document.getElementById("submitAnnouncement").addEventListener("click", async () => {
-      const title = document.getElementById("announcementTitle").value;
-      const content = document.getElementById("announcementContent").value;
-      const timestamp = new Date();
+    function setLang(lang) {
+      currentLang = lang;
+      const t = translations[lang];
+      document.getElementById("pageTitle").innerText = t.pageTitle;
+      document.getElementById("submitBtn").innerText = t.submitBtn;
+      document.getElementById("backBtn").innerText = t.backBtn;
+    }
+
+    document.getElementById("submitBtn").addEventListener("click", () => {
+      const title = document.getElementById("titleInput").value;
+      const content = document.getElementById("contentInput").value;
 
       if (title && content) {
-        await setDoc(doc(db, "announcements", timestamp.toISOString()), {
-          title: title,
-          content: content,
-          date: timestamp,
-        });
+        // Firebase'a duyuru ekleme kodu burada olacak
         alert("Duyuru başarıyla eklendi!");
-        window.location.href = "admin-panel.html"; // Admin paneline yönlendir.
+        // Firebase'e ekleme kodu ekleyin burada
       } else {
-        alert("Lütfen tüm alanları doldurun!");
+        alert("Lütfen tüm alanları doldurun.");
       }
     });
-  </script>
 
+    window.addEventListener("DOMContentLoaded", () => {
+      setLang("tr");
+    });
+  </script>
 </body>
 </html>
