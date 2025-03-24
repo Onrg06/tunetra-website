@@ -1,105 +1,86 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Duyuru Ekle | TuneTRa Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Duyuru Ekle | TuneTRa</title>
   <style>
     body {
-      background: linear-gradient(to right, #000000, #1a1a1a);
+      background: linear-gradient(to right, #000000, #2c2c2c);
       color: white;
       font-family: 'Segoe UI', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 30px 20px;
+      padding: 30px;
       text-align: center;
-      animation: bgShift 20s ease infinite;
-      background-size: 400% 400%;
-    }
-
-    @keyframes bgShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
     }
 
     h1 {
       font-size: 2rem;
       margin-bottom: 20px;
-      color: #ffd700;
-      text-shadow: 0 0 10px rgba(255,255,255,0.2);
     }
 
     form {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
       max-width: 500px;
-      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
     }
 
-    input, textarea {
-      width: 100%;
+    textarea, input[type="text"] {
       padding: 12px;
-      margin-bottom: 15px;
+      border-radius: 8px;
+      border: none;
+      resize: none;
+    }
+
+    button {
+      padding: 12px;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
       border: none;
       border-radius: 8px;
-      font-size: 1rem;
-      background-color: #333;
-      color: white;
-    }
-
-    button, .home-btn {
-      padding: 12px 20px;
-      border: none;
-      background: linear-gradient(to right, #6a11cb, #2575fc);
       color: white;
       font-weight: bold;
-      border-radius: 8px;
       cursor: pointer;
-      width: 100%;
-      font-size: 1rem;
-      text-decoration: none;
-      display: inline-block;
-      margin-top: 10px;
     }
 
-    button:hover, .home-btn:hover {
+    button:hover {
       background: linear-gradient(to right, #ffcc70, #6a11cb);
     }
 
-    .message {
-      margin-top: 15px;
+    .back-btn {
+      display: inline-block;
+      margin-top: 30px;
+      padding: 10px 20px;
+      text-decoration: none;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: white;
+      border-radius: 6px;
       font-weight: bold;
     }
 
-    @media (max-width: 600px) {
-      h1 { font-size: 1.5rem; }
-      input, textarea, button, .home-btn { font-size: 0.95rem; }
+    .back-btn:hover {
+      background: linear-gradient(to right, #ffcc70, #6a11cb);
     }
   </style>
 </head>
 <body>
-  <h1>Duyuru Ekle</h1>
-
+  <h1>📢 Duyuru Ekle</h1>
   <form id="announcementForm">
-    <input type="text" id="title_tr" placeholder="Duyuru Başlığı (TR)" required />
-    <textarea id="message_tr" rows="4" placeholder="Duyuru Mesajı (TR)" required></textarea>
-    <input type="text" id="title_en" placeholder="Announcement Title (EN)" required />
-    <textarea id="message_en" rows="4" placeholder="Announcement Message (EN)" required></textarea>
-    <button type="submit">Duyuruyu Paylaş</button>
-    <div id="statusMsg" class="message"></div>
+    <input type="text" id="titleTR" placeholder="Duyuru Başlığı (Türkçe)" required>
+    <textarea id="textTR" rows="4" placeholder="Duyuru İçeriği (Türkçe)" required></textarea>
+
+    <input type="text" id="titleEN" placeholder="Announcement Title (English)" required>
+    <textarea id="textEN" rows="4" placeholder="Announcement Content (English)" required></textarea>
+
+    <button type="submit">Duyuruyu Kaydet</button>
   </form>
 
-  <a href="adminpanel.html" class="home-btn">Anasayfaya Dön</a>
+  <a href="adminpanel.html" class="back-btn">⬅️ Yönetim Paneline Dön</a>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -116,28 +97,28 @@
     document.getElementById("announcementForm").addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const title_tr = document.getElementById("title_tr").value.trim();
-      const message_tr = document.getElementById("message_tr").value.trim();
-      const title_en = document.getElementById("title_en").value.trim();
-      const message_en = document.getElementById("message_en").value.trim();
+      const titleTR = document.getElementById("titleTR").value.trim();
+      const textTR = document.getElementById("textTR").value.trim();
+      const titleEN = document.getElementById("titleEN").value.trim();
+      const textEN = document.getElementById("textEN").value.trim();
 
-      if (!title_tr || !message_tr || !title_en || !message_en) return;
+      if (!titleTR || !textTR || !titleEN || !textEN) return alert("Tüm alanları doldurun.");
 
       try {
         await addDoc(collection(db, "announcements"), {
-          tr: { title: title_tr, message: message_tr },
-          en: { title: title_en, message: message_en },
-          timestamp: Date.now()
+          tr: { title: titleTR, text: textTR },
+          en: { title: titleEN, text: textEN },
+          timestamp: serverTimestamp()
         });
-        document.getElementById("statusMsg").textContent = "✅ Duyuru eklendi.";
-        document.getElementById("statusMsg").style.color = "lightgreen";
-        e.target.reset();
+
+        alert("Duyuru başarıyla eklendi!");
+        document.getElementById("announcementForm").reset();
       } catch (err) {
-        console.error("Duyuru ekleme hatası:", err);
-        document.getElementById("statusMsg").textContent = "❌ Bir hata oluştu.";
-        document.getElementById("statusMsg").style.color = "orange";
+        console.error("Hata:", err);
+        alert("Duyuru eklenemedi.");
       }
     });
   </script>
 </body>
 </html>
+
