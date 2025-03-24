@@ -185,7 +185,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    let currentUser = null, selectedFriendId = null, unsubscribe = null, lang = localStorage.getItem("lang") || "tr";
+    let currentUser  = null, selectedFriendId = null, unsubscribe = null, lang = localStorage.getItem("lang") || "tr";
     const t = { tr: { pageTitle: "Mesajlar", placeholder: "Mesaj yaz...", send: "Gönder", home: "Ana Sayfa", turkish: "🇹🇷 Türkçe", english: "🇬🇧 English", sentAt: "Gönderildi" }, en: { pageTitle: "Messages", placeholder: "Type a message...", send: "Send", home: "Home Page", turkish: "🇹🇷 Turkish", english: "🇬🇧 English", sentAt: "Sent at" } };
 
     function setLang(l) {
@@ -232,7 +232,7 @@
 
       if (unsubscribe) unsubscribe();
 
-      const convoId = getConversationId(currentUser.uid, fid);
+      const convoId = getConversationId(currentUser .uid, fid);
       const convoRef = doc(db, "conversations", convoId);
       const area = document.getElementById("messageArea");
       area.innerHTML = "";
@@ -248,8 +248,8 @@
         let updated = false;
         const updatedMessages = msgs.map(msg => {
           if (!msg.seenBy) msg.seenBy = [];
-          if (!msg.seenBy.includes(currentUser.uid)) {
-            msg.seenBy.push(currentUser.uid);
+          if (!msg.seenBy.includes(currentUser .uid)) {
+            msg.seenBy.push(currentUser .uid);
             updated = true;
           }
           return msg;
@@ -257,10 +257,12 @@
 
         for (const msg of updatedMessages) {
           const div = document.createElement("div");
-          div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
+          div.className = "message" + (msg.sender === currentUser .uid ? " you" : "");
           div.innerHTML = `<div>${msg.text}</div><div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>`;
           area.appendChild(div);
         }
+
+        // Kaydırma işlemi
         area.scrollTop = area.scrollHeight;
 
         if (updated) {
@@ -272,10 +274,10 @@
     window.sendMessage = async () => {
       const input = document.getElementById("messageInput");
       const text = input.value.trim();
-      if (!text || !selectedFriendId || !currentUser) return;
+      if (!text || !selectedFriendId || !currentUser ) return;
       const id = crypto.randomUUID();
-      const msg = { id, sender: currentUser.uid, text, timestamp: Date.now(), seenBy: [] };
-      const convoId = getConversationId(currentUser.uid, selectedFriendId);
+      const msg = { id, sender: currentUser .uid, text, timestamp: Date.now(), seenBy: [] };
+      const convoId = getConversationId(currentUser .uid, selectedFriendId);
       const convoRef = doc(db, "conversations", convoId);
       const snap = await getDoc(convoRef);
 
@@ -283,7 +285,7 @@
         const oldMsgs = snap.data().messages || [];
         await setDoc(convoRef, { ...snap.data(), messages: [...oldMsgs, msg] });
       } else {
-        await setDoc(convoRef, { users: [currentUser.uid, selectedFriendId], messages: [msg] });
+        await setDoc(convoRef, { users: [currentUser .uid, selectedFriendId], messages: [msg] });
       }
       input.value = "";
     };
@@ -292,7 +294,7 @@
     window.setLang = setLang;
     onAuthStateChanged(auth, user => {
       if (!user) return location.href = "index.html";
-      currentUser = user;
+      currentUser  = user;
       setLang(lang);
       loadFriends(user.uid);
     });
