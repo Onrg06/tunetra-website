@@ -123,15 +123,15 @@
         const db = getFirestore(app);
         const auth = getAuth();
 
-        let currentUsername = "Anonim"; // Varsayılan olarak anonim
-
-        // Kullanıcı giriş yaptıysa username’i al
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                currentUsername = user.displayName || "Bilinmeyen Kullanıcı";
-            }
-        });
-        
+// Kullanıcı giriş yaptıysa username’i al
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUsername = user.displayName || "Bilinmeyen Kullanıcı"; // Kullanıcı adı varsa al, yoksa varsayılanı kullan
+        console.log("Giriş yapan kullanıcı:", currentUsername); // Konsola yazdır
+    } else {
+        currentUsername = "Bilinmeyen Kullanıcı"; // Kullanıcı giriş yapmadıysa varsayılan
+    }
+});
         document.getElementById("share-button").addEventListener("click", async () => {
             const songLyrics = document.getElementById("song-lyrics").value.trim();
             if (songLyrics === "") {
