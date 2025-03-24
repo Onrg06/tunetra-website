@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Duyuru Ekle | TuneTRa Admin</title>
   <style>
     body {
@@ -53,7 +53,7 @@
       color: white;
     }
 
-    button {
+    button, .home-btn {
       padding: 12px 20px;
       border: none;
       background: linear-gradient(to right, #6a11cb, #2575fc);
@@ -63,25 +63,13 @@
       cursor: pointer;
       width: 100%;
       font-size: 1rem;
-    }
-
-    button:hover {
-      background: linear-gradient(to right, #ffcc70, #6a11cb);
-    }
-
-    .back-btn {
-      margin-top: 20px;
-      background: #444;
       text-decoration: none;
       display: inline-block;
-      padding: 10px 20px;
-      color: white;
-      border-radius: 6px;
-      transition: 0.3s;
+      margin-top: 10px;
     }
 
-    .back-btn:hover {
-      background: #666;
+    button:hover, .home-btn:hover {
+      background: linear-gradient(to right, #ffcc70, #6a11cb);
     }
 
     .message {
@@ -91,26 +79,27 @@
 
     @media (max-width: 600px) {
       h1 { font-size: 1.5rem; }
-      input, textarea { font-size: 0.95rem; }
-      button { font-size: 0.95rem; }
+      input, textarea, button, .home-btn { font-size: 0.95rem; }
     }
   </style>
 </head>
 <body>
-  <h1>Yeni Duyuru Ekle</h1>
+  <h1>Duyuru Ekle</h1>
 
   <form id="announcementForm">
-    <input type="text" id="title" placeholder="Duyuru Başlığı" required />
-    <textarea id="message" rows="5" placeholder="Duyuru Mesajı" required></textarea>
+    <input type="text" id="title_tr" placeholder="Duyuru Başlığı (TR)" required />
+    <textarea id="message_tr" rows="4" placeholder="Duyuru Mesajı (TR)" required></textarea>
+    <input type="text" id="title_en" placeholder="Announcement Title (EN)" required />
+    <textarea id="message_en" rows="4" placeholder="Announcement Message (EN)" required></textarea>
     <button type="submit">Duyuruyu Paylaş</button>
     <div id="statusMsg" class="message"></div>
   </form>
 
-  <a href="adminpanel.html" class="back-btn">⬅️ Admin Paneline Geri Dön</a>
+  <a href="adminpanel.html" class="home-btn">Anasayfaya Dön</a>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -124,29 +113,29 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const form = document.getElementById("announcementForm");
-    const statusMsg = document.getElementById("statusMsg");
-
-    form.addEventListener("submit", async (e) => {
+    document.getElementById("announcementForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const title = document.getElementById("title").value.trim();
-      const message = document.getElementById("message").value.trim();
 
-      if (!title || !message) return;
+      const title_tr = document.getElementById("title_tr").value.trim();
+      const message_tr = document.getElementById("message_tr").value.trim();
+      const title_en = document.getElementById("title_en").value.trim();
+      const message_en = document.getElementById("message_en").value.trim();
+
+      if (!title_tr || !message_tr || !title_en || !message_en) return;
 
       try {
         await addDoc(collection(db, "announcements"), {
-          title,
-          message,
+          tr: { title: title_tr, message: message_tr },
+          en: { title: title_en, message: message_en },
           timestamp: Date.now()
         });
-        statusMsg.textContent = "✅ Duyuru başarıyla eklendi.";
-        statusMsg.style.color = "lightgreen";
-        form.reset();
+        document.getElementById("statusMsg").textContent = "✅ Duyuru eklendi.";
+        document.getElementById("statusMsg").style.color = "lightgreen";
+        e.target.reset();
       } catch (err) {
-        console.error("Duyuru eklenemedi:", err);
-        statusMsg.textContent = "❌ Bir hata oluştu.";
-        statusMsg.style.color = "orange";
+        console.error("Duyuru ekleme hatası:", err);
+        document.getElementById("statusMsg").textContent = "❌ Bir hata oluştu.";
+        document.getElementById("statusMsg").style.color = "orange";
       }
     });
   </script>
