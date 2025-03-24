@@ -5,10 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TuneTRa | Duyurular</title>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
-
   <style>
     * {
       box-sizing: border-box;
@@ -126,8 +122,13 @@
 
   <a href="anasayfa.html" class="back-btn" id="backBtn">🏠 Anasayfaya Dön</a>
 
-  <script>
-    // Firebase Config
+  <!-- Firebase ve JavaScript Kodları -->
+  <script type="module">
+    // Firebase SDK'yı içe aktar
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+    // Firebase yapılandırma
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
       authDomain: "tunetra-2579b.firebaseapp.com",
@@ -138,10 +139,11 @@
       measurementId: "G-LRQGNS7B8X"
     };
 
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore(app);
+    // Firebase başlat
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
+    // 🌍 Çoklu Dil Desteği
     const translations = {
       tr: {
         pageTitle: "Duyurular",
@@ -153,42 +155,45 @@
       }
     };
 
-    let currentLang = "tr";
+    let currentLang = "tr"; // Varsayılan dil
 
     function setLang(lang) {
       currentLang = lang;
       const t = translations[lang];
       document.getElementById("pageTitle").innerText = t.pageTitle;
       document.getElementById("backBtn").innerText = t.backBtn;
-      fetchAnnouncements(); // Yeni duyuruları yükle
+      fetchAnnouncements(); // Dil değiştiğinde duyuruları tekrar yükle
     }
 
     async function fetchAnnouncements() {
       try {
-        const announcementsRef = db.collection('announcements');
-        const snapshot = await announcementsRef.orderBy('timestamp', 'desc').get();
+        const announcementsRef = collection(db, "announcements");
+        const q = query(announcementsRef, orderBy("timestamp", "desc"));
+        const snapshot = await getDocs(q);
+
+        const container = document.getElementById("announcementsContainer");
+        container.innerHTML = ""; // Önceki veriyi temizle
 
         if (snapshot.empty) {
-          console.log("Duyuru bulunamadı!");
-          document.getElementById('announcementsContainer').innerHTML = "<p>Duyuru bulunamadı!</p>";
+          container.innerHTML = "<p>Duyuru bulunamadı!</p>";
           return;
         }
 
-        let announcementsHTML = '';
         snapshot.forEach((doc) => {
           const data = doc.data();
-          const lang = currentLang === 'tr' ? 'tr' : 'en'; // Dil seçimi
+          const lang = currentLang === "tr" ? "tr" : "en"; // Dil seçimi
 
-          announcementsHTML += `
-            <div class="announcement">
-              <h3>${data[lang].title}</h3>
-              <p>${data[lang].text}</p>
-              <small>${new Date(data.timestamp.seconds * 1000).toLocaleString()}</small> <!-- Tarih -->
-            </div>
+          const announcementDiv = document.createElement("div");
+          announcementDiv.classList.add("announcement");
+
+          announcementDiv.innerHTML = `
+            <h3>${data[lang].title}</h3>
+            <p>${data[lang].text}</p>
+            <small>${new Date(data.timestamp.seconds * 1000).toLocaleString()}</small>
           `;
-        });
 
-        document.getElementById('announcementsContainer').innerHTML = announcementsHTML;
+          container.appendChild(announcementDiv);
+        });
       } catch (err) {
         console.error("Duyurular çekilirken hata oluştu:", err);
         alert("Bir hata oluştu.");
@@ -197,8 +202,10 @@
 
     window.addEventListener("DOMContentLoaded", () => {
       setLang("tr");
-      fetchAnnouncements(); // Sayfa yüklendiğinde duyuruları çek
+      fetchAnnouncements();
     });
+
+    window.setLang = setLang; // Butonların çalışması için global yap
   </script>
 </body>
 </html>
