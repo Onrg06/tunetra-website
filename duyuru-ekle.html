@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Duyuru Ekle | Admin</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #141414, #1c1c1c);
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+
+    form {
+      background-color: #222;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: none;
+      font-size: 1rem;
+    }
+
+    button {
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: white;
+      padding: 12px 20px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: linear-gradient(to right, #2575fc, #6a11cb);
+    }
+
+    .success-message {
+      margin-top: 15px;
+      color: #ffcc70;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Yeni Duyuru Ekle</h1>
+  <form id="announcementForm">
+    <input type="text" id="title_tr" placeholder="Duyuru Başlığı (Türkçe)" required />
+    <textarea id="content_tr" rows="4" placeholder="Duyuru İçeriği (Türkçe)" required></textarea>
+
+    <input type="text" id="title_en" placeholder="Announcement Title (English)" required />
+    <textarea id="content_en" rows="4" placeholder="Announcement Content (English)" required></textarea>
+
+    <button type="submit">Duyuruyu Ekle</button>
+    <div id="successMessage" class="success-message" style="display:none">Duyuru başarıyla eklendi!</div>
+  </form>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const form = document.getElementById("announcementForm");
+    const successMessage = document.getElementById("successMessage");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const title_tr = document.getElementById("title_tr").value.trim();
+      const content_tr = document.getElementById("content_tr").value.trim();
+      const title_en = document.getElementById("title_en").value.trim();
+      const content_en = document.getElementById("content_en").value.trim();
+
+      try {
+        await addDoc(collection(db, "announcements"), {
+          title_tr,
+          content_tr,
+          title_en,
+          content_en,
+          timestamp: serverTimestamp()
+        });
+
+        successMessage.style.display = "block";
+        form.reset();
+      } catch (err) {
+        alert("Bir hata oluştu: " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>
