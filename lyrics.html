@@ -94,38 +94,24 @@
 </head>
 <body>
     <header>
-        <div class="language-buttons">
-            <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
-            <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
-        </div>
+        <button class="btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
+        <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
         <h1 id="page-title">Şarkı Sözlerini Paylaş</h1>
-        <p id="info-text">Hikayeninizi yazın ve paylaşın! (Telif hakkınız saklıdır)</p>
+        <p id="info-text">Hikayenizi yazın ve paylaşın! (Telif hakkınız saklıdır)</p>
     </header>
     
-    <div class="share-section">
-        <textarea id="song-lyrics" placeholder="Şarkı sözlerinizi yazın..."></textarea>
-        <button class="btn" id="share-button">Paylaş</button>
-    </div>
-    
-    </div>
-        <button class="btn" onclick="window.location.href='anasayfa.html'">Anasayfaya Dön</button>
-    </div>
+    <textarea id="song-lyrics" placeholder="Şarkı sözlerinizi yazın..."></textarea>
+    <button class="btn" id="share-button">Paylaş</button>
     
     <div class="shared-lyrics">
         <h2 id="shared-title">Paylaşılan Şarkılar</h2>
         <div id="lyrics-list"></div>
     </div>
-
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Şarkı Sözleri Paylaş</title>
-
-    <!-- Firebase SDK -->
+    
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
         import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
 
-        // Firebase Konfigürasyonu
         const firebaseConfig = {
             apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
             authDomain: "tunetra-2579b.firebaseapp.com",
@@ -134,53 +120,45 @@
             messagingSenderId: "576238823779",
             appId: "1:576238823779:web:b1796f089427e3b6fecb56"
         };
-
-        // Firebase Başlat
+        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-
-        // Şarkı Sözü Paylaşma
-        document.addEventListener("DOMContentLoaded", () => {
-            document.getElementById("share-button").addEventListener("click", async () => {
-                const songLyrics = document.getElementById("song-lyrics").value.trim();
-
-                if (songLyrics === "") {
-                    alert("Lütfen şarkı sözlerinizi yazın.");
-                    return;
-                }
-
-                try {
-                    await addDoc(collection(db, "lyrics"), {
-                        lyrics: songLyrics,
-                        timestamp: serverTimestamp()
-                    });
-
-                    alert("Şarkı sözleri başarıyla paylaşıldı!");
-                    document.getElementById("song-lyrics").value = ""; // Metin kutusunu temizle
-                } catch (error) {
-                    console.error("Hata:", error);
-                    alert("Paylaşım sırasında hata oluştu.");
-                }
-            });
-
-            // Firestore'dan Şarkı Sözlerini Çekme
-            const lyricsList = document.getElementById("lyrics-list");
-            const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
-
-            onSnapshot(q, (snapshot) => {
-                lyricsList.innerHTML = "";
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const lyricElement = document.createElement("div");
-                    lyricElement.classList.add("lyric-item");
-                    lyricElement.innerHTML = `<p>${data.lyrics}</p>`;
-                    lyricsList.appendChild(lyricElement);
+        
+        document.getElementById("share-button").addEventListener("click", async () => {
+            const songLyrics = document.getElementById("song-lyrics").value.trim();
+            if (songLyrics === "") {
+                alert("Lütfen şarkı sözlerinizi yazın.");
+                return;
+            }
+            try {
+                await addDoc(collection(db, "lyrics"), {
+                    lyrics: songLyrics,
+                    user: "Anonim",
+                    timestamp: serverTimestamp()
                 });
+                alert("Şarkı sözleri başarıyla paylaşıldı!");
+                document.getElementById("song-lyrics").value = "";
+            } catch (error) {
+                console.error("Hata:", error);
+                alert("Paylaşım sırasında hata oluştu.");
+            }
+        });
+
+        const lyricsList = document.getElementById("lyrics-list");
+        const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
+        
+        onSnapshot(q, (snapshot) => {
+            lyricsList.innerHTML = "";
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const lyricElement = document.createElement("div");
+                lyricElement.classList.add("lyric-item");
+                lyricElement.innerHTML = `<p><strong>${data.user}</strong></p><p>${data.lyrics}</p><p><small>${data.timestamp?.toDate().toLocaleString()}</small></p>`;
+                lyricsList.appendChild(lyricElement);
             });
         });
 
-        // Dil Değiştirme Fonksiyonu
-        function setLang(lang) {
+        window.setLang = function(lang) {
             if (lang === "tr") {
                 document.getElementById("page-title").innerText = "Şarkı Sözlerini Paylaş";
                 document.getElementById("info-text").innerText = "Hikayenizi yazın ve paylaşın! (Telif hakkınız saklıdır)";
@@ -193,7 +171,6 @@
                 document.getElementById("share-button").innerText = "Share";
             }
         }
-
     </script>
 </body>
 </html>
