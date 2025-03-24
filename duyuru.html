@@ -160,31 +160,41 @@
       const t = translations[lang];
       document.getElementById("pageTitle").innerText = t.pageTitle;
       document.getElementById("backBtn").innerText = t.backBtn;
-      fetchAnnouncements(); // Yeniden duyuruları al
+      fetchAnnouncements(); // Yeni duyuruları yükle
     }
 
     async function fetchAnnouncements() {
-      const announcementsRef = db.collection('duyurular');
-      const snapshot = await announcementsRef.orderBy('date', 'desc').get();
-      
-      let announcementsHTML = '';
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        const lang = currentLang === 'tr' ? 'tr' : 'en';
+      try {
+        const announcementsRef = db.collection('announcements');
+        const snapshot = await announcementsRef.orderBy('timestamp', 'desc').get();
 
-        announcementsHTML += `
-          <div class="announcement">
-            <h3>${data[lang + 'Title']}</h3>
-            <p>${data[lang + 'Text']}</p>
-            <small>${data[lang + 'Date']}</small>
-          </div>
-        `;
-      });
+        if (snapshot.empty) {
+          console.log("Duyuru bulunamadı!");
+          return;
+        }
 
-      document.getElementById('announcementsContainer').innerHTML = announcementsHTML;
+        let announcementsHTML = '';
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          const lang = currentLang === 'tr' ? 'tr' : 'en'; // Dil seçimi
+
+          announcementsHTML += `
+            <div class="announcement">
+              <h3>${data[lang].title}</h3>
+              <p>${data[lang].text}</p>
+              <small>${new Date(data.timestamp.seconds * 1000).toLocaleString()}</small> <!-- Tarih -->
+            </div>
+          `;
+        });
+
+        document.getElementById('announcementsContainer').innerHTML = announcementsHTML;
+      } catch (err) {
+        console.error("Duyurular çekilirken hata oluştu:", err);
+        alert("Bir hata oluştu.");
+      }
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener("DOMContentLoaded", () => {
       setLang("tr");
     });
   </script>
