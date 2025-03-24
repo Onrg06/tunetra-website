@@ -237,25 +237,35 @@
       const area = document.getElementById("messageArea");
       area.innerHTML = "";
 
+      // İlk mesajları yükle
+      const snap = await getDoc(convoRef);
+      if (snap.exists()) {
+        const convoData = snap.data();
+        const msgs = convoData.messages || [];
+        msgs.sort((a, b) => a.timestamp - b.timestamp);
+
+        for (const msg of msgs) {
+          const div = document.createElement("div");
+          div.className = "message" + (msg.sender === currentUser .uid ? " you" : "");
+          div.innerHTML = `<div>${msg.text}</div><div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>`;
+          area.appendChild(div);
+        }
+      }
+
+      // Kaydırma işlemi
+      area.scrollTop = area.scrollHeight;
+
+      // Yeni mesajları dinle
       unsubscribe = onSnapshot(convoRef, async (snap) => {
-        area.innerHTML = "";
         if (!snap.exists()) return;
 
         const convoData = snap.data();
         const msgs = convoData.messages || [];
         msgs.sort((a, b) => a.timestamp - b.timestamp);
 
-        let updated = false;
-        const updatedMessages = msgs.map(msg => {
-          if (!msg.seenBy) msg.seenBy = [];
-          if (!msg.seenBy.includes(currentUser .uid)) {
-            msg.seenBy.push(currentUser .uid);
-            updated = true;
-          }
-          return msg;
-        });
+        area.innerHTML = ""; // Önceki mesajları temizle
 
-        for (const msg of updatedMessages) {
+        for (const msg of msgs) {
           const div = document.createElement("div");
           div.className = "message" + (msg.sender === currentUser .uid ? " you" : "");
           div.innerHTML = `<div>${msg.text}</div><div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>`;
@@ -264,10 +274,6 @@
 
         // Kaydırma işlemi
         area.scrollTop = area.scrollHeight;
-
-        if (updated) {
-          await updateDoc(convoRef, { messages: updatedMessages });
-        }
       });
     }
 
