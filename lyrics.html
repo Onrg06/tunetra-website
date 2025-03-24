@@ -113,7 +113,15 @@
         <div id="lyrics-list"></div>
     </div>
 
-    <script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Şarkı Sözleri Paylaş</title>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
+
         // Firebase Konfigürasyonu
         const firebaseConfig = {
             apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -125,9 +133,48 @@
         };
 
         // Firebase Başlat
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Şarkı Sözü Paylaşma
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("share-button").addEventListener("click", async () => {
+                const songLyrics = document.getElementById("song-lyrics").value.trim();
+
+                if (songLyrics === "") {
+                    alert("Lütfen şarkı sözlerinizi yazın.");
+                    return;
+                }
+
+                try {
+                    await addDoc(collection(db, "lyrics"), {
+                        lyrics: songLyrics,
+                        timestamp: serverTimestamp()
+                    });
+
+                    alert("Şarkı sözleri başarıyla paylaşıldı!");
+                    document.getElementById("song-lyrics").value = ""; // Metin kutusunu temizle
+                } catch (error) {
+                    console.error("Hata:", error);
+                    alert("Paylaşım sırasında hata oluştu.");
+                }
+            });
+
+            // Firestore'dan Şarkı Sözlerini Çekme
+            const lyricsList = document.getElementById("lyrics-list");
+            const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
+
+            onSnapshot(q, (snapshot) => {
+                lyricsList.innerHTML = "";
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const lyricElement = document.createElement("div");
+                    lyricElement.classList.add("lyric-item");
+                    lyricElement.innerHTML = `<p>${data.lyrics}</p>`;
+                    lyricsList.appendChild(lyricElement);
+                });
+            });
+        });
 
         // Dil Değiştirme Fonksiyonu
         function setLang(lang) {
@@ -143,41 +190,6 @@
                 document.getElementById("share-button").innerText = "Share";
             }
         }
-
-        // Şarkı Sözlerini Firestore'a Kaydetme
-        document.getElementById("share-button").addEventListener("click", () => {
-            const songLyrics = document.getElementById("song-lyrics").value.trim();
-
-            if (songLyrics === "") {
-                alert("Lütfen şarkı sözlerinizi yazın.");
-                return;
-            }
-
-            db.collection("lyrics").add({
-                lyrics: songLyrics,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => {
-                alert("Şarkı sözleri başarıyla paylaşıldı!");
-                document.getElementById("song-lyrics").value = "";
-            }).catch(error => {
-                console.error("Hata:", error);
-                alert("Paylaşım sırasında hata oluştu.");
-            });
-        });
-
-        // Firestore'dan Şarkı Sözlerini Çekme
-        db.collection("lyrics").orderBy("timestamp", "desc").onSnapshot(snapshot => {
-            const lyricsList = document.getElementById("lyrics-list");
-            lyricsList.innerHTML = ""; 
-
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                const lyricElement = document.createElement("div");
-                lyricElement.classList.add("lyric-item");
-                lyricElement.innerHTML = `<p>${data.lyrics}</p>`;
-                lyricsList.appendChild(lyricElement);
-            });
-        });
 
     </script>
 </body>
