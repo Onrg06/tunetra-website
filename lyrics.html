@@ -153,7 +153,7 @@
                 const data = doc.data();
                 const lyricElement = document.createElement("div");
                 lyricElement.classList.add("lyric-item");
-                lyricElement.innerHTML = `<p><strong>${data.user}</strong></p><p>${data.lyrics}</p><p><small>${data.timestamp?.toDate().toLocaleString()}</small></p>`;
+                lyricElement.innerHTML = `<p><strong>${data.username}</strong></p><p>${data.lyrics}</p><p><small>${data.timestamp?.toDate().toLocaleString()}</small></p>`;
                 lyricsList.appendChild(lyricElement);
             });
         });
