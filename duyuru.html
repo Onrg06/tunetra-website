@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TuneTRa | Duyurular</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      color: white;
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    .lang-buttons {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+
+    .lang-btn {
+      padding: 6px 12px;
+      margin: 0 5px;
+      border-radius: 6px;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .announcement-list {
+      max-width: 700px;
+      width: 100%;
+    }
+
+    .announcement {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .announcement h3 {
+      margin-bottom: 8px;
+      color: #fff8c6;
+    }
+
+    .announcement p {
+      font-size: 1rem;
+    }
+
+    .back-btn {
+      margin-top: 30px;
+      padding: 10px 20px;
+      background: #ffffff44;
+      color: white;
+      font-weight: bold;
+      border: 2px solid white;
+      border-radius: 6px;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="lang-buttons">
+    <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
+    <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
+  </div>
+
+  <h1 id="title">Duyurular</h1>
+
+  <div class="announcement-list" id="announcementList">
+    <!-- Firebase'den duyurular buraya gelecek -->
+  </div>
+
+  <a href="anasayfa.html" class="back-btn" id="backBtn">⬅️ Anasayfaya Dön</a>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import {
+      getFirestore, collection, query, orderBy, getDocs
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const translations = {
+      tr: {
+        title: "Duyurular",
+        back: "⬅️ Anasayfaya Dön"
+      },
+      en: {
+        title: "Announcements",
+        back: "⬅️ Back to Homepage"
+      }
+    };
+
+    let currentLang = "tr";
+
+    function setLang(lang) {
+      currentLang = lang;
+      document.getElementById("title").innerText = translations[lang].title;
+      document.getElementById("backBtn").innerText = translations[lang].back;
+    }
+
+    async function loadAnnouncements() {
+      const q = query(collection(db, "announcements"), orderBy("timestamp", "desc"));
+      const querySnapshot = await getDocs(q);
+      const list = document.getElementById("announcementList");
+      list.innerHTML = "";
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "announcement";
+        div.innerHTML = `
+          <h3>${data.title}</h3>
+          <p>${data.content}</p>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    window.setLang = setLang;
+
+    window.addEventListener("DOMContentLoaded", () => {
+      setLang("tr");
+      loadAnnouncements();
+    });
+  </script>
+</body>
+</html>
