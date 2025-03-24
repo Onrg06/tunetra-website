@@ -111,72 +111,93 @@
         <button class="back-button" id="back-home" onclick="window.location.href='anasayfa.html'">Anasayfaya Dön</button>
     </div>
     
+    <!-- Paylaşım Alanı -->
+    <div class="share-section">
+        <textarea id="song-lyrics" placeholder="Şarkı sözlerinizi yazın..." required></textarea>
+        <button class="share-button" id="share-button">Paylaş</button>
+        <button class="back-button" id="back-home" onclick="window.location.href='anasayfa.html'">Anasayfaya Dön</button>
+    </div>
+
+    <!-- Paylaşılan Şarkılar -->
     <div class="shared-lyrics">
         <h2 id="shared-title">Paylaşılan Şarkı Sözleri</h2>
-        <div id="lyrics-list"></div>
+        <div id="lyrics-list">
+            <!-- Paylaşılan şarkılar buraya gelecek -->
+        </div>
     </div>
 
     <script>
+        // Firebase Konfigürasyonu
         const firebaseConfig = {
-        apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-        authDomain: "tunetra-2579b.firebaseapp.com",
-        projectId: "tunetra-2579b",
-        storageBucket: "tunetra-2579b.appspot.com",
-        messagingSenderId: "576238823779",
-        appId: "1:576238823779:web:b1796f089427e3b6fecb56",
-        measurementId: "G-LRQGNS7B8X"
+            apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+            authDomain: "tunetra-2579b.firebaseapp.com",
+            projectId: "tunetra-2579b",
+            storageBucket: "tunetra-2579b.appspot.com",
+            messagingSenderId: "576238823779",
+            appId: "1:576238823779:web:b1796f089427e3b6fecb56",
+            measurementId: "G-LRQGNS7B8X"
         };
-        firebase.initializeApp(firebaseConfig);
+
+        // Firebase Başlat
+        const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
 
+        // Kullanıcı giriş kontrolü
         auth.onAuthStateChanged(user => {
-            if (user) console.log('Giriş yapıldı:', user.displayName);
-            else console.log('Giriş yapılmadı');
-        });
-
-        document.getElementById("share-button").addEventListener("click", () => {
-            const songLyrics = document.getElementById("song-lyrics").value;
-            const user = auth.currentUser;
-            if (songLyrics && user) {
-                db.collection("lyrics").add({
-                    username: user.displayName,
-                    lyrics: songLyrics,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                }).then(() => {
-                    document.getElementById("song-lyrics").value = "";
-                }).catch(error => console.error("Hata oluştu: ", error));
+            if (user) {
+                console.log("Giriş yapıldı:", user.displayName);
             } else {
-                alert("Şarkı sözlerinizi yazın ve giriş yapın.");
+                console.log("Kullanıcı giriş yapmadı.");
             }
         });
 
+        // Şarkı Sözlerini Firestore'a Kaydetme
+        document.getElementById("share-button").addEventListener("click", () => {
+            const songLyrics = document.getElementById("song-lyrics").value;
+            const user = auth.currentUser;
+
+            if (!user) {
+                alert("Şarkı sözlerini paylaşabilmek için giriş yapmalısınız!");
+                return;
+            }
+
+            if (songLyrics.trim() === "") {
+                alert("Lütfen şarkı sözlerinizi yazın.");
+                return;
+            }
+
+            db.collection("lyrics").add({
+                username: user.displayName || "Anonim",
+                lyrics: songLyrics,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                alert("Şarkı sözleri başarıyla paylaşıldı!");
+                document.getElementById("song-lyrics").value = "";
+            })
+            .catch(error => {
+                console.error("Hata oluştu:", error);
+                alert("Şarkı sözlerini paylaşırken hata oluştu.");
+            });
+        });
+
+        // Firestore'dan Şarkı Sözlerini Çekme
         db.collection("lyrics").orderBy("timestamp", "desc").onSnapshot(snapshot => {
             const lyricsList = document.getElementById("lyrics-list");
-            lyricsList.innerHTML = "";
+            lyricsList.innerHTML = ""; 
+
             snapshot.forEach(doc => {
                 const data = doc.data();
                 const lyricElement = document.createElement("div");
                 lyricElement.classList.add("lyric-item");
                 lyricElement.innerHTML = `
-                    <p><strong>${data.username}</strong> (${data.timestamp?.toDate().toLocaleString() || ""})</p>
-                    <p>${data.lyrics}</p>`;
+                    <p><strong>${data.username}</strong> (${data.timestamp?.toDate().toLocaleString() || "Bilinmeyen Zaman"})</p>
+                    <p>${data.lyrics}</p>
+                `;
                 lyricsList.appendChild(lyricElement);
             });
         });
-
-        function setLang(lang) {
-            const translations = {
-                en: { title: "Share Lyrics", info: "Write and share your story! (Your copyright is protected)", home: "Back to Home", shared: "Shared Lyrics", placeholder: "Write your song lyrics...", share: "Share" },
-                tr: { title: "Şarkı Sözlerini Paylaş", info: "Hikayeninizi yazın ve paylaşın! (Telif hakkınız saklıdır)", home: "Anasayfaya Dön", shared: "Paylaşılan Şarkı Sözleri", placeholder: "Şarkı sözlerinizi yazın...", share: "Paylaş" }
-            };
-            document.getElementById("page-title").innerText = translations[lang].title;
-            document.getElementById("info-text").innerText = translations[lang].info;
-            document.getElementById("back-home").innerText = translations[lang].home;
-            document.getElementById("shared-title").innerText = translations[lang].shared;
-            document.getElementById("song-lyrics").placeholder = translations[lang].placeholder;
-            document.getElementById("share-button").innerText = translations[lang].share;
-        }
     </script>
 </body>
 </html>
