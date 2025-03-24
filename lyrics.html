@@ -17,19 +17,19 @@
             box-sizing: border-box;
         }
 
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #6a0dad, #00aaff);
-            background-size: 400% 400%;
-            animation: gradientAnimation 15s ease infinite;
-            color: white;
-            padding: 20px;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-        }
+    body {
+      background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      text-align: center;
+      padding: 20px;
+    }
 
         header {
             text-align: center;
@@ -137,10 +137,11 @@
     <header>
         <div class="language-buttons">
             <button id="language-toggle">Türkçe</button>
+            <button id="language-toggle">English</button>
         </div>
         <h1 id="page-title">Şarkı Sözlerini Paylaş</h1>
         <p id="info-text">Hikayeninizi yazın ve paylaşın! (Telif hakkınız saklıdır)</p>
-        <button id="back-home" onclick="window.location.href='index.html'">Anasayfaya Dön</button>
+        <button id="back-home" onclick="window.location.href='anasayfa.html'">Anasayfaya Dön</button>
     </header>
 
     <div class="share-section">
