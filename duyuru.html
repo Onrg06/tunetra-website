@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TuneTRa | Duyurular</title>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+
   <style>
     * {
       box-sizing: border-box;
@@ -117,45 +122,34 @@
 
   <h1 id="pageTitle">Duyurular</h1>
 
-  <div class="announcement" id="ann1">
-    <h3 id="annTitle1">Yeni Özellik Yayında!</h3>
-    <p id="annText1">
-      Artık şiirlerinizi ve melodilerinizi yükleyebilir, başka kullanıcılarla birlikte şarkı oluşturabilirsiniz!
-    </p>
-    <small id="annDate1">24.03.2025 14:00:10</small>
-  </div>
-
-  <div class="announcement" id="ann2">
-    <h3 id="annTitle2">Güncelleme: Profil Sayfası</h3>
-    <p id="annText2">
-      Profilinizi artık daha kolay düzenleyebilir, arkadaşlık isteklerinizi yönetebilirsiniz.
-    </p>
-    <small id="annDate2">24.03.2025 09:17:45</small>
-  </div>
+  <div id="announcementsContainer"></div>
 
   <a href="anasayfa.html" class="back-btn" id="backBtn">🏠 Anasayfaya Dön</a>
 
   <script>
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID",
+      measurementId: "YOUR_MEASUREMENT_ID"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore(app);
+
     const translations = {
       tr: {
         pageTitle: "Duyurular",
-        backBtn: "🏠 Anasayfaya Dön",
-        ann1Title: "Yeni Özellik Yayında!",
-        ann1Text: "Artık şiirlerinizi ve melodilerinizi yükleyebilir, başka kullanıcılarla birlikte şarkı oluşturabilirsiniz!",
-        ann2Title: "Güncelleme: Profil Sayfası",
-        ann2Text: "Profilinizi artık daha kolay düzenleyebilir, arkadaşlık isteklerinizi yönetebilirsiniz.",
-        ann1Date: "24.03.2025 14:00:10",
-        ann2Date: "24.03.2025 09:17:45"
+        backBtn: "🏠 Anasayfaya Dön"
       },
       en: {
         pageTitle: "Announcements",
-        backBtn: "🏠 Back to Homepage",
-        ann1Title: "New Feature Released!",
-        ann1Text: "You can now upload your lyrics and melodies to collaborate and create songs together!",
-        ann2Title: "Update: Profile Page",
-        ann2Text: "You can now edit your profile more easily and manage friend requests.",
-        ann1Date: "Mar 24, 2025 14:00",
-        ann2Date: "Mar 24, 2025 09:17"
+        backBtn: "🏠 Back to Homepage"
       }
     };
 
@@ -166,15 +160,31 @@
       const t = translations[lang];
       document.getElementById("pageTitle").innerText = t.pageTitle;
       document.getElementById("backBtn").innerText = t.backBtn;
-      document.getElementById("annTitle1").innerText = t.ann1Title;
-      document.getElementById("annText1").innerText = t.ann1Text;
-      document.getElementById("annTitle2").innerText = t.ann2Title;
-      document.getElementById("annText2").innerText = t.ann2Text;
-      document.getElementById("annDate1").innerText = t.ann1Date;
-      document.getElementById("annDate2").innerText = t.ann2Date;
+      fetchAnnouncements(); // Yeniden duyuruları al
     }
 
-    window.addEventListener("DOMContentLoaded", () => {
+    async function fetchAnnouncements() {
+      const announcementsRef = db.collection('duyurular');
+      const snapshot = await announcementsRef.orderBy('date', 'desc').get();
+      
+      let announcementsHTML = '';
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        const lang = currentLang === 'tr' ? 'tr' : 'en';
+
+        announcementsHTML += `
+          <div class="announcement">
+            <h3>${data[lang + 'Title']}</h3>
+            <p>${data[lang + 'Text']}</p>
+            <small>${data[lang + 'Date']}</small>
+          </div>
+        `;
+      });
+
+      document.getElementById('announcementsContainer').innerHTML = announcementsHTML;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
       setLang("tr");
     });
   </script>
