@@ -11,8 +11,9 @@
       padding: 0;
       font-family: 'Segoe UI', sans-serif;
     }
+
     body {
-      background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
+      background: linear-gradient(to bottom right, #6a11cbcc, #2575fccc);
       background-size: 400% 400%;
       animation: gradientShift 15s ease infinite;
       color: white;
@@ -20,127 +21,143 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       text-align: center;
       padding: 20px;
+      backdrop-filter: blur(2px);
     }
+
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
+
     h1 {
       font-size: 2.5rem;
-      margin-bottom: 20px;
+      margin: 30px 0 10px;
+      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
     }
+
     p {
       font-size: 1.1rem;
       max-width: 600px;
       margin-bottom: 20px;
+      padding: 0 10px;
     }
+
     .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn, .extra-btn {
-      padding: 10px 20px;
+      padding: 12px 20px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
       border: none;
-      border-radius: 6px;
+      border-radius: 12px;
       color: white;
       font-weight: bold;
       text-decoration: none;
-      margin: 5px;
+      margin: 8px auto;
       cursor: pointer;
-      transition: background 0.3s;
+      transition: all 0.3s ease;
+      width: 100%;
+      max-width: 320px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      display: block;
+      text-align: center;
     }
+
     .btn:hover, .profile-btn:hover, .friends-btn:hover, .messages-btn:hover, .lang-btn:hover, .extra-btn:hover {
+      transform: scale(1.03);
       background: linear-gradient(to right, #2575fc, #6a11cb);
     }
-    .top-left-controls, .language-buttons {
-      position: absolute;
-      display: flex;
-      gap: 10px;
-    }
-    .top-left-controls {
-      top: 20px;
-      left: 20px;
-      flex-wrap: wrap;
-    }
+
     .language-buttons {
-      top: 20px;
-      right: 20px;
-    }
-    .main-buttons {
       display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .button-group {
+      display: flex;
+      flex-direction: row;
       flex-wrap: wrap;
       justify-content: center;
+      gap: 10px;
+      margin: 20px 0;
     }
 
-@media (max-width: 768px) {
-  h1 {
-    font-size: 1.8rem;
-    margin-top: 100px;
-  }
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.8rem;
+        margin-top: 20px;
+      }
 
-  p {
-    font-size: 1rem;
-    padding: 0 15px;
-  }
+      p {
+        font-size: 1rem;
+      }
 
-  .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn, .extra-btn {
-    font-size: 0.95rem;
-    padding: 12px 20px;
-    width: 100%;
-    max-width: 320px;
-    margin: 8px auto;
-    display: block;
-    text-align: center;
-  }
+      .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn, .extra-btn {
+        font-size: 0.95rem;
+        padding: 12px 20px;
+        width: 100%;
+        max-width: 340px;
+        margin: 8px auto;
+        text-align: center;
+      }
 
-  .top-left-controls,
-  .language-buttons {
-    position: static;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 10px;
-  }
+      .language-buttons {
+        flex-direction: row;
+        justify-content: center;
+      }
 
-  .main-buttons {
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-  }
-
-  body {
-    padding-top: 20px;
-    padding-bottom: 40px;
-  }
-}
-    
+      .button-group {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        margin: 20px auto;
+        width: 100%;
+        max-width: 340px;
+        padding: 10px 0;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+    }
   </style>
 </head>
 <body>
+
+  <!-- Dil Seçenekleri -->
   <div class="language-buttons">
     <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
     <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
   </div>
-  <div class="top-left-controls">
+
+  <!-- Grup 1: Kullanıcı -->
+  <div class="button-group">
     <a href="profil.html" class="profile-btn" id="btnProfile">👤 Profilim</a>
     <a href="arkadaslar.html" class="friends-btn" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım</a>
     <a href="mesajlar.html" class="messages-btn" id="btnMessages">📨 Mesajlarım (0)</a>
-    <a href="dilek.html" class="extra-btn" id="btnFeedback">📮 Dilek & Şikayet Kutusu</a>
-    <a href="hakkimizda.html" class="extra-btn" id="btnAbout">ℹ️ Hakkımızda</a>
   </div>
 
-  <h1 id="welcomeMessage">🎶 Hoş Geldin!</h1>
-  <p id="introText">Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br>Şiirini veya melodini paylaş, şarkıya dönüşmesini izle. Birlikte müzik üretelim!</p>
-
-  <div class="main-buttons">
+  <!-- Grup 2: İçerik -->
+  <div class="button-group">
     <a href="lyrics.html" class="extra-btn" id="btnLyrics">✍️ Sözler / Şiirler</a>
     <a href="melody.html" class="extra-btn" id="btnMelody">🎵 Melodi</a>
     <a href="hazir.html" class="extra-btn" id="btnSongs">🎶 Hazır Şarkılar</a>
   </div>
 
-  <a href="index.html" class="btn" onclick="logout()" id="logoutBtn">Çıkış Yap</a>
+  <!-- Grup 3: Yardımcı -->
+  <div class="button-group">
+    <a href="dilek.html" class="extra-btn" id="btnFeedback">📮 Dilek & Şikayet Kutusu</a>
+    <a href="hakkimizda.html" class="extra-btn" id="btnAbout">ℹ️ Hakkımızda</a>
+    <a href="index.html" class="btn" onclick="logout()" id="logoutBtn">Çıkış Yap</a>
+  </div>
 
+  <!-- Hoş Geldin Mesajı -->
+  <h1 id="welcomeMessage">🎶 Hoş Geldin!</h1>
+  <p id="introText">Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br>Şiirini veya melodini paylaş, şarkıya dönüşmesini izle. Birlikte müzik üretelim!</p>
+
+  <!-- Firebase ve JS -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
