@@ -37,7 +37,7 @@
       100% { background-position: 0% 50%; }
     }
 
-     .btn, .share-button, .back-home, .lang-btn, .extra-btn {
+     .btn, .share-button, .back-button, .lang-btn, .extra-btn {
       padding: 12px 20px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
       border: none;
@@ -165,12 +165,12 @@
         </div>
         <h1 id="page-title">Şarkı Sözlerini Paylaş</h1>
         <p id="info-text">Hikayeninizi yazın ve paylaşın! (Telif hakkınız saklıdır)</p>
-        <button id="back-home" onclick="window.location.href='anasayfa.html'">Anasayfaya Dön</button>
+        <button class ="back-button" button id="back-home" onclick="window.location.href='anasayfa.html'">Anasayfaya Dön</button>
     </header>
 
     <div class="share-section">
         <textarea id="song-lyrics" placeholder="Şarkı sözlerinizi yazın..." required></textarea>
-        <button id="share-button">Paylaş</button>
+        <button class ="share-button" button id="share-button">Paylaş</button>
     </div>
 
     <div class="shared-lyrics">
