@@ -185,7 +185,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    let currentUser  = null, selectedFriendId = null, unsubscribe = null, lang = localStorage.getItem("lang") || "tr";
+    let currentUser   = null, selectedFriendId = null, unsubscribe = null, lang = localStorage.getItem("lang") || "tr";
     const t = { tr: { pageTitle: "Mesajlar", placeholder: "Mesaj yaz...", send: "Gönder", home: "Ana Sayfa", turkish: "🇹🇷 Türkçe", english: "🇬🇧 English", sentAt: "Gönderildi" }, en: { pageTitle: "Messages", placeholder: "Type a message...", send: "Send", home: "Home Page", turkish: "🇹🇷 Turkish", english: "🇬🇧 English", sentAt: "Sent at" } };
 
     function setLang(l) {
