@@ -5,17 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TuneTRa | Duyurular</title>
   <style>
-    body {
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
       font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
       background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
       background-size: 400% 400%;
       animation: gradientShift 15s ease infinite;
       color: white;
       min-height: 100vh;
-      padding: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      padding: 20px;
+      text-align: center;
     }
 
     @keyframes gradientShift {
@@ -25,9 +32,48 @@
     }
 
     h1 {
-      font-size: 2rem;
-      margin: 20px 0;
-      text-align: center;
+      font-size: 2.5rem;
+      margin-top: 40px;
+      margin-bottom: 20px;
+      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    .announcement {
+      background-color: rgba(0, 0, 0, 0.4);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      max-width: 800px;
+      width: 100%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .announcement h3 {
+      color: #ffcc70;
+      margin-bottom: 10px;
+    }
+
+    .announcement p {
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .lang-btn, .back-btn {
+      padding: 10px 20px;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+      margin: 5px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+
+    .lang-btn:hover, .back-btn:hover {
+      background: linear-gradient(to right, #2575fc, #6a11cb);
+      transform: scale(1.05);
     }
 
     .lang-buttons {
@@ -36,89 +82,66 @@
       right: 20px;
     }
 
-    .lang-btn {
-      padding: 6px 12px;
-      margin: 0 5px;
-      border-radius: 6px;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-    }
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
 
-    .announcement-list {
-      max-width: 700px;
-      width: 100%;
-    }
+      .announcement {
+        padding: 15px;
+      }
 
-    .announcement {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 15px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    .announcement h3 {
-      margin-bottom: 8px;
-      color: #fff8c6;
-    }
-
-    .announcement p {
-      font-size: 1rem;
-    }
-
-    .back-btn {
-      margin-top: 30px;
-      padding: 10px 20px;
-      background: #ffffff44;
-      color: white;
-      font-weight: bold;
-      border: 2px solid white;
-      border-radius: 6px;
-      text-decoration: none;
+      .lang-buttons {
+        position: static;
+        margin-top: 15px;
+        display: flex;
+        justify-content: center;
+      }
     }
   </style>
 </head>
 <body>
+
   <div class="lang-buttons">
     <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
     <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
   </div>
 
-  <h1 id="title">Duyurular</h1>
+  <h1 id="pageTitle">Duyurular</h1>
 
-  <div class="announcement-list" id="announcementList">
-    <!-- Firebase'den duyurular buraya gelecek -->
+  <div class="announcement" id="ann1">
+    <h3 id="annTitle1">Yeni Özellik Yayında!</h3>
+    <p id="annText1">
+      Artık şiirlerinizi ve melodilerinizi yükleyebilir, başka kullanıcılarla birlikte şarkı oluşturabilirsiniz!
+    </p>
   </div>
 
-  <a href="anasayfa.html" class="back-btn" id="backBtn">⬅️ Anasayfaya Dön</a>
+  <div class="announcement" id="ann2">
+    <h3 id="annTitle2">Güncelleme: Profil Sayfası</h3>
+    <p id="annText2">
+      Profilinizi artık daha kolay düzenleyebilir, arkadaşlık isteklerinizi yönetebilirsiniz.
+    </p>
+  </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import {
-      getFirestore, collection, query, orderBy, getDocs
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  <a href="anasayfa.html" class="back-btn" id="backBtn">🏠 Anasayfaya Dön</a>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-      authDomain: "tunetra-2579b.firebaseapp.com",
-      projectId: "tunetra-2579b",
-      storageBucket: "tunetra-2579b.appspot.com",
-      messagingSenderId: "576238823779",
-      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
+  <script>
     const translations = {
       tr: {
-        title: "Duyurular",
-        back: "⬅️ Anasayfaya Dön"
+        pageTitle: "Duyurular",
+        backBtn: "🏠 Anasayfaya Dön",
+        ann1Title: "Yeni Özellik Yayında!",
+        ann1Text: "Artık şiirlerinizi ve melodilerinizi yükleyebilir, başka kullanıcılarla birlikte şarkı oluşturabilirsiniz!",
+        ann2Title: "Güncelleme: Profil Sayfası",
+        ann2Text: "Profilinizi artık daha kolay düzenleyebilir, arkadaşlık isteklerinizi yönetebilirsiniz."
       },
       en: {
-        title: "Announcements",
-        back: "⬅️ Back to Homepage"
+        pageTitle: "Announcements",
+        backBtn: "🏠 Back to Homepage",
+        ann1Title: "New Feature Released!",
+        ann1Text: "You can now upload your lyrics and melodies to collaborate and create songs together!",
+        ann2Title: "Update: Profile Page",
+        ann2Text: "You can now edit your profile more easily and manage friend requests."
       }
     };
 
@@ -126,33 +149,17 @@
 
     function setLang(lang) {
       currentLang = lang;
-      document.getElementById("title").innerText = translations[lang].title;
-      document.getElementById("backBtn").innerText = translations[lang].back;
+      const t = translations[lang];
+      document.getElementById("pageTitle").innerText = t.pageTitle;
+      document.getElementById("backBtn").innerText = t.backBtn;
+      document.getElementById("annTitle1").innerText = t.ann1Title;
+      document.getElementById("annText1").innerText = t.ann1Text;
+      document.getElementById("annTitle2").innerText = t.ann2Title;
+      document.getElementById("annText2").innerText = t.ann2Text;
     }
-
-    async function loadAnnouncements() {
-      const q = query(collection(db, "announcements"), orderBy("timestamp", "desc"));
-      const querySnapshot = await getDocs(q);
-      const list = document.getElementById("announcementList");
-      list.innerHTML = "";
-
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const div = document.createElement("div");
-        div.className = "announcement";
-        div.innerHTML = `
-          <h3>${data.title}</h3>
-          <p>${data.content}</p>
-        `;
-        list.appendChild(div);
-      });
-    }
-
-    window.setLang = setLang;
 
     window.addEventListener("DOMContentLoaded", () => {
       setLang("tr");
-      loadAnnouncements();
     });
   </script>
 </body>
