@@ -249,7 +249,7 @@
         document.getElementById("language-toggle").addEventListener("click", () => {
             const currentLanguage = document.getElementById("language-toggle").innerText;
 
-            if (currentLanguage === "Türkçe") {
+            if (currentLanguage === "🇬🇧 English") {
                 document.getElementById("language-toggle").innerText = "English";
                 document.getElementById("page-title").innerText = "Share Lyrics";
                 document.getElementById("info-text").innerText = "Write and share your story! (Your copyright is protected)";
@@ -257,7 +257,9 @@
                 document.getElementById("shared-title").innerText = "Shared Lyrics";
                 document.getElementById("song-lyrics").placeholder = "Write your song lyrics...";
                 document.getElementById("share-button").innerText = "Share";
-            } else {
+            }
+                
+            if (currentLanguage === "🇹🇷 Türkçe") {
                 document.getElementById("language-toggle").innerText = "Türkçe";
                 document.getElementById("page-title").innerText = "Şarkı Sözlerini Paylaş";
                 document.getElementById("info-text").innerText = "Hikayeninizi yazın ve paylaşın! (Telif hakkınız saklıdır)";
