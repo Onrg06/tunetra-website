@@ -109,22 +109,29 @@
   <div class="form-container">
     <input type="text" id="titleInput" placeholder="Duyuru Başlığı" />
     <textarea id="contentInput" placeholder="Duyuru İçeriği"></textarea>
-    <button class="btn" id="submitBtn">Duyuru Ekle</button>
-  </div>
+    <input type="text" id="dateInput" placeholder="Tarih (yyyy-mm-dd HH:mm:ss)" />
 
-  <a href="adminpanel.html" class="back-btn">📋 Admin Paneline Dön</a>
+    <button class="btn" id="addAnnouncementBtn">Duyuru Ekle</button>
+    <a href="adminpanel.html" class="back-btn">📝 Admin Paneline Dön</a>
+  </div>
 
   <script>
     const translations = {
       tr: {
         pageTitle: "Duyuru Ekle",
-        submitBtn: "Duyuru Ekle",
-        backBtn: "📋 Admin Paneline Dön"
+        backBtn: "📝 Admin Paneline Dön",
+        addAnnouncement: "Duyuru Ekle",
+        titlePlaceholder: "Duyuru Başlığı",
+        contentPlaceholder: "Duyuru İçeriği",
+        datePlaceholder: "Tarih (yyyy-mm-dd HH:mm:ss)"
       },
       en: {
         pageTitle: "Add Announcement",
-        submitBtn: "Add Announcement",
-        backBtn: "📋 Back to Admin Panel"
+        backBtn: "📝 Back to Admin Panel",
+        addAnnouncement: "Add Announcement",
+        titlePlaceholder: "Announcement Title",
+        contentPlaceholder: "Announcement Content",
+        datePlaceholder: "Date (yyyy-mm-dd HH:mm:ss)"
       }
     };
 
@@ -134,25 +141,44 @@
       currentLang = lang;
       const t = translations[lang];
       document.getElementById("pageTitle").innerText = t.pageTitle;
-      document.getElementById("submitBtn").innerText = t.submitBtn;
-      document.getElementById("backBtn").innerText = t.backBtn;
+      document.getElementById("addAnnouncementBtn").innerText = t.addAnnouncement;
+      document.getElementById("titleInput").placeholder = t.titlePlaceholder;
+      document.getElementById("contentInput").placeholder = t.contentPlaceholder;
+      document.getElementById("dateInput").placeholder = t.datePlaceholder;
+      document.querySelector('.back-btn').innerText = t.backBtn;
     }
 
-    document.getElementById("submitBtn").addEventListener("click", () => {
-      const title = document.getElementById("titleInput").value;
-      const content = document.getElementById("contentInput").value;
-
-      if (title && content) {
-        // Firebase'a duyuru ekleme kodu burada olacak
-        alert("Duyuru başarıyla eklendi!");
-        // Firebase'e ekleme kodu ekleyin burada
-      } else {
-        alert("Lütfen tüm alanları doldurun.");
-      }
+    window.addEventListener("DOMContentLoaded", () => {
+      setLang(currentLang);
     });
 
-    window.addEventListener("DOMContentLoaded", () => {
-      setLang("tr");
+    document.getElementById("addAnnouncementBtn").addEventListener("click", function () {
+      const title = document.getElementById("titleInput").value;
+      const content = document.getElementById("contentInput").value;
+      const date = document.getElementById("dateInput").value;
+
+      if (!title || !content || !date) {
+        alert("Lütfen tüm alanları doldurun!");
+        return;
+      }
+
+      const announcement = {
+        title,
+        content,
+        date,
+        timestamp: new Date().toISOString()
+      };
+
+      // Firebase ile duyuru ekleme
+      // Burada duyuru veritabanına kaydedilmeli
+
+      console.log("Duyuru Eklendi: ", announcement);
+      alert("Duyuru başarıyla eklendi!");
+
+      // Firebase işleminden sonra sayfayı sıfırlayabilirsiniz
+      document.getElementById("titleInput").value = '';
+      document.getElementById("contentInput").value = '';
+      document.getElementById("dateInput").value = '';
     });
   </script>
 </body>
