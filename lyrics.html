@@ -122,50 +122,51 @@
 
         let currentUsername = "Anonim"; // Varsayılan olarak anonim
 
-        // Kullanıcı giriş yaptıysa username’i al
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                currentUsername = user.displayName || "Bilinmeyen Kullanıcı";
-            }
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUsername = user.displayName || user.email.split("@")[0] || "Bilinmeyen Kullanıcı";
+    }
+});
+
+document.getElementById("share-button").addEventListener("click", async () => {
+    const songLyrics = document.getElementById("song-lyrics").value.trim();
+    if (songLyrics === "") {
+        alert("Lütfen şarkı sözlerinizi yazın.");
+        return;
+    }
+
+    try {
+        await addDoc(collection(db, "lyrics"), {
+            lyrics: songLyrics,
+            username: currentUsername, // Kullanıcı adı eklendi
+            timestamp: serverTimestamp()
         });
-        
-        document.getElementById("share-button").addEventListener("click", async () => {
-            const songLyrics = document.getElementById("song-lyrics").value.trim();
-            if (songLyrics === "") {
-                alert("Lütfen şarkı sözlerinizi yazın.");
-                return;
-            }
-            try {
-                await addDoc(collection(db, "lyrics"), {
-                    lyrics: songLyrics,
-                    username: currentUsername,
-                    timestamp: serverTimestamp()
-                });
-                alert("Şarkı sözleri başarıyla paylaşıldı!");
-                document.getElementById("song-lyrics").value = "";
-            } catch (error) {
-                console.error("Hata:", error);
-                alert("Paylaşım sırasında hata oluştu.");
-            }
-        });
+        alert("Şarkı sözleri başarıyla paylaşıldı!");
+        document.getElementById("song-lyrics").value = "";
+    } catch (error) {
+        console.error("Hata:", error);
+        alert("Paylaşım sırasında hata oluştu.");
+    }
+});
+
 
         const lyricsList = document.getElementById("lyrics-list");
         const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
         
-        onSnapshot(q, (snapshot) => {
-            lyricsList.innerHTML = "";
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                const lyricElement = document.createElement("div");
-                lyricElement.classList.add("lyric-item");
-                lyricElement.innerHTML = `
-                    <p class="username">${data.username}</p>
-                    <p>${data.lyrics}</p>
-                    <p class="timestamp">${data.timestamp?.toDate().toLocaleString()}</p>
-                `;
-                lyricsList.appendChild(lyricElement);
-            });
-        });
+onSnapshot(q, (snapshot) => {
+    lyricsList.innerHTML = "";
+    snapshot.forEach(doc => {
+        const data = doc.data();
+        const lyricElement = document.createElement("div");
+        lyricElement.classList.add("lyric-item");
+        lyricElement.innerHTML = `
+            <p class="username"><strong>${data.username}</strong></p> <!-- Kullanıcı adı eklendi -->
+            <p>${data.lyrics}</p>
+            <p class="timestamp">${data.timestamp?.toDate().toLocaleString()}</p>
+        `;
+        lyricsList.appendChild(lyricElement);
+    });
+});
 
         window.setLang = function(lang) {
             if (lang === "tr") {
