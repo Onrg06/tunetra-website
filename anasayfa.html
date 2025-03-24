@@ -5,7 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TuneTRa | Ana Sayfa</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+    }
     body {
       background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
       background-size: 400% 400%;
@@ -54,17 +59,44 @@
       gap: 10px;
     }
     .top-left-controls {
-      top: 20px; left: 20px;
+      top: 20px;
+      left: 20px;
       flex-wrap: wrap;
     }
     .language-buttons {
-      top: 20px; right: 20px;
+      top: 20px;
+      right: 20px;
+    }
+    .main-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
     }
     @media (max-width: 768px) {
-      h1 { font-size: 2rem; }
-      p { font-size: 1rem; }
-      .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn, .extra-btn { font-size: 0.9rem; padding: 8px 16px; }
-      .top-left-controls, .language-buttons { flex-direction: column; align-items: flex-start; }
+      h1 {
+        font-size: 2rem;
+      }
+      p {
+        font-size: 1rem;
+      }
+      .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn, .extra-btn {
+        font-size: 0.9rem;
+        padding: 10px 14px;
+        width: 90%;
+        max-width: 300px;
+      }
+      .top-left-controls, .language-buttons {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .top-left-controls {
+        left: 10px;
+        top: 10px;
+      }
+      .language-buttons {
+        right: 10px;
+        top: 10px;
+      }
     }
   </style>
 </head>
@@ -80,12 +112,15 @@
     <a href="dilek.html" class="extra-btn" id="btnFeedback">📮 Dilek & Şikayet Kutusu</a>
     <a href="hakkimizda.html" class="extra-btn" id="btnAbout">ℹ️ Hakkımızda</a>
   </div>
+
   <h1 id="welcomeMessage">🎶 Hoş Geldin!</h1>
   <p id="introText">Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br>Şiirini veya melodini paylaş, şarkıya dönüşmesini izle. Birlikte müzik üretelim!</p>
 
-  <a href="lyrics.html" class="extra-btn" id="btnLyrics">✍️ Sözler / Şiirler</a>
-  <a href="melody.html" class="extra-btn" id="btnMelody">🎵 Melodi</a>
-  <a href="hazir.html" class="extra-btn" id="btnSongs">🎶 Hazır Şarkılar</a>
+  <div class="main-buttons">
+    <a href="lyrics.html" class="extra-btn" id="btnLyrics">✍️ Sözler / Şiirler</a>
+    <a href="melody.html" class="extra-btn" id="btnMelody">🎵 Melodi</a>
+    <a href="hazir.html" class="extra-btn" id="btnSongs">🎶 Hazır Şarkılar</a>
+  </div>
 
   <a href="index.html" class="btn" onclick="logout()" id="logoutBtn">Çıkış Yap</a>
 
