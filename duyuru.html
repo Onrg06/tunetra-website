@@ -1,3 +1,10 @@
+İşte duyurular.html sayfanın güncellenmiş ve tamamlanmış versiyonu, her duyurunun altına tarih-saat bilgisi eklenmiştir. Duyuruların dili dil seçimine göre değişir ve “Anasayfaya Dön” butonu mavi renkte ve düzgün görünümlüdür:
+
+
+---
+
+GÜNCELLENMİŞ duyurular.html TAM KOD:
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -58,6 +65,13 @@
       line-height: 1.5;
     }
 
+    .announcement small {
+      display: block;
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: #f0e68c;
+    }
+
     .lang-btn, .back-btn {
       padding: 10px 20px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
@@ -115,6 +129,7 @@
     <p id="annText1">
       Artık şiirlerinizi ve melodilerinizi yükleyebilir, başka kullanıcılarla birlikte şarkı oluşturabilirsiniz!
     </p>
+    <small id="annDate1">24.03.2025 14:35:10</small>
   </div>
 
   <div class="announcement" id="ann2">
@@ -122,6 +137,7 @@
     <p id="annText2">
       Profilinizi artık daha kolay düzenleyebilir, arkadaşlık isteklerinizi yönetebilirsiniz.
     </p>
+    <small id="annDate2">24.03.2025 09:17:45</small>
   </div>
 
   <a href="anasayfa.html" class="back-btn" id="backBtn">🏠 Anasayfaya Dön</a>
@@ -134,7 +150,9 @@
         ann1Title: "Yeni Özellik Yayında!",
         ann1Text: "Artık şiirlerinizi ve melodilerinizi yükleyebilir, başka kullanıcılarla birlikte şarkı oluşturabilirsiniz!",
         ann2Title: "Güncelleme: Profil Sayfası",
-        ann2Text: "Profilinizi artık daha kolay düzenleyebilir, arkadaşlık isteklerinizi yönetebilirsiniz."
+        ann2Text: "Profilinizi artık daha kolay düzenleyebilir, arkadaşlık isteklerinizi yönetebilirsiniz.",
+        ann1Date: "26.03.2024 14:35:10",
+        ann2Date: "27.03.2024 09:17:45"
       },
       en: {
         pageTitle: "Announcements",
@@ -142,7 +160,9 @@
         ann1Title: "New Feature Released!",
         ann1Text: "You can now upload your lyrics and melodies to collaborate and create songs together!",
         ann2Title: "Update: Profile Page",
-        ann2Text: "You can now edit your profile more easily and manage friend requests."
+        ann2Text: "You can now edit your profile more easily and manage friend requests.",
+        ann1Date: "Mar 26, 2024 14:35",
+        ann2Date: "Mar 27, 2024 09:17"
       }
     };
 
@@ -157,6 +177,8 @@
       document.getElementById("annText1").innerText = t.ann1Text;
       document.getElementById("annTitle2").innerText = t.ann2Title;
       document.getElementById("annText2").innerText = t.ann2Text;
+      document.getElementById("annDate1").innerText = t.ann1Date;
+      document.getElementById("annDate2").innerText = t.ann2Date;
     }
 
     window.addEventListener("DOMContentLoaded", () => {
@@ -165,3 +187,10 @@
   </script>
 </body>
 </html>
+
+
+---
+
+İstersen bu yapıyı Firebase ile bağlantılı hale de getirebiliriz. Yani Firebase'e tarih ile duyuru eklenir, burada otomatik görünür.
+Eğer o versiyona geçmek istersen sadece haber ver.
+
