@@ -120,88 +120,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Şarkı Sözleri Paylaş</title>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
 
-// Firebase Konfigürasyonu
-const firebaseConfig = {
-    apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-    authDomain: "tunetra-2579b.firebaseapp.com",
-    projectId: "tunetra-2579b",
-    storageBucket: "tunetra-2579b.appspot.com",
-    messagingSenderId: "576238823779",
-    appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-};
+        // Firebase Konfigürasyonu
+        const firebaseConfig = {
+            apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+            authDomain: "tunetra-2579b.firebaseapp.com",
+            projectId: "tunetra-2579b",
+            storageBucket: "tunetra-2579b.appspot.com",
+            messagingSenderId: "576238823779",
+            appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+        };
 
-// Firebase Başlat
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+        // Firebase Başlat
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-// Kullanıcıyı dinle
-let currentUser = null;
+        // Şarkı Sözü Paylaşma
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("share-button").addEventListener("click", async () => {
+                const songLyrics = document.getElementById("song-lyrics").value.trim();
 
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        currentUser = user;
-    } else {
-        currentUser = null;
-    }
-});
+                if (songLyrics === "") {
+                    alert("Lütfen şarkı sözlerinizi yazın.");
+                    return;
+                }
 
-// Şarkı Sözü Paylaşma
-document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("share-button").addEventListener("click", async () => {
-        const songLyrics = document.getElementById("song-lyrics").value.trim();
+                try {
+                    await addDoc(collection(db, "lyrics"), {
+                        lyrics: songLyrics,
+                        timestamp: serverTimestamp()
+                    });
 
-        if (songLyrics === "") {
-            alert("Lütfen şarkı sözlerinizi yazın.");
-            return;
-        }
-
-        if (!currentUser) {
-            alert("Şarkı sözü paylaşmak için giriş yapmalısınız.");
-            return;
-        }
-
-        try {
-            await addDoc(collection(db, "lyrics"), {
-                lyrics: songLyrics,
-                timestamp: serverTimestamp(),
-                username: currentUser.displayName || "Anonim", // Kullanıcı adını kaydet
-                userId: currentUser.uid
+                    alert("Şarkı sözleri başarıyla paylaşıldı!");
+                    document.getElementById("song-lyrics").value = ""; // Metin kutusunu temizle
+                } catch (error) {
+                    console.error("Hata:", error);
+                    alert("Paylaşım sırasında hata oluştu.");
+                }
             });
 
-            alert("Şarkı sözleri başarıyla paylaşıldı!");
-            document.getElementById("song-lyrics").value = ""; // Metin kutusunu temizle
-        } catch (error) {
-            console.error("Hata:", error);
-            alert("Paylaşım sırasında hata oluştu.");
-        }
-    });
+            // Firestore'dan Şarkı Sözlerini Çekme
+            const lyricsList = document.getElementById("lyrics-list");
+            const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
 
-    // Firestore'dan Şarkı Sözlerini Çekme
-    const lyricsList = document.getElementById("lyrics-list");
-    const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
-
-    onSnapshot(q, (snapshot) => {
-        lyricsList.innerHTML = "";
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const lyricElement = document.createElement("div");
-            lyricElement.classList.add("lyric-item");
-            
-            const date = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : "Bilinmeyen tarih";
-            lyricElement.innerHTML = `
-                <p><strong>${data.username}</strong> - <small>${date}</small></p>
-                <p>${data.lyrics}</p>
-            `;
-            lyricsList.appendChild(lyricElement);
+            onSnapshot(q, (snapshot) => {
+                lyricsList.innerHTML = "";
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const lyricElement = document.createElement("div");
+                    lyricElement.classList.add("lyric-item");
+                    lyricElement.innerHTML = `<p>${data.lyrics}</p>`;
+                    lyricsList.appendChild(lyricElement);
+                });
+            });
         });
-    });
-});
-
 
         // Dil Değiştirme Fonksiyonu
         function setLang(lang) {
