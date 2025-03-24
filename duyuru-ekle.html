@@ -2,79 +2,111 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Duyuru Ekle | Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Duyuru Ekle | TuneTRa Admin</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #141414, #1c1c1c);
+      background: linear-gradient(to right, #000000, #1a1a1a);
       color: white;
+      font-family: 'Segoe UI', sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 20px;
+      justify-content: flex-start;
+      padding: 30px 20px;
       text-align: center;
+      animation: bgShift 20s ease infinite;
+      background-size: 400% 400%;
+    }
+
+    @keyframes bgShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     h1 {
       font-size: 2rem;
       margin-bottom: 20px;
+      color: #ffd700;
+      text-shadow: 0 0 10px rgba(255,255,255,0.2);
     }
 
     form {
-      background-color: #222;
+      background: rgba(255, 255, 255, 0.05);
       padding: 20px;
-      border-radius: 10px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
       max-width: 500px;
       width: 100%;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
     }
 
     input, textarea {
       width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 15px;
       border: none;
+      border-radius: 8px;
       font-size: 1rem;
+      background-color: #333;
+      color: white;
     }
 
     button {
+      padding: 12px 20px;
+      border: none;
       background: linear-gradient(to right, #6a11cb, #2575fc);
       color: white;
-      padding: 12px 20px;
       font-weight: bold;
-      border: none;
       border-radius: 8px;
       cursor: pointer;
-      margin-top: 10px;
+      width: 100%;
+      font-size: 1rem;
     }
 
     button:hover {
-      background: linear-gradient(to right, #2575fc, #6a11cb);
+      background: linear-gradient(to right, #ffcc70, #6a11cb);
     }
 
-    .success-message {
+    .back-btn {
+      margin-top: 20px;
+      background: #444;
+      text-decoration: none;
+      display: inline-block;
+      padding: 10px 20px;
+      color: white;
+      border-radius: 6px;
+      transition: 0.3s;
+    }
+
+    .back-btn:hover {
+      background: #666;
+    }
+
+    .message {
       margin-top: 15px;
-      color: #ffcc70;
       font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 1.5rem; }
+      input, textarea { font-size: 0.95rem; }
+      button { font-size: 0.95rem; }
     }
   </style>
 </head>
 <body>
   <h1>Yeni Duyuru Ekle</h1>
+
   <form id="announcementForm">
-    <input type="text" id="title_tr" placeholder="Duyuru Başlığı (Türkçe)" required />
-    <textarea id="content_tr" rows="4" placeholder="Duyuru İçeriği (Türkçe)" required></textarea>
-
-    <input type="text" id="title_en" placeholder="Announcement Title (English)" required />
-    <textarea id="content_en" rows="4" placeholder="Announcement Content (English)" required></textarea>
-
-    <button type="submit">Duyuruyu Ekle</button>
-    <div id="successMessage" class="success-message" style="display:none">Duyuru başarıyla eklendi!</div>
+    <input type="text" id="title" placeholder="Duyuru Başlığı" required />
+    <textarea id="message" rows="5" placeholder="Duyuru Mesajı" required></textarea>
+    <button type="submit">Duyuruyu Paylaş</button>
+    <div id="statusMsg" class="message"></div>
   </form>
+
+  <a href="adminpanel.html" class="back-btn">⬅️ Admin Paneline Geri Dön</a>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -93,29 +125,28 @@
     const db = getFirestore(app);
 
     const form = document.getElementById("announcementForm");
-    const successMessage = document.getElementById("successMessage");
+    const statusMsg = document.getElementById("statusMsg");
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      const title = document.getElementById("title").value.trim();
+      const message = document.getElementById("message").value.trim();
 
-      const title_tr = document.getElementById("title_tr").value.trim();
-      const content_tr = document.getElementById("content_tr").value.trim();
-      const title_en = document.getElementById("title_en").value.trim();
-      const content_en = document.getElementById("content_en").value.trim();
+      if (!title || !message) return;
 
       try {
         await addDoc(collection(db, "announcements"), {
-          title_tr,
-          content_tr,
-          title_en,
-          content_en,
-          timestamp: serverTimestamp()
+          title,
+          message,
+          timestamp: Date.now()
         });
-
-        successMessage.style.display = "block";
+        statusMsg.textContent = "✅ Duyuru başarıyla eklendi.";
+        statusMsg.style.color = "lightgreen";
         form.reset();
       } catch (err) {
-        alert("Bir hata oluştu: " + err.message);
+        console.error("Duyuru eklenemedi:", err);
+        statusMsg.textContent = "❌ Bir hata oluştu.";
+        statusMsg.style.color = "orange";
       }
     });
   </script>
