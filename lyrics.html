@@ -95,7 +95,10 @@
     
     <textarea id="song-lyrics" placeholder="Şarkı sözlerinizi yazın..."></textarea>
     <button class="btn" id="share-button">Paylaş</button>
-    <button class="btn" id="home-button" onclick="window.location.href='anasayfa.html'">Anasayfaya Dön</button>
+
+    </div>
+    <button class="btn" id="home" onclick="window.location.href='anasayfa.html'">Anasayfa</button>
+    </div>
     
     <div class="shared-lyrics">
         <h2 id="shared-title">Paylaşılan Şarkılar</h2>
@@ -120,51 +123,52 @@
         const db = getFirestore(app);
         const auth = getAuth();
 
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        currentUsername = user.displayName || user.email.split("@")[0] || "Bilinmeyen Kullanıcı";
-    }
-});
+        let currentUsername = "Anonim"; // Varsayılan olarak anonim
 
-document.getElementById("share-button").addEventListener("click", async () => {
-    const songLyrics = document.getElementById("song-lyrics").value.trim();
-    if (songLyrics === "") {
-        alert("Lütfen şarkı sözlerinizi yazın.");
-        return;
-    }
-
-    try {
-        await addDoc(collection(db, "lyrics"), {
-            lyrics: songLyrics,
-            username: currentUsername, // Kullanıcı adı eklendi
-            timestamp: serverTimestamp()
+        // Kullanıcı giriş yaptıysa username’i al
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUsername = user.displayName || "Bilinmeyen Kullanıcı";
+            }
         });
-        alert("Şarkı sözleri başarıyla paylaşıldı!");
-        document.getElementById("song-lyrics").value = "";
-    } catch (error) {
-        console.error("Hata:", error);
-        alert("Paylaşım sırasında hata oluştu.");
-    }
-});
-
+        
+        document.getElementById("share-button").addEventListener("click", async () => {
+            const songLyrics = document.getElementById("song-lyrics").value.trim();
+            if (songLyrics === "") {
+                alert("Lütfen şarkı sözlerinizi yazın.");
+                return;
+            }
+            try {
+                await addDoc(collection(db, "lyrics"), {
+                    lyrics: songLyrics,
+                    username: currentUsername,
+                    timestamp: serverTimestamp()
+                });
+                alert("Şarkı sözleri başarıyla paylaşıldı!");
+                document.getElementById("song-lyrics").value = "";
+            } catch (error) {
+                console.error("Hata:", error);
+                alert("Paylaşım sırasında hata oluştu.");
+            }
+        });
 
         const lyricsList = document.getElementById("lyrics-list");
         const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
         
-onSnapshot(q, (snapshot) => {
-    lyricsList.innerHTML = "";
-    snapshot.forEach(doc => {
-        const data = doc.data();
-        const lyricElement = document.createElement("div");
-        lyricElement.classList.add("lyric-item");
-        lyricElement.innerHTML = `
-            <p class="username"><strong>${data.username}</strong></p> <!-- Kullanıcı adı eklendi -->
-            <p>${data.lyrics}</p>
-            <p class="timestamp">${data.timestamp?.toDate().toLocaleString()}</p>
-        `;
-        lyricsList.appendChild(lyricElement);
-    });
-});
+        onSnapshot(q, (snapshot) => {
+            lyricsList.innerHTML = "";
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const lyricElement = document.createElement("div");
+                lyricElement.classList.add("lyric-item");
+                lyricElement.innerHTML = `
+                    <p class="username">${data.username}</p>
+                    <p>${data.lyrics}</p>
+                    <p class="timestamp">${data.timestamp?.toDate().toLocaleString()}</p>
+                `;
+                lyricsList.appendChild(lyricElement);
+            });
+        });
 
         window.setLang = function(lang) {
             if (lang === "tr") {
@@ -172,13 +176,13 @@ onSnapshot(q, (snapshot) => {
                 document.getElementById("info-text").innerText = "Hikayenizi yazın ve paylaşın! (Telif hakkınız saklıdır)";
                 document.getElementById("shared-title").innerText = "Paylaşılan Şarkılar";
                 document.getElementById("share-button").innerText = "Paylaş";
-                document.getElementById("home-button").innerText = "Anasayfa";
+                document.getElementById("home").innerText = "Anasayfa";
             } else if (lang === "en") {
                 document.getElementById("page-title").innerText = "Share Your Lyrics";
                 document.getElementById("info-text").innerText = "Write your story and share! (Your copyright is protected)";
                 document.getElementById("shared-title").innerText = "Shared Songs";
                 document.getElementById("share-button").innerText = "Share";
-                document.getElementById("home-button").innerText = "Home Page";
+                document.getElementById("home").innerText = "Home Page";
             }
         }
     </script>
