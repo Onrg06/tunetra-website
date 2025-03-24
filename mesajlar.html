@@ -205,7 +205,7 @@
 
     function formatTimestamp(ts) {
       const d = new Date(ts);
-      return ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')};
+      return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
     }
 
     async function loadFriends(uid) {
@@ -258,7 +258,7 @@
         for (const msg of updatedMessages) {
           const div = document.createElement("div");
           div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
-          div.innerHTML = <div>${msg.text}</div><div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>;
+          div.innerHTML = `<div>${msg.text}</div><div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>`;
           area.appendChild(div);
         }
         area.scrollTop = area.scrollHeight;
