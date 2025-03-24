@@ -3,179 +3,119 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TuneTRa | Duyurular</title>
+  <title>Duyuru Ekle | TuneTRa</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', sans-serif;
-    }
-
     body {
-      background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
-      background-size: 400% 400%;
-      animation: gradientShift 15s ease infinite;
+      background: linear-gradient(to right, #000000, #2c2c2c);
       color: white;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 30px;
       text-align: center;
     }
 
-    @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
     h1 {
-      font-size: 2.5rem;
-      margin-top: 40px;
+      font-size: 2rem;
       margin-bottom: 20px;
-      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
     }
 
-    .announcement {
-      background-color: rgba(0, 0, 0, 0.4);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-      max-width: 800px;
-      width: 100%;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    form {
+      max-width: 500px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
     }
 
-    .announcement h3 {
-      color: #ffcc70;
-      margin-bottom: 10px;
+    textarea, input[type="text"] {
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      resize: none;
     }
 
-    .announcement p {
-      font-size: 1rem;
-      line-height: 1.5;
-    }
-
-    .announcement small {
-      display: block;
-      margin-top: 12px;
-      font-size: 0.85rem;
-      color: #f0e68c;
-    }
-
-    .lang-btn, .back-btn {
-      padding: 10px 20px;
+    button {
+      padding: 12px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
-      color: white;
       border: none;
       border-radius: 8px;
+      color: white;
       font-weight: bold;
       cursor: pointer;
-      transition: background 0.3s ease, transform 0.2s ease;
-      margin: 5px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+
+    button:hover {
+      background: linear-gradient(to right, #ffcc70, #6a11cb);
+    }
+
+    .back-btn {
+      display: inline-block;
+      margin-top: 30px;
+      padding: 10px 20px;
       text-decoration: none;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: white;
+      border-radius: 6px;
+      font-weight: bold;
     }
 
-    .lang-btn:hover, .back-btn:hover {
-      background: linear-gradient(to right, #2575fc, #6a11cb);
-      transform: scale(1.05);
-    }
-
-    .lang-buttons {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-    }
-
-    @media (max-width: 768px) {
-      h1 {
-        font-size: 2rem;
-      }
-
-      .announcement {
-        padding: 15px;
-      }
-
-      .lang-buttons {
-        position: static;
-        margin-top: 15px;
-        display: flex;
-        justify-content: center;
-      }
+    .back-btn:hover {
+      background: linear-gradient(to right, #ffcc70, #6a11cb);
     }
   </style>
 </head>
 <body>
+  <h1>📢 Duyuru Ekle</h1>
+  <form id="announcementForm">
+    <input type="text" id="titleTR" placeholder="Duyuru Başlığı (Türkçe)" required>
+    <textarea id="textTR" rows="4" placeholder="Duyuru İçeriği (Türkçe)" required></textarea>
 
-  <div class="lang-buttons">
-    <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
-    <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
-  </div>
+    <input type="text" id="titleEN" placeholder="Announcement Title (English)" required>
+    <textarea id="textEN" rows="4" placeholder="Announcement Content (English)" required></textarea>
 
-  <h1 id="pageTitle">Duyurular</h1>
+    <button type="submit">Duyuruyu Kaydet</button>
+  </form>
 
-  <div class="announcement" id="ann1">
-    <h3 id="annTitle1">Yeni Özellik Yayında!</h3>
-    <p id="annText1">
-      Artık şiirlerinizi ve melodilerinizi yükleyebilir, başka kullanıcılarla birlikte şarkı oluşturabilirsiniz!
-    </p>
-    <small id="annDate1">26.03.2024 14:35:10</small>
-  </div>
+  <a href="adminpanel.html" class="back-btn">⬅️ Yönetim Paneline Dön</a>
 
-  <div class="announcement" id="ann2">
-    <h3 id="annTitle2">Güncelleme: Profil Sayfası</h3>
-    <p id="annText2">
-      Profilinizi artık daha kolay düzenleyebilir, arkadaşlık isteklerinizi yönetebilirsiniz.
-    </p>
-    <small id="annDate2">27.03.2024 09:17:45</small>
-  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  <a href="anasayfa.html" class="back-btn" id="backBtn">🏠 Anasayfaya Dön</a>
-
-  <script>
-    const translations = {
-      tr: {
-        pageTitle: "Duyurular",
-        backBtn: "🏠 Anasayfaya Dön",
-        ann1Title: "Yeni Özellik Yayında!",
-        ann1Text: "Artık şiirlerinizi ve melodilerinizi yükleyebilir, başka kullanıcılarla birlikte şarkı oluşturabilirsiniz!",
-        ann2Title: "Güncelleme: Profil Sayfası",
-        ann2Text: "Profilinizi artık daha kolay düzenleyebilir, arkadaşlık isteklerinizi yönetebilirsiniz.",
-        ann1Date: "26.03.2024 14:35:10",
-        ann2Date: "27.03.2024 09:17:45"
-      },
-      en: {
-        pageTitle: "Announcements",
-        backBtn: "🏠 Back to Homepage",
-        ann1Title: "New Feature Released!",
-        ann1Text: "You can now upload your lyrics and melodies to collaborate and create songs together!",
-        ann2Title: "Update: Profile Page",
-        ann2Text: "You can now edit your profile more easily and manage friend requests.",
-        ann1Date: "Mar 26, 2024 14:35",
-        ann2Date: "Mar 27, 2024 09:17"
-      }
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
     };
 
-    let currentLang = "tr";
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    function setLang(lang) {
-      currentLang = lang;
-      const t = translations[lang];
-      document.getElementById("pageTitle").innerText = t.pageTitle;
-      document.getElementById("backBtn").innerText = t.backBtn;
-      document.getElementById("annTitle1").innerText = t.ann1Title;
-      document.getElementById("annText1").innerText = t.ann1Text;
-      document.getElementById("annTitle2").innerText = t.ann2Title;
-      document.getElementById("annText2").innerText = t.ann2Text;
-      document.getElementById("annDate1").innerText = t.ann1Date;
-      document.getElementById("annDate2").innerText = t.ann2Date;
-    }
+    document.getElementById("announcementForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    window.addEventListener("DOMContentLoaded", () => {
-      setLang("tr");
+      const titleTR = document.getElementById("titleTR").value.trim();
+      const textTR = document.getElementById("textTR").value.trim();
+      const titleEN = document.getElementById("titleEN").value.trim();
+      const textEN = document.getElementById("textEN").value.trim();
+
+      if (!titleTR || !textTR || !titleEN || !textEN) return alert("Tüm alanları doldurun.");
+
+      try {
+        await addDoc(collection(db, "announcements"), {
+          tr: { title: titleTR, text: textTR },
+          en: { title: titleEN, text: textEN },
+          timestamp: serverTimestamp()
+        });
+
+        alert("Duyuru başarıyla eklendi!");
+        document.getElementById("announcementForm").reset();
+      } catch (err) {
+        console.error("Hata:", err);
+        alert("Duyuru eklenemedi.");
+      }
     });
   </script>
 </body>
