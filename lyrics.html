@@ -120,8 +120,6 @@
         const db = getFirestore(app);
         const auth = getAuth();
 
-        let currentUsername = "Anonim"; // Varsayılan olarak anonim
-
 onAuthStateChanged(auth, (user) => {
     if (user) {
         currentUsername = user.displayName || user.email.split("@")[0] || "Bilinmeyen Kullanıcı";
