@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Şarkı Sözleri Paylaş</title>
+    <!-- Firebase ve Firestore SDK'ları -->
+    <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js"></script>
+
+    <style>
+        /* Genel Stil ve Mobil Uyum */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #6a0dad, #00aaff);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            color: white;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .language-buttons {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        h1 {
+            margin-top: 50px;
+            font-size: 2.5rem;
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin: 10px 0;
+        }
+
+        .share-section {
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        textarea {
+            width: 80%;
+            height: 150px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            resize: none;
+        }
+
+        .shared-lyrics {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 40px;
+        }
+
+        .lyric-item {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .lyric-item p {
+            margin: 5px 0;
+        }
+
+        @keyframes gradientAnimation {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Mobil Uyumluluk */
+        @media (max-width: 600px) {
+            .share-section {
+                width: 100%;
+                padding: 10px;
+            }
+
+            textarea {
+                width: 100%;
+            }
+
+            button {
+                width: 100%;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Dil Seçim ve Anasayfaya Dön Butonları -->
+    <header>
+        <div class="language-buttons">
+            <button id="language-toggle">Türkçe</button>
+        </div>
+        <h1 id="page-title">Şarkı Sözlerini Paylaş</h1>
+        <p id="info-text">Hikayeninizi yazın ve paylaşın! (Telif hakkınız saklıdır)</p>
+        <button id="back-home" onclick="window.location.href='index.html'">Anasayfaya Dön</button>
+    </header>
+
+    <div class="share-section">
+        <textarea id="song-lyrics" placeholder="Şarkı sözlerinizi yazın..." required></textarea>
+        <button id="share-button">Paylaş</button>
+    </div>
+
+    <div class="shared-lyrics">
+        <h2 id="shared-title">Paylaşılan Şarkı Sözleri</h2>
+        <div id="lyrics-list">
+            <!-- Paylaşılan şarkı sözleri buraya listelenecek -->
+        </div>
+    </div>
+
+    <script>
+        // Firebase konfigürasyonu
+        const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56",
+      measurementId: "G-LRQGNS7B8X"
+        };
+
+        // Firebase'i başlat
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // Firebase Authentication ile kullanıcı girişini kontrol et
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                console.log('Kullanıcı giriş yaptı:', user.displayName);
+            } else {
+                console.log('Kullanıcı giriş yapmadı');
+            }
+        });
+
+        // Şarkı sözlerini Firestore'a kaydet
+        document.getElementById("share-button").addEventListener("click", () => {
+            const songLyrics = document.getElementById("song-lyrics").value;
+            const user = auth.currentUser;
+
+            if (songLyrics && user) {
+                db.collection("lyrics").add({
+                    username: user.displayName,
+                    lyrics: songLyrics,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                })
+                .then(() => {
+                    document.getElementById("song-lyrics").value = ""; // Metin kutusunu temizle
+                })
+                .catch(error => {
+                    console.error("Hata oluştu: ", error);
+                });
+            } else {
+                alert("Şarkı sözlerinizi yazın ve giriş yapın.");
+            }
+        });
+
+        // Paylaşılan şarkı sözlerini Firestore'dan al ve görüntüle
+        db.collection("lyrics").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+            const lyricsList = document.getElementById("lyrics-list");
+            lyricsList.innerHTML = ""; // Mevcut listeyi temizle
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const lyricElement = document.createElement("div");
+                lyricElement.classList.add("lyric-item");
+                lyricElement.innerHTML = `
+                    <p><strong>${data.username}</strong> (${data.timestamp.toDate().toLocaleString()})</p>
+                    <p>${data.lyrics}</p>
+                `;
+                lyricsList.appendChild(lyricElement);
+            });
+        });
+
+        // Dil seçme işlevi
+        document.getElementById("language-toggle").addEventListener("click", () => {
+            const currentLanguage = document.getElementById("language-toggle").innerText;
+
+            if (currentLanguage === "Türkçe") {
+                document.getElementById("language-toggle").innerText = "English";
+                document.getElementById("page-title").innerText = "Share Lyrics";
+                document.getElementById("info-text").innerText = "Write and share your story! (Your copyright is protected)";
+                document.getElementById("back-home").innerText = "Back to Home";
+                document.getElementById("shared-title").innerText = "Shared Lyrics";
+                document.getElementById("song-lyrics").placeholder = "Write your song lyrics...";
+                document.getElementById("share-button").innerText = "Share";
+            } else {
+                document.getElementById("language-toggle").innerText = "Türkçe";
+                document.getElementById("page-title").innerText = "Şarkı Sözlerini Paylaş";
+                document.getElementById("info-text").innerText = "Hikayeninizi yazın ve paylaşın! (Telif hakkınız saklıdır)";
+                document.getElementById("back-home").innerText = "Anasayfaya Dön";
+                document.getElementById("shared-title").innerText = "Paylaşılan Şarkı Sözleri";
+                document.getElementById("song-lyrics").placeholder = "Şarkı sözlerinizi yazın...";
+                document.getElementById("share-button").innerText = "Paylaş";
+            }
+        });
+    </script>
+
+</body>
+</html>
