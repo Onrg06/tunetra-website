@@ -1,86 +1,117 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Duyuru Ekle | TuneTRa</title>
+  <title>TuneTRa | Duyuru Ekle</title>
   <style>
-    body {
-      background: linear-gradient(to right, #000000, #2c2c2c);
-      color: white;
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
       font-family: 'Segoe UI', sans-serif;
-      padding: 30px;
+    }
+
+    body {
+      background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
       text-align: center;
     }
 
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
     h1 {
-      font-size: 2rem;
-      margin-bottom: 20px;
+      font-size: 2.5rem;
+      margin: 30px 0 10px;
+      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
     }
 
-    form {
-      max-width: 500px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
+    .form-container {
+      max-width: 600px;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.4);
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
-    textarea, input[type="text"] {
+    .form-container input,
+    .form-container textarea {
+      width: 100%;
       padding: 12px;
+      margin-bottom: 15px;
       border-radius: 8px;
       border: none;
-      resize: none;
-    }
-
-    button {
-      padding: 12px;
-      background: linear-gradient(to right, #6a11cb, #2575fc);
-      border: none;
-      border-radius: 8px;
+      background-color: #333;
       color: white;
+      font-size: 1rem;
+    }
+
+    .form-container textarea {
+      height: 150px;
+    }
+
+    .submit-btn {
+      padding: 12px 20px;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: white;
+      border: none;
+      border-radius: 8px;
       font-weight: bold;
       cursor: pointer;
+      transition: background 0.3s ease;
+      width: 100%;
+      text-align: center;
     }
 
-    button:hover {
-      background: linear-gradient(to right, #ffcc70, #6a11cb);
+    .submit-btn:hover {
+      background: linear-gradient(to right, #2575fc, #6a11cb);
     }
 
     .back-btn {
-      display: inline-block;
-      margin-top: 30px;
+      margin-top: 20px;
       padding: 10px 20px;
-      text-decoration: none;
       background: linear-gradient(to right, #6a11cb, #2575fc);
       color: white;
-      border-radius: 6px;
+      border: none;
+      border-radius: 8px;
       font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.3s ease;
     }
 
     .back-btn:hover {
-      background: linear-gradient(to right, #ffcc70, #6a11cb);
+      background: linear-gradient(to right, #2575fc, #6a11cb);
     }
+
   </style>
 </head>
 <body>
-  <h1>📢 Duyuru Ekle</h1>
-  <form id="announcementForm">
-    <input type="text" id="titleTR" placeholder="Duyuru Başlığı (Türkçe)" required>
-    <textarea id="textTR" rows="4" placeholder="Duyuru İçeriği (Türkçe)" required></textarea>
 
-    <input type="text" id="titleEN" placeholder="Announcement Title (English)" required>
-    <textarea id="textEN" rows="4" placeholder="Announcement Content (English)" required></textarea>
+  <h1>Duyuru Ekle</h1>
 
-    <button type="submit">Duyuruyu Kaydet</button>
-  </form>
-
-  <a href="adminpanel.html" class="back-btn">⬅️ Yönetim Paneline Dön</a>
+  <div class="form-container">
+    <input type="text" id="announcementTitle" placeholder="Duyuru Başlığı" />
+    <textarea id="announcementContent" placeholder="Duyuru İçeriği"></textarea>
+    <button class="submit-btn" id="submitAnnouncement">Duyuru Ekle</button>
+    <a href="admin-panel.html" class="back-btn">📝 Admin Paneline Dön</a>
+  </div>
 
   <script type="module">
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -94,31 +125,24 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    document.getElementById("announcementForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
+    document.getElementById("submitAnnouncement").addEventListener("click", async () => {
+      const title = document.getElementById("announcementTitle").value;
+      const content = document.getElementById("announcementContent").value;
+      const timestamp = new Date();
 
-      const titleTR = document.getElementById("titleTR").value.trim();
-      const textTR = document.getElementById("textTR").value.trim();
-      const titleEN = document.getElementById("titleEN").value.trim();
-      const textEN = document.getElementById("textEN").value.trim();
-
-      if (!titleTR || !textTR || !titleEN || !textEN) return alert("Tüm alanları doldurun.");
-
-      try {
-        await addDoc(collection(db, "announcements"), {
-          tr: { title: titleTR, text: textTR },
-          en: { title: titleEN, text: textEN },
-          timestamp: serverTimestamp()
+      if (title && content) {
+        await setDoc(doc(db, "announcements", timestamp.toISOString()), {
+          title: title,
+          content: content,
+          date: timestamp,
         });
-
         alert("Duyuru başarıyla eklendi!");
-        document.getElementById("announcementForm").reset();
-      } catch (err) {
-        console.error("Hata:", err);
-        alert("Duyuru eklenemedi.");
+        window.location.href = "admin-panel.html"; // Admin paneline yönlendir.
+      } else {
+        alert("Lütfen tüm alanları doldurun!");
       }
     });
   </script>
+
 </body>
 </html>
-
