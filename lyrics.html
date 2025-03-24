@@ -103,7 +103,9 @@
     <textarea id="song-lyrics" placeholder="Şarkı sözlerinizi yazın..."></textarea>
     <button class="btn" id="share-button">Paylaş</button>
         
+    </div>    
         <button class="btn" onclick="window.location.href='anasayfa.html'">Anasayfaya Dön</button>
+    </div>    
         
     <div class="shared-lyrics">
         <h2 id="shared-title">Paylaşılan Şarkılar</h2>
@@ -137,7 +139,7 @@
             try {
                 await addDoc(collection(db, "lyrics"), {
                     lyrics: songLyrics,
-                    username: "Anonim",
+                    username: currentUsername,
                     timestamp: serverTimestamp()
                 });
                 alert("Şarkı sözleri başarıyla paylaşıldı!");
