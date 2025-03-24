@@ -33,7 +33,7 @@
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
-        .btn, .share-button, .back-button, .lang-btn {
+        .btn {
             padding: 16px 20px;
             background: linear-gradient(to right, #6a11cb, #2575fc);
             border: none;
@@ -44,26 +44,12 @@
             margin: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
-            width: auto;
             min-width: 120px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            display: inline-block;
-            text-align: center;
         }
         header {
             text-align: center;
             margin-bottom: 20px;
-        }
-        .language-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .share-section {
-            width: 100%;
-            max-width: 600px;
-            text-align: center;
         }
         textarea {
             width: 80%;
@@ -87,9 +73,6 @@
             border-radius: 5px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        .lyric-item p {
-            margin: 5px 0;
-        }
     </style>
 </head>
 <body>
@@ -98,25 +81,21 @@
         <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
         <h1 id="page-title">Şarkı Sözlerini Paylaş</h1>
         <p id="info-text">Hikayenizi yazın ve paylaşın! (Telif hakkınız saklıdır)</p>
-    <header>
+    </header>
     
     <textarea id="song-lyrics" placeholder="Şarkı sözlerinizi yazın..."></textarea>
     <button class="btn" id="share-button">Paylaş</button>
-        
-    </div>    
-        <button class="btn" onclick="window.location.href='anasayfa.html'">Anasayfaya Dön</button>
-    </div>    
-        
+    <button class="btn" onclick="window.location.href='anasayfa.html'">Anasayfaya Dön</button>
+    
     <div class="shared-lyrics">
         <h2 id="shared-title">Paylaşılan Şarkılar</h2>
         <div id="lyrics-list"></div>
     </div>
-    
 
-    
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
         import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -129,12 +108,16 @@
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth();
 
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        currentUsername = user.displayName || "Bilinmeyen Kullanıcı";
-    }
-});
+        let currentUsername = "Anonim"; // Varsayılan olarak anonim
+
+        // Kullanıcı giriş yaptıysa username’i al
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUsername = user.displayName || "Bilinmeyen Kullanıcı";
+            }
+        });
         
         document.getElementById("share-button").addEventListener("click", async () => {
             const songLyrics = document.getElementById("song-lyrics").value.trim();
