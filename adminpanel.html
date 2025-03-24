@@ -13,9 +13,9 @@
     }
 
     body {
-      background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
-      background-size: 400% 400%;
-      animation: gradientShift 15s ease infinite;
+      background: radial-gradient(circle at top left, #1a1a1a, #330033, #000000);
+      background-size: cover;
+      background-attachment: fixed;
       color: white;
       min-height: 100vh;
       display: flex;
@@ -24,14 +24,9 @@
       padding: 30px 20px;
     }
 
-    @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
     h1 {
-      font-size: 2.5rem;
+      font-size: 2.8rem;
+      color: #ffcc70;
       margin-bottom: 10px;
       text-align: center;
     }
@@ -40,7 +35,7 @@
       font-size: 1.2rem;
       margin-bottom: 30px;
       text-align: center;
-      opacity: 0.9;
+      color: #e0e0e0;
     }
 
     .admin-buttons {
@@ -48,28 +43,29 @@
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 20px;
       width: 100%;
-      max-width: 900px;
+      max-width: 1000px;
     }
 
     .btn {
-      background: linear-gradient(to right, #6a11cb, #2575fc);
+      background: linear-gradient(to right, #ff66c4, #ffcc70);
       padding: 15px;
       border-radius: 12px;
       border: none;
-      color: white;
+      color: #000;
       font-size: 1.1rem;
       font-weight: bold;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: transform 0.2s, background 0.3s;
+      text-align: center;
       text-decoration: none;
       display: flex;
       align-items: center;
       justify-content: center;
-      text-align: center;
     }
 
     .btn:hover {
-      background: linear-gradient(to right, #2575fc, #6a11cb);
+      transform: scale(1.05);
+      background: linear-gradient(to right, #ffcc70, #ff66c4);
     }
 
     @media (max-width: 600px) {
@@ -88,6 +84,7 @@
     <a href="lyrics.html" class="btn">Sözler / Şiirler</a>
     <a href="melody.html" class="btn">Melodiler</a>
     <a href="hazir.html" class="btn">Hazır Şarkılar</a>
+    <a href="mesajlar.html" class="btn">Tüm Kullanıcılara Mesaj</a>
     <a href="anasayfa.html" class="btn">Ana Sayfa</a>
     <button class="btn" onclick="logout()">Çıkış Yap</button>
   </div>
@@ -110,7 +107,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    window.logout = function() {
+    window.logout = function () {
       signOut(auth).then(() => {
         window.location.href = "index.html";
       });
