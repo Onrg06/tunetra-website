@@ -122,7 +122,7 @@
 
   <h1 id="pageTitle">Duyurular</h1>
 
-  <div
+  <div id="announcementsContainer"></div>
 
   <a href="anasayfa.html" class="back-btn" id="backBtn">🏠 Anasayfaya Dön</a>
 
@@ -170,6 +170,7 @@
 
         if (snapshot.empty) {
           console.log("Duyuru bulunamadı!");
+          document.getElementById('announcementsContainer').innerHTML = "<p>Duyuru bulunamadı!</p>";
           return;
         }
 
@@ -196,6 +197,7 @@
 
     window.addEventListener("DOMContentLoaded", () => {
       setLang("tr");
+      fetchAnnouncements(); // Sayfa yüklendiğinde duyuruları çek
     });
   </script>
 </body>
