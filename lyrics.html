@@ -102,13 +102,15 @@
     
     <textarea id="song-lyrics" placeholder="Şarkı sözlerinizi yazın..."></textarea>
     <button class="btn" id="share-button">Paylaş</button>
-    
+        
+        <button class="btn" onclick="window.location.href='anasayfa.html'">Anasayfaya Dön</button>
+        
     <div class="shared-lyrics">
         <h2 id="shared-title">Paylaşılan Şarkılar</h2>
         <div id="lyrics-list"></div>
     </div>
     
-    <button class="btn" onclick="window.location.href='anasayfa.html'">Anasayfaya Dön</button>
+
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
