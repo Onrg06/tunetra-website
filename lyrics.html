@@ -73,9 +73,6 @@
             border-radius: 5px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        .lyric-item p {
-            font-size: 16px;
-        }
         .username {
             font-weight: bold;
         }
@@ -95,7 +92,6 @@
     
     <textarea id="song-lyrics" placeholder="Şarkı sözlerinizi yazın..."></textarea>
     <button class="btn" id="share-button">Paylaş</button>
-    <button class="btn" id="home-button" onclick="window.location.href='anasayfa.html'">Anasayfaya Dön</button>
     
     <div class="shared-lyrics">
         <h2 id="shared-title">Paylaşılan Şarkılar</h2>
@@ -104,69 +100,47 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, getDoc, doc } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-            authDomain: "tunetra-2579b.firebaseapp.com",
-            projectId: "tunetra-2579b",
-            storageBucket: "tunetra-2579b.appspot.com",
-            messagingSenderId: "576238823779",
-            appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth();
 
-        let currentUsername = "Anonim"; // Varsayılan olarak anonim
+        async function getUsername(userId) {
+            const userRef = doc(db, "users", userId);
+            const userSnap = await getDoc(userRef);
+            return userSnap.exists() ? userSnap.data().username : "Anonim";
+        }
 
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        currentUsername = user.displayName || user.email.split("@")[0] || "Bilinmeyen Kullanıcı";
-    }
-});
-
-document.getElementById("share-button").addEventListener("click", async () => {
-    const songLyrics = document.getElementById("song-lyrics").value.trim();
-    if (songLyrics === "") {
-        alert("Lütfen şarkı sözlerinizi yazın.");
-        return;
-    }
-
-    try {
-        await addDoc(collection(db, "lyrics"), {
-            lyrics: songLyrics,
-            username: currentUsername, // Kullanıcı adı eklendi
-            timestamp: serverTimestamp()
+        document.getElementById("share-button").addEventListener("click", async () => {
+            const songLyrics = document.getElementById("song-lyrics").value.trim();
+            if (!songLyrics) return alert("Lütfen şarkı sözlerinizi yazın.");
+            const user = auth.currentUser;
+            const username = user ? await getUsername(user.uid) : "Anonim";
+            await addDoc(collection(db, "lyrics"), { lyrics: songLyrics, username, timestamp: serverTimestamp() });
+            document.getElementById("song-lyrics").value = "";
         });
-        alert("Şarkı sözleri başarıyla paylaşıldı!");
-        document.getElementById("song-lyrics").value = "";
-    } catch (error) {
-        console.error("Hata:", error);
-        alert("Paylaşım sırasında hata oluştu.");
-    }
-});
-
 
         const lyricsList = document.getElementById("lyrics-list");
         const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
         
-onSnapshot(q, (snapshot) => {
-    lyricsList.innerHTML = "";
-    snapshot.forEach(doc => {
-        const data = doc.data();
-        const lyricElement = document.createElement("div");
-        lyricElement.classList.add("lyric-item");
-        lyricElement.innerHTML = `
-            <p class="username"><strong>${data.username}</strong></p> <!-- Kullanıcı adı eklendi -->
-            <p>${data.lyrics}</p>
-            <p class="timestamp">${data.timestamp?.toDate().toLocaleString()}</p>
-        `;
-        lyricsList.appendChild(lyricElement);
-    });
-});
+        onSnapshot(q, (snapshot) => {
+            lyricsList.innerHTML = "";
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                lyricsList.innerHTML += `<div class='lyric-item'><p class='username'><strong>${data.username}</strong></p><p>${data.lyrics}</p><p class='timestamp'>${data.timestamp?.toDate().toLocaleString()}</p></div>`;
+            });
+        });
 
         window.setLang = function(lang) {
             if (lang === "tr") {
@@ -174,15 +148,13 @@ onSnapshot(q, (snapshot) => {
                 document.getElementById("info-text").innerText = "Hikayenizi yazın ve paylaşın! (Telif hakkınız saklıdır)";
                 document.getElementById("shared-title").innerText = "Paylaşılan Şarkılar";
                 document.getElementById("share-button").innerText = "Paylaş";
-                document.getElementById("home-button").innerText = "Anasayfa";
             } else if (lang === "en") {
                 document.getElementById("page-title").innerText = "Share Your Lyrics";
                 document.getElementById("info-text").innerText = "Write your story and share! (Your copyright is protected)";
                 document.getElementById("shared-title").innerText = "Shared Songs";
                 document.getElementById("share-button").innerText = "Share";
-                document.getElementById("home-button").innerText = "Home Page";
             }
-        }
+        };
     </script>
 </body>
 </html>
