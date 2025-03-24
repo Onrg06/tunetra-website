@@ -73,6 +73,16 @@
             border-radius: 5px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+        .lyric-item p {
+            font-size: 16px;
+        }
+        .username {
+            font-weight: bold;
+        }
+        .timestamp {
+            font-size: 0.8em;
+            color: #ccc;
+        }
     </style>
 </head>
 <body>
@@ -148,7 +158,11 @@
                 const data = doc.data();
                 const lyricElement = document.createElement("div");
                 lyricElement.classList.add("lyric-item");
-                lyricElement.innerHTML = `<p><strong>${data.username}</strong></p><p>${data.lyrics}</p><p><small>${data.timestamp?.toDate().toLocaleString()}</small></p>`;
+                lyricElement.innerHTML = `
+                    <p class="username">${data.username}</p>
+                    <p>${data.lyrics}</p>
+                    <p class="timestamp">${data.timestamp?.toDate().toLocaleString()}</p>
+                `;
                 lyricsList.appendChild(lyricElement);
             });
         });
