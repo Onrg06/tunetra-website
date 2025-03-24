@@ -98,7 +98,7 @@
         <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
         <h1 id="page-title">Şarkı Sözlerini Paylaş</h1>
         <p id="info-text">Hikayenizi yazın ve paylaşın! (Telif hakkınız saklıdır)</p>
-    </header>
+    <header>
     
     <textarea id="song-lyrics" placeholder="Şarkı sözlerinizi yazın..."></textarea>
     <button class="btn" id="share-button">Paylaş</button>
@@ -107,6 +107,8 @@
         <h2 id="shared-title">Paylaşılan Şarkılar</h2>
         <div id="lyrics-list"></div>
     </div>
+    
+    <button class="btn" onclick="window.location.href='anasayfa.html'">Anasayfaya Dön</button>
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
@@ -133,7 +135,7 @@
             try {
                 await addDoc(collection(db, "lyrics"), {
                     lyrics: songLyrics,
-                    user: "Anonim",
+                    username: "Anonim",
                     timestamp: serverTimestamp()
                 });
                 alert("Şarkı sözleri başarıyla paylaşıldı!");
