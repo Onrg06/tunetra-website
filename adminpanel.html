@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADMİN PANELİ | TuneTRa</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    body {
+      background: linear-gradient(135deg, #1e1e2f, #3a0ca3, #4361ee);
+      background-size: 400% 400%;
+      animation: gradientShift 18s ease infinite;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      text-align: center;
+    }
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin: 20px 0;
+      color: #ffd700;
+    }
+    .admin-badge {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px 22px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 1rem;
+      margin-bottom: 20px;
+      border: 2px solid #ffd700;
+    }
+    .panel-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      width: 100%;
+      max-width: 800px;
+      margin: 30px 0;
+    }
+    .panel-btn {
+      padding: 12px 20px;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.3s;
+    }
+    .panel-btn:hover {
+      background: linear-gradient(to right, #2575fc, #6a11cb);
+    }
+    .logout-btn {
+      margin-top: auto;
+      padding: 10px 20px;
+      border-radius: 6px;
+      background: #ff4444;
+      color: white;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+    @media (max-width: 768px) {
+      h1 { font-size: 2rem; }
+      .panel-btn { font-size: 0.95rem; padding: 10px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>ADMİN PANELİ</h1>
+  <div class="admin-badge" id="adminName">Giriş yapılıyor...</div>
+
+  <div class="panel-buttons">
+    <a href="kullanicilar.html" class="panel-btn">👥 Kullanıcılar</a>
+    <a href="dilek-kutusu.html" class="panel-btn">📮 Dilek & Şikayetler</a>
+    <a href="genel-mesaj.html" class="panel-btn">📢 Herkese Mesaj</a>
+    <a href="hazir.html" class="panel-btn">🎶 Hazır Şarkılar</a>
+    <a href="lyrics.html" class="panel-btn">✍️ Sözler / Şiirler</a>
+    <a href="melody.html" class="panel-btn">🎵 Melodi</a>
+    <a href="anasayfa.html" class="panel-btn">🏠 Anasayfaya Dön</a>
+  </div>
+
+  <button class="logout-btn" onclick="logout()">Çıkış Yap</button>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.logout = function () {
+      signOut(auth).then(() => {
+        window.location.href = "index.html";
+      });
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists() || userSnap.data().role !== "admin") {
+        window.location.href = "anasayfa.html";
+        return;
+      }
+
+      const username = userSnap.data().username || "Admin";
+      document.getElementById("adminName").innerText = `👑 ${username} olarak giriş yapıldı`;
+    });
+  </script>
+</body>
+</html>
