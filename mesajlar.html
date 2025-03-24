@@ -268,41 +268,6 @@
         }
       });
     }
-    unsubscribe = onSnapshot(convoRef, async (snap) => {
-  area.innerHTML = "";
-  if (!snap.exists()) return;
-
-  const convoData = snap.data();
-  const msgs = convoData.messages || [];
-  msgs.sort((a, b) => a.timestamp - b.timestamp);
-
-  let updated = false;
-  const updatedMessages = msgs.map(msg => {
-    if (!msg.seenBy) msg.seenBy = [];
-    if (!msg.seenBy.includes(currentUser.uid)) {
-      msg.seenBy.push(currentUser.uid);
-      updated = true;
-    }
-    return msg;
-  });
-
-  for (const msg of updatedMessages) {
-    const div = document.createElement("div");
-    div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
-    div.innerHTML = `<div>${msg.text}</div><div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>`;
-    area.appendChild(div);
-  }
-
-  // Otomatik olarak en alta kaydır
-  setTimeout(() => {
-    area.scrollTop = area.scrollHeight;
-  }, 100);
-
-  if (updated) {
-    await updateDoc(convoRef, { messages: updatedMessages });
-  }
-});
-
 
     window.sendMessage = async () => {
       const input = document.getElementById("messageInput");
@@ -313,10 +278,6 @@
       const convoId = getConversationId(currentUser.uid, selectedFriendId);
       const convoRef = doc(db, "conversations", convoId);
       const snap = await getDoc(convoRef);
-
-      setTimeout(() => {
-  document.getElementById("messageArea").scrollTop = document.getElementById("messageArea").scrollHeight;
-}, 100);
 
       if (snap.exists()) {
         const oldMsgs = snap.data().messages || [];
