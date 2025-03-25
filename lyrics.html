@@ -125,6 +125,8 @@
 
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
 
+let currentUsername = ""; // sadece boş tanımla
+        
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         try {
