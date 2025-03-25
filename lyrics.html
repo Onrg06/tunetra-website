@@ -123,14 +123,26 @@
         const db = getFirestore(app);
         const auth = getAuth();
 
-        let currentUsername = "Anonim"; // Varsayılan olarak anonim
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
 
-        // Kullanıcı giriş yaptıysa username’i al
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                currentUsername = user.displayName || "Bilinmeyen Kullanıcı";
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        try {
+            const userRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userRef);
+
+            if (userSnap.exists()) {
+                currentUsername = userSnap.data().username || "Anonim";
+                console.log("Kullanıcı adı:", currentUsername); // İstersen test için logla
+            } else {
+                console.warn("Kullanıcı Firestore'da bulunamadı.");
             }
-        });
+        } catch (error) {
+            console.error("Username alınırken hata:", error);
+        }
+    }
+});
+
         
         document.getElementById("share-button").addEventListener("click", async () => {
             const songLyrics = document.getElementById("song-lyrics").value.trim();
