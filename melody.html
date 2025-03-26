@@ -116,7 +116,7 @@ const publicUrl = supabase.storage.from(bucket).getPublicUrl(fileName).data.publ
       en: {
         title: "Upload Melody",
         upload: "Upload",
-        home: "Return Home",
+        home: "Home Page",
         list: "Uploaded Melodies",
         selectFile: "Please select an audio file.",
         uploadError: "File upload failed:",
@@ -182,7 +182,7 @@ const publicUrl = supabase.storage.from(bucket).getPublicUrl(fileName).data.publ
   <h1 id="title">Melodi Yükle</h1>
   <input type="file" id="melodyInput" accept="audio/*" />
   <button class="btn" onclick="uploadMelody()" id="upload-btn">Yükle</button>
-  <button class="btn" onclick="location.href='anasayfa.html'" id="home-btn">Anasayfaya Dön</button>
+  <button class="btn" onclick="location.href='anasayfa.html'" id="home-btn">Anasayfa</button>
 
   <h2 id="melody-title">Yüklenen Melodiler</h2>
   <div id="melodyList"></div>
