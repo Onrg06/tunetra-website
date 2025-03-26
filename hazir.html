@@ -111,7 +111,9 @@
       <button class="lang-btn" onclick="setLang('en')" id="btnEn">🇬🇧 English</button>
     </div>
   </header>
-  
+
+  <!-- Paylaşım Alanı -->
+  <h3>Şarkınızı Paylaş</h3>
   <div class="button-group">
     <input type="text" id="songTitle" placeholder="Şarkı Başlığı" />
     <textarea id="songLyrics" placeholder="Şarkı Sözleri" rows="5"></textarea>
@@ -123,6 +125,8 @@
     <button class="btn" onclick="shareSong()">Şarkıyı Paylaş</button>
   </div>
 
+  <!-- Paylaşılan Şarkılar -->
+  <h3>Paylaşılan Şarkılar</h3>
   <div class="song-list" id="songList">
     <!-- Paylaşılan şarkılar buraya gelecek -->
   </div>
@@ -130,7 +134,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, serverTimestamp, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, serverTimestamp, query, onSnapshot, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
