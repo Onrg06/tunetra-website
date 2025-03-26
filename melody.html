@@ -74,9 +74,9 @@
   <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
 
   <h1 id="page-title">Melodinizi Yükleyin</h1>
-  <p id="page-desc">MP3 formatında melodinizi yükleyin. Herkes dinleyebilir!</p>
+  <p id="page-desc"> Melodinizi yükleyin. Herkes dinleyebilir!</p>
 
-  <input type="file" id="melodyInput" accept=".mp3" />
+  <input type="file" id="melodyInput" accept="audio/*" />
   <button class="btn" onclick="uploadMelody()" id="upload-btn">Yükle</button>
   <button class="btn" onclick="window.location.href='anasayfa.html'">Anasayfaya Dön</button>
 
@@ -114,7 +114,7 @@
     async function uploadMelody() {
       const file = document.getElementById("melodyInput").files[0];
       if (!file) {
-        alert("Lütfen bir MP3 dosyası seçin.");
+        alert("Lütfen bir ses dosyası seçin.");
         return;
       }
 
