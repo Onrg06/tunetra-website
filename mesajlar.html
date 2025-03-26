@@ -316,7 +316,7 @@
       const text = input.value.trim();
       if (!text || !selectedFriendId || !currentUser) return;
       const id = crypto.randomUUID();
-      const msg = { id, sender: currentUser.uid, text, timestamp: Date.now(), seenBy: [] , unread: true };
+      const msg = { id, sender: currentUser.uid, text, timestamp: Date.now(), seenBy: [], unread: true };
       const convoId = getConversationId(currentUser.uid, selectedFriendId);
       const convoRef = doc(db, "conversations", convoId);
       const snap = await getDoc(convoRef);
@@ -341,6 +341,4 @@
     });
   </script>
 </body>
-</html>
-
 </html>
