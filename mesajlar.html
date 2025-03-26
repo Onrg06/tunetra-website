@@ -127,6 +127,12 @@
       cursor: pointer;
     }
 
+    .unread-indicator {
+      color: red;
+      font-size: 18px;
+      margin-left: 5px;
+    }
+
     @media (max-width: 768px) {
       .container {
         flex-direction: column;
@@ -180,13 +186,24 @@
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const firebaseConfig = { apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg", authDomain: "tunetra-2579b.firebaseapp.com", projectId: "tunetra-2579b", storageBucket: "tunetra-2579b.appspot.com", messagingSenderId: "576238823779", appId: "1:576238823779:web:b1796f089427e3b6fecb56" };
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+    };
+
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
     let currentUser = null, selectedFriendId = null, unsubscribe = null, lang = localStorage.getItem("lang") || "tr";
-    const t = { tr: { pageTitle: "Mesajlar", placeholder: "Mesaj yaz...", send: "Gönder", home: "Ana Sayfa", turkish: "🇹🇷 Türkçe", english: "🇬🇧 English", sentAt: "Gönderildi" }, en: { pageTitle: "Messages", placeholder: "Type a message...", send: "Send", home: "Home Page", turkish: "🇹🇷 Turkish", english: "🇬🇧 English", sentAt: "Sent at" } };
+    const t = {
+      tr: { pageTitle: "Mesajlar", placeholder: "Mesaj yaz...", send: "Gönder", home: "Ana Sayfa", turkish: "🇹🇷 Türkçe", english: "🇬🇧 English", sentAt: "Gönderildi" },
+      en: { pageTitle: "Messages", placeholder: "Type a message...", send: "Send", home: "Home Page", turkish: "🇹🇷 Turkish", english: "🇬🇧 English", sentAt: "Sent at" }
+    };
 
     function setLang(l) {
       lang = l;
@@ -246,7 +263,12 @@
         for (const msg of msgs) {
           const div = document.createElement("div");
           div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
-          div.innerHTML = `<div>${msg.text}</div><div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>`;
+          const unreadIndicator = msg.unread ? "<span class='unread-indicator'>⚪</span>" : "";
+          div.innerHTML = `
+            <div>${msg.text}</div>
+            ${unreadIndicator}
+            <div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>
+          `;
           area.appendChild(div);
         }
       }
@@ -270,7 +292,12 @@
         for (const msg of msgs) {
           const div = document.createElement("div");
           div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
-          div.innerHTML = `<div>${msg.text}</div><div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>`;
+          const unreadIndicator = msg.unread ? "<span class='unread-indicator'>⚪</span>" : "";
+          div.innerHTML = `
+            <div>${msg.text}</div>
+            ${unreadIndicator}
+            <div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>
+          `;
           area.appendChild(div);
         }
 
@@ -289,7 +316,7 @@
       const text = input.value.trim();
       if (!text || !selectedFriendId || !currentUser) return;
       const id = crypto.randomUUID();
-      const msg = { id, sender: currentUser.uid, text, timestamp: Date.now(), seenBy: [currentUser.uid] };
+      const msg = { id, sender: currentUser.uid, text, timestamp: Date.now(), seenBy: [] , unread: true };
       const convoId = getConversationId(currentUser.uid, selectedFriendId);
       const convoRef = doc(db, "conversations", convoId);
       const snap = await getDoc(convoRef);
@@ -300,14 +327,13 @@
       } else {
         await setDoc(convoRef, { users: [currentUser.uid, selectedFriendId], messages: [msg] });
       }
-      input.value = "";
 
-      updateMessageCount();
+      input.value = "";
     };
 
     window.goHome = () => location.href = "anasayfa.html";
     window.setLang = setLang;
-    onAuthStateChanged(auth, user => {
+    onAuthStateChanged(auth, (user) => {
       if (!user) return location.href = "index.html";
       currentUser = user;
       setLang(lang);
@@ -315,4 +341,6 @@
     });
   </script>
 </body>
+</html>
+
 </html>
