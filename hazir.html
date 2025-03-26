@@ -113,15 +113,12 @@
     <input type="file" id="audioFile" accept="audio/*" />
     <select id="friendSelect">
       <option value="">Arkadaş Seçin</option>
-      <!-- Dinamik olarak arkadaşlar buraya eklenecek -->
     </select>
     <button class="btn" onclick="shareSong()">Şarkıyı Paylaş</button>
   </div>
 
   <h3>Paylaşılan Şarkılar</h3>
-  <div class="song-list" id="songList">
-    <!-- Paylaşılan şarkılar buraya gelecek -->
-  </div>
+  <div class="song-list" id="songList"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -142,8 +139,8 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    const supabaseUrl = 'https://kqgbdfnqckcgrfizjdgt.supabase.co'; // Supabase URL
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZ2JkZm5xY2tjZ3JmaXpqZGd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5Nzk2NDQsImV4cCI6MjA1ODU1NTY0NH0.oxyfinrgv7AscolwMv6CuTMHBLeNokdERCKH00d1kfo'; // Supabase Anon Key
+    const supabaseUrl = 'https://kqgbdfnqckcgrfizjdgt.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZ2JkZm5xY2tjZ3JmaXpqZGd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5Nzk2NDQsImV4cCI6MjA1ODU1NTY0NH0.oxyfinrgv7AscolwMv6CuTMHBLeNokdERCKH00d1kfo';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     let currentUser  = null;
@@ -159,19 +156,26 @@
 
     async function loadFriends(uid) {
       const { data: friends, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', uid);
+        .from('friends') // Arkadaşlar veritabanı tablosu
+        .select('username, id') // Gerekli alanları seç
+        .eq('user_id', uid); // Bu kullanıcıya ait arkadaşlar
 
       const friendsList = document.getElementById("friendSelect");
       friendsList.innerHTML = '<option value="">Arkadaş Seçin</option>';
+      if (error) {
+        console.error("Arkadaşlar yüklenirken hata oluştu: ", error.message);
+        return;
+      }
+
       if (friends && friends.length > 0) {
         friends.forEach(friend => {
           const option = document.createElement("option");
           option.value = friend.id;
-          option.textContent = friend.username; // Kullanıcı adını göster
+          option.textContent = friend.username;
           friendsList.appendChild(option);
         });
+      } else {
+        friendsList.innerHTML = '<option value="">Arkadaşınız yok</option>';
       }
     }
 
@@ -186,9 +190,8 @@
         return;
       }
 
-      // Ses dosyasını Supabase'e yükle
       const { data: fileData, error: uploadError } = await supabase.storage
-        .from('songs') // 'songs' adında bir depolama alanı oluşturmalısınız
+        .from('songs')
         .upload(`public/${audioFile.name}`, audioFile);
 
       if (uploadError) {
@@ -196,19 +199,17 @@
         return;
       }
 
-      // Dosya URL'sini al
       const audioUrl = `${supabaseUrl}/storage/v1/object/public/songs/${fileData.path}`;
 
-      // Şarkı bilgilerini Supabase veritabanına ekle
       const { error: dbError } = await supabase
-        .from('songs') // 'songs' adında bir tablo oluşturmalısınız
+        .from('songs')
         .insert([
           {
             title: songTitle,
             lyrics: songLyrics,
             audio_url: audioUrl,
             shared_at: new Date(),
-            users: [currentUser .uid, selectedFriend] // Firebase kullanıcı kimliğini kullan
+            users: [currentUser.uid, selectedFriend]
           }
         ]);
 
@@ -226,33 +227,46 @@
     window.goHome = () => location.href = "anasayfa.html";
 
     function setLang(lang) {
-      const translations = {
-        tr: {
-          pageTitle: "Hazır Şarkılar",
-          songTitle: "Şarkı Başlığı",
-          songLyrics: "Şarkı Sözleri",
-          share: "Şarkıyı Paylaş",
-          home: "Ana Sayfa",
-          friendSelect: "Arkadaş Seçin"
+      const langElements = {
+        title: {
+          tr: "Hazır Şarkılar",
+          en: "Ready Songs"
         },
-        en: {
-          pageTitle: "Ready Songs",
-          songTitle: "Song Title",
-          songLyrics: "Song Lyrics",
-          share: "Share Song",
-          home: "Home Page",
-          friendSelect: "Select Friend"
+        shareTitle: {
+          tr: "Şarkınızı Paylaş",
+          en: "Share Your Song"
+        },
+        songTitle: {
+          tr: "Şarkı Başlığı",
+          en: "Song Title"
+        },
+        songLyrics: {
+          tr: "Şarkı Sözleri",
+          en: "Song Lyrics"
+        },
+        shareBtn: {
+          tr: "Şarkıyı Paylaş",
+          en: "Share Song"
         }
       };
 
-      document.getElementById("pageTitle").innerText = translations[lang].pageTitle;
-      document.getElementById("songTitle").placeholder = translations[lang].songTitle;
-      document.getElementById("songLyrics").placeholder = translations[lang].songLyrics;
-      document.querySelector(".btn").innerText = translations[lang].share;
-      document.getElementById("btnTr").innerText = "🇹🇷 " + translations[lang].home;
-      document.getElementById("btnEn").innerText = "🇬🇧 " + translations[lang].home;
-      document.getElementById("friendSelect").querySelector("option").innerText = translations[lang].friendSelect;
+      document.getElementById("pageTitle").textContent = langElements.title[lang];
+      document.querySelector("h3:nth-of-type(1)").textContent = langElements.shareTitle[lang];
+      document.getElementById("songTitle").placeholder = langElements.songTitle[lang];
+      document.getElementById("songLyrics").placeholder = langElements.songLyrics[lang];
+      document.querySelector(".btn").textContent = langElements.shareBtn[lang];
+
+      if (lang === 'tr') {
+        document.getElementById("btnTr").style.backgroundColor = '#2575fc';
+        document.getElementById("btnEn").style.backgroundColor = 'transparent';
+      } else {
+        document.getElementById("btnEn").style.backgroundColor = '#2575fc';
+        document.getElementById("btnTr").style.backgroundColor = 'transparent';
+      }
     }
+
+    document.getElementById("btnTr").addEventListener("click", () => setLang("tr"));
+    document.getElementById("btnEn").addEventListener("click", () => setLang("en"));
 
     window.addEventListener("DOMContentLoaded", () => {
       setLang("tr");
