@@ -204,15 +204,13 @@
 
       const { error: dbError } = await supabase
         .from('songs')
-        .insert([
-          {
+        .insert([{
             title: songTitle,
             lyrics: songLyrics,
             audio_url: audioUrl,
             shared_at: new Date(),
             users: [currentUser.uid, selectedFriend]
-          }
-        ]);
+        }]);
 
       if (dbError) {
         alert("Şarkı veritabanına eklenirken bir hata oluştu: " + dbError.message);
@@ -262,7 +260,8 @@
       if (lang === 'tr') {
         document.getElementById("btnTr").style.backgroundColor = '#2575fc';
         document.getElementById("btnEn").style.backgroundColor = 'transparent';
-      } else {
+      } 
+      if (lang === 'en'){
         document.getElementById("btnEn").style.backgroundColor = '#2575fc';
         document.getElementById("btnTr").style.backgroundColor = 'transparent';
       }
