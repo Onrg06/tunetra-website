@@ -32,10 +32,18 @@
 
     let currentUser = "Anonim";
 
-    auth.onAuthStateChanged((user) => {
-      if (user) currentUser = user.displayName || "Anonim";
-      else auth.signInAnonymously();
-    });
+ auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    const userDoc = await db.collection("users").doc(user.uid).get();
+    if (userDoc.exists) {
+      currentUser = userDoc.data().username || "Anonim";
+    } else {
+      currentUser = "Anonim";
+    }
+  } else {
+    auth.signInAnonymously();
+  }
+});
 
     window.uploadMelody = async function () {
       const file = document.getElementById("melodyInput").files[0];
