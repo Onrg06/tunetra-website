@@ -106,7 +106,7 @@
     </div>
   </header>
 
-  <h3>Şarkınızı Paylaş</h3>
+  <h3 id="shareSongTitle">Şarkınızı Paylaş</h3>
   <div class="button-group">
     <input type="text" id="songTitle" placeholder="Şarkı Başlığı" />
     <textarea id="songLyrics" placeholder="Şarkı Sözleri" rows="5"></textarea>
@@ -114,7 +114,7 @@
     <select id="friendSelect">
       <option value="">Arkadaş Seçin</option>
     </select>
-    <button class="btn" onclick="shareSong()">Şarkıyı Paylaş</button>
+    <button class="btn" onclick="shareSong()" id="shareSongButton">Şarkıyı Paylaş</button>
   </div>
 
   <h3>Paylaşılan Şarkılar</h3>
@@ -143,25 +143,26 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZ2JkZm5xY2tjZ3JmaXpqZGd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5Nzk2NDQsImV4cCI6MjA1ODU1NTY0NH0.oxyfinrgv7AscolwMv6CuTMHBLeNokdERCKH00d1kfo';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    let currentUser  = null;
+    let currentUser = null;
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        currentUser  = user; // Kullanıcı kimliğini al
-        loadFriends(user.uid); // Arkadaşları yükle
+        currentUser = user;
+        loadFriends(user.uid);
       } else {
-        location.href = "index.html"; // Giriş sayfasına yönlendir
+        location.href = "index.html";
       }
     });
 
     async function loadFriends(uid) {
       const { data: friends, error } = await supabase
-        .from('friends') // Arkadaşlar veritabanı tablosu
-        .select('username, id') // Gerekli alanları seç
-        .eq('user_id', uid); // Bu kullanıcıya ait arkadaşlar
+        .from('friends') // Arkadaşlar tablosu
+        .select('username, id')
+        .eq('user_id', uid); // Arkadaşları yükle
 
       const friendsList = document.getElementById("friendSelect");
       friendsList.innerHTML = '<option value="">Arkadaş Seçin</option>';
+
       if (error) {
         console.error("Arkadaşlar yüklenirken hata oluştu: ", error.message);
         return;
@@ -254,7 +255,7 @@
       document.querySelector("h3:nth-of-type(1)").textContent = langElements.shareTitle[lang];
       document.getElementById("songTitle").placeholder = langElements.songTitle[lang];
       document.getElementById("songLyrics").placeholder = langElements.songLyrics[lang];
-      document.querySelector(".btn").textContent = langElements.shareBtn[lang];
+      document.getElementById("shareSongButton").textContent = langElements.shareBtn[lang];
 
       if (lang === 'tr') {
         document.getElementById("btnTr").style.backgroundColor = '#2575fc';
