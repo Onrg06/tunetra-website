@@ -105,6 +105,12 @@
       margin-top: 5px;
     }
 
+    .unread-indicator {
+      font-size: 1.2rem;
+      color: red;
+      margin-left: 5px;
+    }
+
     .send-box {
       display: flex;
       gap: 10px;
@@ -125,12 +131,6 @@
       color: white;
       font-weight: bold;
       cursor: pointer;
-    }
-
-    .unread-indicator {
-      color: red;
-      font-size: 18px;
-      margin-left: 5px;
     }
 
     @media (max-width: 768px) {
@@ -181,124 +181,85 @@
       </div>
     </div>
   </div>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-    authDomain: "tunetra-2579b.firebaseapp.com",
-    projectId: "tunetra-2579b",
-    storageBucket: "tunetra-2579b.appspot.com",
-    messagingSenderId: "576238823779",
-    appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-  };
+    const firebaseConfig = { apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg", authDomain: "tunetra-2579b.firebaseapp.com", projectId: "tunetra-2579b", storageBucket: "tunetra-2579b.appspot.com", messagingSenderId: "576238823779", appId: "1:576238823779:web:b1796f089427e3b6fecb56" };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+    let currentUser = null, selectedFriendId = null, unsubscribe = null, lang = localStorage.getItem("lang") || "tr";
+    const t = { tr: { pageTitle: "Mesajlar", placeholder: "Mesaj yaz...", send: "Gönder", home: "Ana Sayfa", turkish: "🇹🇷 Türkçe", english: "🇬🇧 English", sentAt: "Gönderildi" }, en: { pageTitle: "Messages", placeholder: "Type a message...", send: "Send", home: "Home Page", turkish: "🇹🇷 Turkish", english: "🇬🇧 English", sentAt: "Sent at" } };
 
-  let currentUser = null, selectedFriendId = null, unsubscribe = null, lang = localStorage.getItem("lang") || "tr";
-  const t = {
-    tr: { pageTitle: "Mesajlar", placeholder: "Mesaj yaz...", send: "Gönder", home: "Ana Sayfa", turkish: "🇹🇷 Türkçe", english: "🇬🇧 English", sentAt: "Gönderildi" },
-    en: { pageTitle: "Messages", placeholder: "Type a message...", send: "Send", home: "Home Page", turkish: "🇹🇷 Turkish", english: "🇬🇧 English", sentAt: "Sent at" }
-  };
-
-  function setLang(l) {
-    lang = l;
-    localStorage.setItem("lang", lang);
-    document.getElementById("pageTitle").innerText = t[lang].pageTitle;
-    document.getElementById("messageInput").placeholder = t[lang].placeholder;
-    document.querySelector(".send-btn").innerText = t[lang].send;
-    document.getElementById("homeBtn").innerText = "🏠 " + t[lang].home;
-    document.getElementById("btnTr").innerText = t[lang].turkish;
-    document.getElementById("btnEn").innerText = t[lang].english;
-  }
-
-  function getConversationId(uid1, uid2) {
-    return [uid1, uid2].sort().join("_");
-  }
-
-  function formatTimestamp(ts) {
-    const d = new Date(ts);
-    return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
-  }
-
-  async function loadFriends(uid) {
-    const snap = await getDoc(doc(db, "friends", uid));
-    const list = document.getElementById("chatList");
-    list.innerHTML = "";
-    const friends = snap.exists() ? snap.data().list || [] : [];
-    for (const fid of friends) {
-      const fdoc = await getDoc(doc(db, "users", fid));
-      if (!fdoc.exists()) continue;
-      const name = fdoc.data().username;
-      const div = document.createElement("div");
-      div.className = "chat-item";
-      div.innerText = name;
-      div.onclick = () => openChat(fid, div);
-      list.appendChild(div);
+    function setLang(l) {
+      lang = l;
+      localStorage.setItem("lang", lang);
+      document.getElementById("pageTitle").innerText = t[lang].pageTitle;
+      document.getElementById("messageInput").placeholder = t[lang].placeholder;
+      document.querySelector(".send-btn").innerText = t[lang].send;
+      document.getElementById("homeBtn").innerText = "🏠 " + t[lang].home;
+      document.getElementById("btnTr").innerText = t[lang].turkish;
+      document.getElementById("btnEn").innerText = t[lang].english;
     }
-  }
 
-  async function openChat(fid, el) {
-    selectedFriendId = fid;
-    document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
-    el.classList.add("active");
+    function getConversationId(uid1, uid2) {
+      return [uid1, uid2].sort().join("_");
+    }
 
-    if (unsubscribe) unsubscribe();
+    function formatTimestamp(ts) {
+      const d = new Date(ts);
+      return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+    }
 
-    const convoId = getConversationId(currentUser.uid, fid);
-    const convoRef = doc(db, "conversations", convoId);
-    const area = document.getElementById("messageArea");
-    area.innerHTML = "";
-
-    const snap = await getDoc(convoRef);
-    if (snap.exists()) {
-      const convoData = snap.data();
-      const msgs = convoData.messages || [];
-      msgs.sort((a, b) => a.timestamp - b.timestamp);
-
-      for (const msg of msgs) {
+    async function loadFriends(uid) {
+      const snap = await getDoc(doc(db, "friends", uid));
+      const list = document.getElementById("chatList");
+      list.innerHTML = "";
+      const friends = snap.exists() ? snap.data().list || [] : [];
+      for (const fid of friends) {
+        const fdoc = await getDoc(doc(db, "users", fid));
+        if (!fdoc.exists()) continue;
+        const name = fdoc.data().username;
         const div = document.createElement("div");
-        div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
-        const unreadIndicator = msg.unread ? "<span class='unread-indicator'>⚪</span>" : "";
-        div.innerHTML = `
-          <div>${msg.text}</div>
-          ${unreadIndicator}
-          <div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>
-        `;
-        area.appendChild(div);
+        div.className = "chat-item";
+        div.innerText = name;
+        div.onclick = () => openChat(fid, div);
+        list.appendChild(div);
       }
     }
 
-    setTimeout(() => {
-      area.scrollTop = area.scrollHeight;
-      const lastMessage = area.lastElementChild;
-      if (lastMessage) {
-        lastMessage.scrollIntoView({ behavior: "smooth" });
-      }
-    }, 100);
+    async function openChat(fid, el) {
+      selectedFriendId = fid;
+      document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
+      el.classList.add("active");
 
-    unsubscribe = onSnapshot(convoRef, async (snap) => {
-      if (!snap.exists()) return;
-      const convoData = snap.data();
-      const msgs = convoData.messages || [];
-      msgs.sort((a, b) => a.timestamp - b.timestamp);
+      if (unsubscribe) unsubscribe();
 
+      const convoId = getConversationId(currentUser.uid, fid);
+      const convoRef = doc(db, "conversations", convoId);
+      const area = document.getElementById("messageArea");
       area.innerHTML = "";
 
-      for (const msg of msgs) {
-        const div = document.createElement("div");
-        div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
-        const unreadIndicator = msg.unread ? "<span class='unread-indicator'>⚪</span>" : "";
-        div.innerHTML = `
-          <div>${msg.text}</div>
-          ${unreadIndicator}
-          <div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>
-        `;
-        area.appendChild(div);
+      const snap = await getDoc(convoRef);
+      if (snap.exists()) {
+        const convoData = snap.data();
+        const msgs = convoData.messages || [];
+        msgs.sort((a, b) => a.timestamp - b.timestamp);
+
+        for (const msg of msgs) {
+          const div = document.createElement("div");
+          div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
+          const unreadIndicator = msg.unread ? "<span class='unread-indicator'>⚪</span>" : "";
+          div.innerHTML = `
+            <div>${msg.text}</div>
+            ${unreadIndicator}
+            <div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>
+          `;
+          area.appendChild(div);
+        }
       }
 
       setTimeout(() => {
@@ -308,37 +269,65 @@
           lastMessage.scrollIntoView({ behavior: "smooth" });
         }
       }, 100);
-    });
-  }
 
-  window.sendMessage = async () => {
-    const input = document.getElementById("messageInput");
-    const text = input.value.trim();
-    if (!text || !selectedFriendId || !currentUser) return;
-    const id = crypto.randomUUID();
-    const msg = { id, sender: currentUser.uid, text, timestamp: Date.now(), seenBy: [], unread: true };
-    const convoId = getConversationId(currentUser.uid, selectedFriendId);
-    const convoRef = doc(db, "conversations", convoId);
-    const snap = await getDoc(convoRef);
+      unsubscribe = onSnapshot(convoRef, async (snap) => {
+        if (!snap.exists()) return;
+        const convoData = snap.data();
+        const msgs = convoData.messages || [];
+        msgs.sort((a, b) => a.timestamp - b.timestamp);
 
-    if (snap.exists()) {
-      const oldMsgs = snap.data().messages || [];
-      await setDoc(convoRef, { ...snap.data(), messages: [...oldMsgs, msg] });
-    } else {
-      await setDoc(convoRef, { users: [currentUser.uid, selectedFriendId], messages: [msg] });
+        area.innerHTML = "";
+
+        for (const msg of msgs) {
+          const div = document.createElement("div");
+          div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
+          const unreadIndicator = msg.unread ? "<span class='unread-indicator'>⚪</span>" : "";
+          div.innerHTML = `
+            <div>${msg.text}</div>
+            ${unreadIndicator}
+            <div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>
+          `;
+          area.appendChild(div);
+        }
+
+        setTimeout(() => {
+          area.scrollTop = area.scrollHeight;
+          const lastMessage = area.lastElementChild;
+          if (lastMessage) {
+            lastMessage.scrollIntoView({ behavior: "smooth" });
+          }
+        }, 100);
+      });
     }
 
-    input.value = "";
-  };
+    window.sendMessage = async () => {
+      const input = document.getElementById("messageInput");
+      const text = input.value.trim();
+      if (!text || !selectedFriendId || !currentUser) return;
+      const id = crypto.randomUUID();
+      const msg = { id, sender: currentUser.uid, text, timestamp: Date.now(), seenBy: [], unread: true };
+      const convoId = getConversationId(currentUser.uid, selectedFriendId);
+      const convoRef = doc(db, "conversations", convoId);
+      const snap = await getDoc(convoRef);
 
-  window.goHome = () => location.href = "anasayfa.html";
-  window.setLang = setLang;
-  onAuthStateChanged(auth, (user) => {
-    if (!user) return location.href = "index.html";
-    currentUser = user;
-    setLang(lang);
-    loadFriends(user.uid);
-  });
-</script>
+      if (snap.exists()) {
+        const oldMsgs = snap.data().messages || [];
+        await setDoc(convoRef, { ...snap.data(), messages: [...oldMsgs, msg] });
+      } else {
+        await setDoc(convoRef, { users: [currentUser.uid, selectedFriendId], messages: [msg] });
+      }
+
+      input.value = "";
+    };
+
+    window.goHome = () => location.href = "anasayfa.html";
+    window.setLang = setLang;
+    onAuthStateChanged(auth, (user) => {
+      if (!user) return location.href = "index.html";
+      currentUser = user;
+      setLang(lang);
+      loadFriends(user.uid);
+    });
+  </script>
 </body>
 </html>
