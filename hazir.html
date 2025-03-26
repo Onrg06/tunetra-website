@@ -158,8 +158,10 @@
     });
 
     async function loadFriends(uid) {
-      const friendsRef = supabase.from('users').select('*').eq('id', uid);
-      const { data: friends, error } = await friendsRef;
+      const { data: friends, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', uid);
 
       const friendsList = document.getElementById("friendSelect");
       friendsList.innerHTML = '<option value="">Arkadaş Seçin</option>';
@@ -224,7 +226,32 @@
     window.goHome = () => location.href = "anasayfa.html";
 
     function setLang(lang) {
-      // Dil ayarları burada yapılacak
+      const translations = {
+        tr: {
+          pageTitle: "Hazır Şarkılar",
+          songTitle: "Şarkı Başlığı",
+          songLyrics: "Şarkı Sözleri",
+          share: "Şarkıyı Paylaş",
+          home: "Ana Sayfa",
+          friendSelect: "Arkadaş Seçin"
+        },
+        en: {
+          pageTitle: "Ready Songs",
+          songTitle: "Song Title",
+          songLyrics: "Song Lyrics",
+          share: "Share Song",
+          home: "Home Page",
+          friendSelect: "Select Friend"
+        }
+      };
+
+      document.getElementById("pageTitle").innerText = translations[lang].pageTitle;
+      document.getElementById("songTitle").placeholder = translations[lang].songTitle;
+      document.getElementById("songLyrics").placeholder = translations[lang].songLyrics;
+      document.querySelector(".btn").innerText = translations[lang].share;
+      document.getElementById("btnTr").innerText = "🇹🇷 " + translations[lang].home;
+      document.getElementById("btnEn").innerText = "🇬🇧 " + translations[lang].home;
+      document.getElementById("friendSelect").querySelector("option").innerText = translations[lang].friendSelect;
     }
 
     window.addEventListener("DOMContentLoaded", () => {
