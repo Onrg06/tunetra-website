@@ -185,24 +185,13 @@
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-      authDomain: "tunetra-2579b.firebaseapp.com",
-      projectId: "tunetra-2579b",
-      storageBucket: "tunetra-2579b.appspot.com",
-      messagingSenderId: "576238823779",
-      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-    };
-
+    const firebaseConfig = { apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg", authDomain: "tunetra-2579b.firebaseapp.com", projectId: "tunetra-2579b", storageBucket: "tunetra-2579b.appspot.com", messagingSenderId: "576238823779", appId: "1:576238823779:web:b1796f089427e3b6fecb56" };
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
     let currentUser = null, selectedFriendId = null, unsubscribe = null, lang = localStorage.getItem("lang") || "tr";
-    const t = {
-      tr: { pageTitle: "Mesajlar", placeholder: "Mesaj yaz...", send: "Gönder", home: "Ana Sayfa", turkish: "🇹🇷 Türkçe", english: "🇬🇧 English", sentAt: "Gönderildi" },
-      en: { pageTitle: "Messages", placeholder: "Type a message...", send: "Send", home: "Home Page", turkish: "🇹🇷 Turkish", english: "🇬🇧 English", sentAt: "Sent at" }
-    };
+    const t = { tr: { pageTitle: "Mesajlar", placeholder: "Mesaj yaz...", send: "Gönder", home: "Ana Sayfa", turkish: "🇹🇷 Türkçe", english: "🇬🇧 English", sentAt: "Gönderildi" }, en: { pageTitle: "Messages", placeholder: "Type a message...", send: "Send", home: "Home Page", turkish: "🇹🇷 Turkish", english: "🇬🇧 English", sentAt: "Sent at" } };
 
     function setLang(l) {
       lang = l;
@@ -279,7 +268,7 @@
         }
       }
 
-      area.scrollTop = area.scrollHeight;
+      area.scrollTop = area.scrollHeight; // En alta kaydırma işlemi burada yapılıyor
     }
 
     async function markMessagesAsRead(fid) {
