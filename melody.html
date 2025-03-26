@@ -74,7 +74,7 @@
   <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
 
   <h1 id="page-title">Melodinizi Yükleyin</h1>
-  <p id="page-desc"> Melodinizi yükleyin. Herkes dinleyebilir!</p>
+  <p id="page-desc">MP3 veya diğer ses formatlarında melodinizi yükleyin. Herkes dinleyebilir!</p>
 
   <input type="file" id="melodyInput" accept="audio/*" />
   <button class="btn" onclick="uploadMelody()" id="upload-btn">Yükle</button>
@@ -85,7 +85,6 @@
   </div>
 
   <script>
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
       authDomain: "tunetra-2579b.firebaseapp.com",
@@ -95,7 +94,6 @@
       appId: "1:576238823779:web:b1796f089427e3b6fecb56"
     };
 
-    // Init Firebase
     firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
     const db = firebase.firestore();
@@ -111,7 +109,7 @@
       }
     });
 
-    async function uploadMelody() {
+    window.uploadMelody = async function () {
       const file = document.getElementById("melodyInput").files[0];
       if (!file) {
         alert("Lütfen bir ses dosyası seçin.");
@@ -120,7 +118,7 @@
 
       const fileName = `${Date.now()}_${file.name}`;
       const storageRef = storage.ref(`melodies/${fileName}`);
-      
+
       try {
         await storageRef.put(file);
         const url = await storageRef.getDownloadURL();
@@ -136,7 +134,7 @@
         console.error(err);
         alert("Yükleme sırasında hata oluştu.");
       }
-    }
+    };
 
     db.collection("melodies").orderBy("timestamp", "desc").onSnapshot(snapshot => {
       const list = document.getElementById("melodyList");
@@ -155,19 +153,19 @@
       });
     });
 
-    function setLang(lang) {
+    window.setLang = function (lang) {
       if (lang === "tr") {
         document.getElementById("page-title").innerText = "Melodinizi Yükleyin";
-        document.getElementById("page-desc").innerText = "MP3 formatında melodinizi yükleyin. Herkes dinleyebilir!";
+        document.getElementById("page-desc").innerText = "MP3 veya diğer ses formatlarında melodinizi yükleyin. Herkes dinleyebilir!";
         document.getElementById("upload-btn").innerText = "Yükle";
         document.getElementById("list-title").innerText = "Yüklenen Melodiler";
       } else {
         document.getElementById("page-title").innerText = "Upload Your Melody";
-        document.getElementById("page-desc").innerText = "Upload your melody in MP3 format. Everyone can listen!";
+        document.getElementById("page-desc").innerText = "Upload your melody in MP3 or other audio format. Everyone can listen!";
         document.getElementById("upload-btn").innerText = "Upload";
         document.getElementById("list-title").innerText = "Uploaded Melodies";
       }
-    }
+    };
   </script>
 
 </body>
