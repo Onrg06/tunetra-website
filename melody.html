@@ -3,13 +3,112 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Melodi Paylaş</title>
+  <title>Melodi Yükle</title>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-storage-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore-compat.js"></script>
+
+  <!-- Supabase (ESM modülü) -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "FIREBASE_API_KEY",
+      authDomain: "FIREBASE_AUTH_DOMAIN",
+      projectId: "FIREBASE_PROJECT_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Supabase config
+    const supabaseUrl = "SUPABASE_URL";
+    const supabaseKey = "SUPABASE_ANON_KEY";
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    const bucket = "melodies";
+
+    let currentUser = "Anonim";
+
+    auth.onAuthStateChanged((user) => {
+      if (user) currentUser = user.displayName || "Anonim";
+      else auth.signInAnonymously();
+    });
+
+    window.uploadMelody = async function () {
+      const file = document.getElementById("melodyInput").files[0];
+      if (!file) return alert(getText("selectFile"));
+
+      const fileName = `${Date.now()}_${file.name}`;
+      const { error } = await supabase.storage.from(bucket).upload(fileName, file);
+      if (error) return alert(getText("uploadError"));
+
+      const { publicUrl } = supabase.storage.from(bucket).getPublicUrl(fileName);
+
+      await db.collection("melodies").add({
+        uploader: currentUser,
+        audioUrl: publicUrl,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      alert(getText("uploadSuccess"));
+      document.getElementById("melodyInput").value = "";
+    };
+
+    // Listeleme
+    window.addEventListener("DOMContentLoaded", () => {
+      const list = document.getElementById("melodyList");
+      db.collection("melodies").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+        list.innerHTML = "";
+        snapshot.forEach(doc => {
+          const d = doc.data();
+          const time = d.timestamp?.toDate().toLocaleString() || "";
+          list.innerHTML += `
+            <div class="melody-item">
+              <p><strong>${d.uploader}</strong> (${time})</p>
+              <audio controls src="${d.audioUrl}"></audio>
+            </div>
+          `;
+        });
+      });
+    });
+
+    // Dil sistemi
+    window.setLang = function (lang) {
+      document.documentElement.lang = lang;
+      document.getElementById("title").innerText = texts[lang].title;
+      document.getElementById("upload-btn").innerText = texts[lang].upload;
+      document.getElementById("home-btn").innerText = texts[lang].home;
+      document.getElementById("melody-title").innerText = texts[lang].list;
+    };
+    function getText(key) {
+      const lang = document.documentElement.lang;
+      return texts[lang][key];
+    }
+
+    const texts = {
+      tr: {
+        title: "Melodi Yükle",
+        upload: "Yükle",
+        home: "Anasayfaya Dön",
+        list: "Yüklenen Melodiler",
+        selectFile: "Lütfen bir ses dosyası seçin.",
+        uploadError: "Dosya yüklenemedi.",
+        uploadSuccess: "Melodi başarıyla yüklendi!"
+      },
+      en: {
+        title: "Upload Melody",
+        upload: "Upload",
+        home: "Return Home",
+        list: "Uploaded Melodies",
+        selectFile: "Please select an audio file.",
+        uploadError: "File upload failed.",
+        uploadSuccess: "Melody uploaded successfully!"
+      }
+    };
+  </script>
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -28,6 +127,7 @@
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
+    h1 { margin-bottom: 20px; }
     .btn {
       padding: 12px 20px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
@@ -40,27 +140,16 @@
       transition: 0.3s;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
-    .btn:hover {
-      background: linear-gradient(to right, #2575fc, #6a11cb);
-    }
     input[type="file"] {
-      margin: 10px auto;
+      margin: 10px;
       color: white;
-    }
-    .melody-list {
-      margin-top: 30px;
-      max-width: 700px;
-      margin-left: auto;
-      margin-right: auto;
     }
     .melody-item {
       background: rgba(255,255,255,0.1);
       padding: 15px;
-      margin-bottom: 15px;
-      border-radius: 10px;
-    }
-    .melody-item p {
-      margin: 5px 0;
+      margin: 15px auto;
+      border-radius: 8px;
+      max-width: 600px;
     }
     audio {
       width: 100%;
@@ -70,103 +159,18 @@
 </head>
 <body>
 
-  <button class="btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
-  <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
-
-  <h1 id="page-title">Melodinizi Yükleyin</h1>
-  <p id="page-desc">MP3 veya diğer ses formatlarında melodinizi yükleyin. Herkes dinleyebilir!</p>
-
-  <input type="file" id="melodyInput" accept="audio/*" />
-  <button class="btn" onclick="uploadMelody()" id="upload-btn">Yükle</button>
-  <button class="btn" onclick="window.location.href='anasayfa.html'">Anasayfaya Dön</button>
-
-  <div class="melody-list" id="melodyList">
-    <h2 id="list-title">Yüklenen Melodiler</h2>
+  <div>
+    <button class="btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
+    <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
   </div>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-      authDomain: "tunetra-2579b.firebaseapp.com",
-      projectId: "tunetra-2579b",
-      storageBucket: "tunetra-2579b.appspot.com",
-      messagingSenderId: "576238823779",
-      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-    };
+  <h1 id="title">Melodi Yükle</h1>
+  <input type="file" id="melodyInput" accept="audio/*" />
+  <button class="btn" onclick="uploadMelody()" id="upload-btn">Yükle</button>
+  <button class="btn" onclick="location.href='anasayfa.html'" id="home-btn">Anasayfaya Dön</button>
 
-    firebase.initializeApp(firebaseConfig);
-    const storage = firebase.storage();
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-
-    let currentUser = "Anonim";
-
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        currentUser = user.displayName || "Bilinmeyen Kullanıcı";
-      } else {
-        auth.signInAnonymously();
-      }
-    });
-
-    window.uploadMelody = async function () {
-      const file = document.getElementById("melodyInput").files[0];
-      if (!file) {
-        alert("Lütfen bir ses dosyası seçin.");
-        return;
-      }
-
-      const fileName = `${Date.now()}_${file.name}`;
-      const storageRef = storage.ref(`melodies/${fileName}`);
-
-      try {
-        await storageRef.put(file);
-        const url = await storageRef.getDownloadURL();
-        await db.collection("melodies").add({
-          url: url,
-          name: file.name,
-          uploader: currentUser,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert("Melodi yüklendi!");
-        document.getElementById("melodyInput").value = "";
-      } catch (err) {
-        console.error(err);
-        alert("Yükleme sırasında hata oluştu.");
-      }
-    };
-
-    db.collection("melodies").orderBy("timestamp", "desc").onSnapshot(snapshot => {
-      const list = document.getElementById("melodyList");
-      list.innerHTML = `<h2 id="list-title">Yüklenen Melodiler</h2>`;
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const time = data.timestamp?.toDate().toLocaleString() || "Zaman bilinmiyor";
-        const div = document.createElement("div");
-        div.className = "melody-item";
-        div.innerHTML = `
-          <p><strong>${data.uploader}</strong> (${time})</p>
-          <p>${data.name}</p>
-          <audio controls src="${data.url}"></audio>
-        `;
-        list.appendChild(div);
-      });
-    });
-
-    window.setLang = function (lang) {
-      if (lang === "tr") {
-        document.getElementById("page-title").innerText = "Melodinizi Yükleyin";
-        document.getElementById("page-desc").innerText = "MP3 veya diğer ses formatlarında melodinizi yükleyin. Herkes dinleyebilir!";
-        document.getElementById("upload-btn").innerText = "Yükle";
-        document.getElementById("list-title").innerText = "Yüklenen Melodiler";
-      } else {
-        document.getElementById("page-title").innerText = "Upload Your Melody";
-        document.getElementById("page-desc").innerText = "Upload your melody in MP3 or other audio format. Everyone can listen!";
-        document.getElementById("upload-btn").innerText = "Upload";
-        document.getElementById("list-title").innerText = "Uploaded Melodies";
-      }
-    };
-  </script>
+  <h2 id="melody-title">Yüklenen Melodiler</h2>
+  <div id="melodyList"></div>
 
 </body>
 </html>
