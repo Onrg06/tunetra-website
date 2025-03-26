@@ -94,12 +94,6 @@
       width: 100%;
       border-radius: 6px;
     }
-    @media (max-width: 768px) {
-      .button-group {
-        flex-direction: column;
-        gap: 12px;
-      }
-    }
   </style>
 </head>
 <body>
@@ -112,7 +106,6 @@
     </div>
   </header>
 
-  <!-- Paylaşım Alanı -->
   <h3>Şarkınızı Paylaş</h3>
   <div class="button-group">
     <input type="text" id="songTitle" placeholder="Şarkı Başlığı" />
@@ -125,7 +118,6 @@
     <button class="btn" onclick="shareSong()">Şarkıyı Paylaş</button>
   </div>
 
-  <!-- Paylaşılan Şarkılar -->
   <h3>Paylaşılan Şarkılar</h3>
   <div class="song-list" id="songList">
     <!-- Paylaşılan şarkılar buraya gelecek -->
@@ -134,8 +126,9 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, serverTimestamp, query, onSnapshot, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js";
 
+    // Firebase yapılandırması
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
       authDomain: "tunetra-2579b.firebaseapp.com",
@@ -145,64 +138,37 @@
       appId: "1:576238823779:web:b1796f089427e3b6fecb56"
     };
 
+    // Firebase ve Supabase istemcilerini başlat
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
 
-    let currentUser = null;
-    const t = {
-      tr: {
-        pageTitle: "Hazır Şarkılar",
-        songTitle: "Şarkı Başlığı",
-        songLyrics: "Şarkı Sözleri",
-        share: "Şarkıyı Paylaş",
-        home: "Ana Sayfa",
-        turkish: "🇹🇷 Türkçe",
-        english: "🇬🇧 English",
-        sharedAt: "Paylaşıldı",
-        songTitlePlaceholder: "Şarkı başlığını girin",
-        songLyricsPlaceholder: "Şarkı sözlerini girin"
-      },
-      en: {
-        pageTitle: "Ready Songs",
-        songTitle: "Song Title",
-        songLyrics: "Song Lyrics",
-        share: "Share Song",
-        home: "Home Page",
-        turkish: "🇹🇷 Turkish",
-        english: "🇬🇧 English",
-        sharedAt: "Shared At",
-        songTitlePlaceholder: "Enter song title",
-        songLyricsPlaceholder: "Enter song lyrics"
+    const supabaseUrl = 'https://kqgbdfnqckcgrfizjdgt.supabase.co'; // Supabase URL
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZ2JkZm5xY2tjZ3JmaXpqZGd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5Nzk2NDQsImV4cCI6MjA1ODU1NTY0NH0.oxyfinrgv7AscolwMv6CuTMHBLeNokdERCKH00d1kfo'; // Supabase Anon Key
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    let currentUser  = null;
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser  = user; // Kullanıcı kimliğini al
+        loadFriends(user.uid); // Arkadaşları yükle
+      } else {
+        location.href = "index.html"; // Giriş sayfasına yönlendir
       }
-    };
-
-    function setLang(lang) {
-      document.getElementById("pageTitle").innerText = t[lang].pageTitle;
-      document.getElementById("songTitle").placeholder = t[lang].songTitlePlaceholder;
-      document.getElementById("songLyrics").placeholder = t[lang].songLyricsPlaceholder;
-      document.querySelector(".btn").innerText = t[lang].share;
-      document.getElementById("homeBtn").innerText = "🏠 " + t[lang].home;
-      document.getElementById("btnTr").innerText = t[lang].turkish;
-      document.getElementById("btnEn").innerText = t[lang].english;
-    }
+    });
 
     async function loadFriends(uid) {
-      const friendsRef = doc(db, "users", uid);
-      const friendsSnap = await getDoc(friendsRef);
+      const friendsRef = supabase.from('users').select('*').eq('id', uid);
+      const { data: friends, error } = await friendsRef;
+
       const friendsList = document.getElementById("friendSelect");
       friendsList.innerHTML = '<option value="">Arkadaş Seçin</option>';
-      if (friendsSnap.exists()) {
-        const friends = friendsSnap.data().friends || [];
-        friends.forEach(async (friendId) => {
-          const userDoc = await getDoc(doc(db, "users", friendId));
-          if (userDoc.exists()) {
-            const userName = userDoc.data().username;
-            const option = document.createElement("option");
-            option.value = friendId;
-            option.textContent = userName;
-            friendsList.appendChild(option);
-          }
+      if (friends && friends.length > 0) {
+        friends.forEach(friend => {
+          const option = document.createElement("option");
+          option.value = friend.id;
+          option.textContent = friend.username; // Kullanıcı adını göster
+          friendsList.appendChild(option);
         });
       }
     }
@@ -218,16 +184,36 @@
         return;
       }
 
-      const audioUrl = await uploadAudio(audioFile);
-      const sharedAt = serverTimestamp();
+      // Ses dosyasını Supabase'e yükle
+      const { data: fileData, error: uploadError } = await supabase.storage
+        .from('songs') // 'songs' adında bir depolama alanı oluşturmalısınız
+        .upload(`public/${audioFile.name}`, audioFile);
 
-      await addDoc(collection(db, "songs"), {
-        title: songTitle,
-        lyrics: songLyrics,
-        audioUrl,
-        sharedAt,
-        users: [currentUser.uid, selectedFriend]
-      });
+      if (uploadError) {
+        alert("Ses dosyası yüklenirken bir hata oluştu: " + uploadError.message);
+        return;
+      }
+
+      // Dosya URL'sini al
+      const audioUrl = `${supabaseUrl}/storage/v1/object/public/songs/${fileData.path}`;
+
+      // Şarkı bilgilerini Supabase veritabanına ekle
+      const { error: dbError } = await supabase
+        .from('songs') // 'songs' adında bir tablo oluşturmalısınız
+        .insert([
+          {
+            title: songTitle,
+            lyrics: songLyrics,
+            audio_url: audioUrl,
+            shared_at: new Date(),
+            users: [currentUser .uid, selectedFriend] // Firebase kullanıcı kimliğini kullan
+          }
+        ]);
+
+      if (dbError) {
+        alert("Şarkı veritabanına eklenirken bir hata oluştu: " + dbError.message);
+        return;
+      }
 
       alert("Şarkınız başarıyla paylaşıldı!");
       document.getElementById("songTitle").value = "";
@@ -235,21 +221,11 @@
       document.getElementById("audioFile").value = "";
     };
 
-    async function uploadAudio(file) {
-      const storageRef = storage.ref();
-      const audioRef = storageRef.child(`songs/${file.name}`);
-      await audioRef.put(file);
-      return await audioRef.getDownloadURL();
-    }
-
     window.goHome = () => location.href = "anasayfa.html";
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return location.href = "index.html";
-      currentUser = user;
-      setLang(localStorage.getItem("lang") || "tr");
-      loadFriends(user.uid);
-    });
+    function setLang(lang) {
+      // Dil ayarları burada yapılacak
+    }
 
     window.addEventListener("DOMContentLoaded", () => {
       setLang("tr");
