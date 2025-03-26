@@ -257,9 +257,6 @@
             msgCount++;
           }
         });
-        const messagesBase = translations[currentLang].messages;
-        document.getElementById("btnMessages").innerText = `📨 ${messagesBase} (${msgCount})`;
-      });
     }
 
     onAuthStateChanged(auth, (user) => {
