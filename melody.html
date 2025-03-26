@@ -48,7 +48,7 @@
         return alert(getText("uploadError") + " " + error.message);
       }
 
-      const { publicUrl } = supabase.storage.from(bucket).getPublicUrl(fileName);
+const publicUrl = supabase.storage.from(bucket).getPublicUrl(fileName).data.publicUrl;
 
       try {
         await db.collection("melodies").add({
