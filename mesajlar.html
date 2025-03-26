@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TuneTRa | Mesajlar</title>
   <style>
+  <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
 
     body {
@@ -160,6 +161,7 @@
       }
     }
   </style>
+  </style>
 </head>
 <body>
   <header>
@@ -180,19 +182,29 @@
       </div>
     </div>
   </div>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const firebaseConfig = { apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg", authDomain: "tunetra-2579b.firebaseapp.com", projectId: "tunetra-2579b", storageBucket: "tunetra-2579b.appspot.com", messagingSenderId: "576238823779", appId: "1:576238823779:web:b1796f089427e3b6fecb56" };
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+    };
+
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
     let currentUser = null, selectedFriendId = null, unsubscribe = null, lang = localStorage.getItem("lang") || "tr";
-    const t = { tr: { pageTitle: "Mesajlar", placeholder: "Mesaj yaz...", send: "Gönder", home: "Ana Sayfa", turkish: "🇹🇷 Türkçe", english: "🇬🇧 English", sentAt: "Gönderildi" }, en: { pageTitle: "Messages", placeholder: "Type a message...", send: "Send", home: "Home Page", turkish: "🇹🇷 Turkish", english: "🇬🇧 English", sentAt: "Sent at" } };
+    const t = {
+      tr: { pageTitle: "Mesajlar", placeholder: "Mesaj yaz...", send: "Gönder", home: "Ana Sayfa", turkish: "🇹🇷 Türkçe", english: "🇬🇧 English", sentAt: "Gönderildi" },
+      en: { pageTitle: "Messages", placeholder: "Type a message...", send: "Send", home: "Home Page", turkish: "🇹🇷 Turkish", english: "🇬🇧 English", sentAt: "Sent at" }
+    };
 
     function setLang(l) {
       lang = l;
@@ -226,9 +238,7 @@
         const unread = await checkUnreadMessages(fid); // Arkadaşa ait okuma işaretini kontrol et
         const div = document.createElement("div");
         div.className = "chat-item";
-        div.innerHTML = `
-          ${name} ${unread ? "<span class='unread-indicator'>⚪</span>" : ""}
-        `;
+        div.innerHTML = `${name} ${unread ? "<span class='unread-indicator'>⚪</span>" : ""}`;
         div.onclick = () => openChat(fid, div, unread); // Tıklanınca sohbet başlatılacak
         list.appendChild(div);
       }
@@ -240,7 +250,6 @@
       const snap = await getDoc(convoRef);
       if (!snap.exists()) return false;
       const msgs = snap.data().messages || [];
-      // Okunmamış mesajlar varsa işareti göster
       return msgs.some(msg => msg.sender !== currentUser.uid && (!msg.seenBy || !msg.seenBy.includes(currentUser.uid)));
     }
 
@@ -249,9 +258,8 @@
       document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
       el.classList.add("active");
 
-      // Eğer okuma işareti varsa, bunu kaldır
       if (unread) {
-        await markMessagesAsRead(fid);
+        await markMessagesAsRead(fid);  // Mesajları okundu olarak işaretle
       }
 
       const convoId = getConversationId(currentUser.uid, fid);
@@ -273,13 +281,7 @@
         }
       }
 
-      setTimeout(() => {
-        area.scrollTop = area.scrollHeight;
-        const lastMessage = area.lastElementChild;
-        if (lastMessage) {
-          lastMessage.scrollIntoView({ behavior: "smooth" });
-        }
-      }, 100);
+      area.scrollTop = area.scrollHeight;
     }
 
     async function markMessagesAsRead(fid) {
@@ -289,7 +291,6 @@
       if (snap.exists()) {
         const convoData = snap.data();
         const msgs = convoData.messages || [];
-        // Mesajları okundu olarak işaretle
         const updatedMsgs = msgs.map(msg => {
           if (msg.sender !== currentUser.uid && (!msg.seenBy || !msg.seenBy.includes(currentUser.uid))) {
             msg.seenBy = [...(msg.seenBy || []), currentUser.uid];
@@ -318,6 +319,7 @@
       }
 
       input.value = "";
+      updateMessageCount();  // Mesaj gönderildikten sonra mesaj sayısını güncelle
     };
 
     window.goHome = () => location.href = "anasayfa.html";
