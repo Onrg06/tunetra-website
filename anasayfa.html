@@ -6,8 +6,8 @@
   <title>TuneTRa | Ana Sayfa</title>
   <style>
     * {
-      box-sizing: border-box;
-      margin: 0;
+      box-sizing: border-box; 
+      margin: 0; 
       padding: 0;
       font-family: 'Segoe UI', sans-serif;
     }
@@ -124,31 +124,26 @@
   </style>
 </head>
 <body>
-  <!-- Dil butonları -->
   <div class="language-buttons">
     <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
     <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
   </div>
 
-  <!-- Hoş Geldin Yazısı -->
   <h1 id="welcomeMessage">🎶 Hoş Geldin!</h1>
   <p id="introText">Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!</p>
 
-  <!-- Grup 1: Kullanıcı -->
   <div class="button-group">
     <a href="profil.html" class="profile-btn" id="btnProfile">👤 Profilim</a>
     <a href="arkadaslar.html" class="friends-btn" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım</a>
     <a href="mesajlar.html" class="messages-btn" id="btnMessages">📨 Mesajlarım (0)</a>
   </div>
 
-  <!-- Grup 2: İçerik -->
   <div class="button-group">
     <a href="lyrics.html" class="extra-btn" id="btnLyrics">✍️ Sözler / Şiirler</a>
     <a href="melody.html" class="extra-btn" id="btnMelody">🎵 Melodi</a>
     <a href="hazir.html" class="extra-btn" id="btnSongs">🎶 Hazır Şarkılar</a>
   </div>
 
-  <!-- Grup 3: Yardımcı -->
   <div class="button-group">
     <a href="dilek.html" class="extra-btn" id="btnFeedback">📮 Dilek & Şikayet Kutusu</a>
     <a href="duyuru.html" class="extra-btn" id="btnAnnouncements">📢 Duyurular</a>
@@ -156,14 +151,10 @@
     <a href="index.html" class="btn" onclick="logout()" id="logoutBtn">Çıkış Yap</a>
   </div>
 
-  <!-- Firebase ve JS -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import {
-      getFirestore, doc, getDoc,
-      collection, query, where, onSnapshot
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
