@@ -105,12 +105,6 @@
       margin-top: 5px;
     }
 
-    .unread-indicator {
-      font-size: 1.2rem;
-      color: red;
-      margin-left: 5px;
-    }
-
     .send-box {
       display: flex;
       gap: 10px;
@@ -181,6 +175,7 @@
       </div>
     </div>
   </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -223,20 +218,36 @@
         const fdoc = await getDoc(doc(db, "users", fid));
         if (!fdoc.exists()) continue;
         const name = fdoc.data().username;
+        const unread = await checkUnreadMessages(fid); // Arkadaşa ait okuma işaretini kontrol et
         const div = document.createElement("div");
         div.className = "chat-item";
-        div.innerText = name;
-        div.onclick = () => openChat(fid, div);
+        div.innerHTML = `
+          ${name} ${unread ? "<span class='unread-indicator'>⚪</span>" : ""}
+        `;
+        div.onclick = () => openChat(fid, div, unread); // Tıklanınca sohbet başlatılacak
         list.appendChild(div);
       }
     }
 
-    async function openChat(fid, el) {
+    async function checkUnreadMessages(fid) {
+      const convoId = getConversationId(currentUser.uid, fid);
+      const convoRef = doc(db, "conversations", convoId);
+      const snap = await getDoc(convoRef);
+      if (!snap.exists()) return false;
+      const msgs = snap.data().messages || [];
+      // Okunmamış mesajlar varsa işareti göster
+      return msgs.some(msg => msg.sender !== currentUser.uid && (!msg.seenBy || !msg.seenBy.includes(currentUser.uid)));
+    }
+
+    async function openChat(fid, el, unread) {
       selectedFriendId = fid;
       document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
       el.classList.add("active");
 
-      if (unsubscribe) unsubscribe();
+      // Eğer okuma işareti varsa, bunu kaldır
+      if (unread) {
+        await markMessagesAsRead(fid);
+      }
 
       const convoId = getConversationId(currentUser.uid, fid);
       const convoRef = doc(db, "conversations", convoId);
@@ -252,12 +263,7 @@
         for (const msg of msgs) {
           const div = document.createElement("div");
           div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
-          const unreadIndicator = msg.unread ? "<span class='unread-indicator'>⚪</span>" : "";
-          div.innerHTML = `
-            <div>${msg.text}</div>
-            ${unreadIndicator}
-            <div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>
-          `;
+          div.innerHTML = `<div>${msg.text}</div><div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>`;
           area.appendChild(div);
         }
       }
@@ -269,35 +275,24 @@
           lastMessage.scrollIntoView({ behavior: "smooth" });
         }
       }, 100);
+    }
 
-      unsubscribe = onSnapshot(convoRef, async (snap) => {
-        if (!snap.exists()) return;
+    async function markMessagesAsRead(fid) {
+      const convoId = getConversationId(currentUser.uid, fid);
+      const convoRef = doc(db, "conversations", convoId);
+      const snap = await getDoc(convoRef);
+      if (snap.exists()) {
         const convoData = snap.data();
         const msgs = convoData.messages || [];
-        msgs.sort((a, b) => a.timestamp - b.timestamp);
-
-        area.innerHTML = "";
-
-        for (const msg of msgs) {
-          const div = document.createElement("div");
-          div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
-          const unreadIndicator = msg.unread ? "<span class='unread-indicator'>⚪</span>" : "";
-          div.innerHTML = `
-            <div>${msg.text}</div>
-            ${unreadIndicator}
-            <div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>
-          `;
-          area.appendChild(div);
-        }
-
-        setTimeout(() => {
-          area.scrollTop = area.scrollHeight;
-          const lastMessage = area.lastElementChild;
-          if (lastMessage) {
-            lastMessage.scrollIntoView({ behavior: "smooth" });
+        // Mesajları okundu olarak işaretle
+        const updatedMsgs = msgs.map(msg => {
+          if (msg.sender !== currentUser.uid && (!msg.seenBy || !msg.seenBy.includes(currentUser.uid))) {
+            msg.seenBy = [...(msg.seenBy || []), currentUser.uid];
           }
-        }, 100);
-      });
+          return msg;
+        });
+        await setDoc(convoRef, { ...convoData, messages: updatedMsgs });
+      }
     }
 
     window.sendMessage = async () => {
@@ -305,7 +300,7 @@
       const text = input.value.trim();
       if (!text || !selectedFriendId || !currentUser) return;
       const id = crypto.randomUUID();
-      const msg = { id, sender: currentUser.uid, text, timestamp: Date.now(), seenBy: [], unread: true };
+      const msg = { id, sender: currentUser.uid, text, timestamp: Date.now(), seenBy: [currentUser.uid] };
       const convoId = getConversationId(currentUser.uid, selectedFriendId);
       const convoRef = doc(db, "conversations", convoId);
       const snap = await getDoc(convoRef);
