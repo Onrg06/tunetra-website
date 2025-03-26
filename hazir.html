@@ -36,6 +36,15 @@
       padding: 15px 20px;
       width: 100%;
     }
+    h2 {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+    h3 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-top: 15px;
+    }
     .lang-btn {
       padding: 6px 10px;
       border: none;
@@ -95,9 +104,21 @@
       border-radius: 6px;
     }
     @media (max-width: 768px) {
+      h2 {
+        font-size: 1.8rem;
+        text-align: center;
+      }
+      h3 {
+        font-size: 1.4rem;
+        text-align: center;
+      }
       .button-group {
         flex-direction: column;
         gap: 12px;
+      }
+      .song-item {
+        padding: 12px;
+        font-size: 0.9rem;
       }
     }
   </style>
@@ -112,7 +133,6 @@
     </div>
   </header>
 
-  <!-- Paylaşım Alanı -->
   <h3>Şarkınızı Paylaş</h3>
   <div class="button-group">
     <input type="text" id="songTitle" placeholder="Şarkı Başlığı" />
@@ -120,24 +140,19 @@
     <input type="file" id="audioFile" accept="audio/*" />
     <select id="friendSelect">
       <option value="">Arkadaş Seçin</option>
-      <!-- Dinamik olarak arkadaşlar buraya eklenecek -->
     </select>
     <button class="btn" onclick="shareSong()">Şarkıyı Paylaş</button>
   </div>
 
-  <!-- Paylaşılan Şarkılar -->
   <h3>Paylaşılan Şarkılar</h3>
-  <div class="song-list" id="songList">
-    <!-- Paylaşılan şarkılar buraya gelecek -->
-  </div>
+  <div class="song-list" id="songList"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, serverTimestamp, query, onSnapshot, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
+    import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    
     const firebaseConfig = {
-      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      apiKey: "AIzaSy...",
       authDomain: "tunetra-2579b.firebaseapp.com",
       projectId: "tunetra-2579b",
       storageBucket: "tunetra-2579b.appspot.com",
@@ -146,114 +161,48 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
     const db = getFirestore(app);
 
-    let currentUser = null;
-    const t = {
-      tr: {
-        pageTitle: "Hazır Şarkılar",
-        songTitle: "Şarkı Başlığı",
-        songLyrics: "Şarkı Sözleri",
-        share: "Şarkıyı Paylaş",
-        home: "Ana Sayfa",
-        turkish: "🇹🇷 Türkçe",
-        english: "🇬🇧 English",
-        sharedAt: "Paylaşıldı",
-        songTitlePlaceholder: "Şarkı başlığını girin",
-        songLyricsPlaceholder: "Şarkı sözlerini girin"
-      },
-      en: {
-        pageTitle: "Ready Songs",
-        songTitle: "Song Title",
-        songLyrics: "Song Lyrics",
-        share: "Share Song",
-        home: "Home Page",
-        turkish: "🇹🇷 Turkish",
-        english: "🇬🇧 English",
-        sharedAt: "Shared At",
-        songTitlePlaceholder: "Enter song title",
-        songLyricsPlaceholder: "Enter song lyrics"
-      }
-    };
-
-    function setLang(lang) {
-      document.getElementById("pageTitle").innerText = t[lang].pageTitle;
-      document.getElementById("songTitle").placeholder = t[lang].songTitlePlaceholder;
-      document.getElementById("songLyrics").placeholder = t[lang].songLyricsPlaceholder;
-      document.querySelector(".btn").innerText = t[lang].share;
-      document.getElementById("homeBtn").innerText = "🏠 " + t[lang].home;
-      document.getElementById("btnTr").innerText = t[lang].turkish;
-      document.getElementById("btnEn").innerText = t[lang].english;
-    }
-
     async function loadFriends(uid) {
-      const friendsRef = collection(db, "friends");
-      const friendsSnap = await getDoc(doc(friendsRef, uid));
+      const friendsRef = doc(db, "friends", uid);
+      const friendsSnap = await getDoc(friendsRef);
       const friendsList = document.getElementById("friendSelect");
       friendsList.innerHTML = '<option value="">Arkadaş Seçin</option>';
+
       if (friendsSnap.exists()) {
         const friends = friendsSnap.data().list || [];
-        friends.forEach(async (friendId) => {
+        for (const friendId of friends) {
           const userDoc = await getDoc(doc(db, "users", friendId));
           if (userDoc.exists()) {
-            const userName = userDoc.data().username;
             const option = document.createElement("option");
             option.value = friendId;
-            option.textContent = userName;
+            option.textContent = userDoc.data().username;
             friendsList.appendChild(option);
           }
-        });
+        }
       }
     }
 
-    window.shareSong = async () => {
-      const songTitle = document.getElementById("songTitle").value;
-      const songLyrics = document.getElementById("songLyrics").value;
-      const audioFile = document.getElementById("audioFile").files[0];
-      const selectedFriend = document.getElementById("friendSelect").value;
+    async function shareSong() {
+      const title = document.getElementById("songTitle").value;
+      const lyrics = document.getElementById("songLyrics").value;
+      const friendId = document.getElementById("friendSelect").value;
 
-      if (!songTitle || !songLyrics || !audioFile || !selectedFriend) {
+      if (!title || !lyrics || !friendId) {
         alert("Lütfen tüm alanları doldurun!");
         return;
       }
 
-      const audioUrl = await uploadAudio(audioFile);
-      const sharedAt = serverTimestamp();
-
       await addDoc(collection(db, "songs"), {
-        title: songTitle,
-        lyrics: songLyrics,
-        audioUrl,
-        sharedAt,
-        users: [currentUser.uid, selectedFriend]
+        title, lyrics, sharedAt: serverTimestamp(), users: [friendId]
       });
 
-      alert("Şarkınız başarıyla paylaşıldı!");
-      document.getElementById("songTitle").value = "";
-      document.getElementById("songLyrics").value = "";
-      document.getElementById("audioFile").value = "";
-    };
-
-    async function uploadAudio(file) {
-      const storageRef = storage.ref();
-      const audioRef = storageRef.child(`songs/${file.name}`);
-      await audioRef.put(file);
-      return await audioRef.getDownloadURL();
+      alert("Şarkı başarıyla paylaşıldı!");
     }
 
-    window.goHome = () => location.href = "anasayfa.html";
+    function goHome() { location.href = "anasayfa.html"; }
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return location.href = "index.html";
-      currentUser = user;
-      setLang(localStorage.getItem("lang") || "tr");
-      loadFriends(user.uid);
-    });
-
-    window.addEventListener("DOMContentLoaded", () => {
-      setLang("tr");
-    });
+    loadFriends("USER_ID"); // Buraya gerçek kullanıcı ID'sini koy
   </script>
 </body>
 </html>
