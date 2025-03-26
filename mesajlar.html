@@ -285,7 +285,7 @@
           const div = document.createElement("div");
           div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
           div.innerHTML = `
-            <div class="sender">${msg.sender === currentUser.uid ? 'Sen' : 'Arkadaş'}</div>
+            <div class="sender">${msg.sender === currentUser.uid ? (lang === "tr" ? 'Sen' : 'You') : msg.sender}</div>
             <div>${msg.text}</div>
             <div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>
           `;
@@ -329,7 +329,7 @@
           const div = document.createElement("div");
           div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
           div.innerHTML = `
-            <div class="sender">${msg.sender === currentUser.uid ? 'Sen' : 'Arkadaş'}</div>
+            <div class="sender">${msg.sender === currentUser.uid ? (lang === "tr" ? 'Sen' : 'You') : msg.sender}</div>
             <div>${msg.text}</div>
             <div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>
           `;
