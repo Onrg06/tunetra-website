@@ -2,279 +2,191 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TuneTRa | Hazır Şarkılar</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', sans-serif;
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hazır Şarkılar</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore-compat.js"></script>
+
+  <!-- Supabase -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Supabase config
+    const supabaseUrl = "https://kqgbdfnqckcgrfizjdgt.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZ2JkZm5xY2tjZ3JmaXpqZGd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5Nzk2NDQsImV4cCI6MjA1ODU1NTY0NH0.oxyfinrgv7AscolwMv6CuTMHBLeNokdERCKH00d1kfo";
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    const bucket = "melodies";
+
+    let currentUser = "Anonim";
+
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        const userDoc = await db.collection("users").doc(user.uid).get();
+        if (userDoc.exists) {
+          currentUser = userDoc.data().username || "Anonim";
+        } else {
+          currentUser = "Anonim";
+        }
+      } else {
+        auth.signInAnonymously();
+      }
+    });
+
+    window.uploadMelody = async function () {
+      const file = document.getElementById("melodyInput").files[0];
+      if (!file) return alert(getText("selectFile"));
+
+      const fileName = `${Date.now()}_${file.name}`;
+      const { error } = await supabase.storage.from(bucket).upload(fileName, file);
+      if (error) {
+        console.error("Yükleme hatası:", error.message);
+        return alert(getText("uploadError") + " " + error.message);
+      }
+
+      const publicUrl = supabase.storage.from(bucket).getPublicUrl(fileName).data.publicUrl;
+
+      try {
+        await db.collection("melodies").add({
+          uploader: currentUser,
+          audioUrl: publicUrl,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert(getText("uploadSuccess"));
+        document.getElementById("melodyInput").value = "";
+      } catch (err) {
+        console.error("Firestore hatası:", err.message);
+        alert("Firestore’a yazılamadı: " + err.message);
+      }
+    };
+
+    // Listeleme
+    window.addEventListener("DOMContentLoaded", () => {
+      const list = document.getElementById("melodyList");
+      db.collection("melodies").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+        list.innerHTML = "";
+        snapshot.forEach(doc => {
+          const d = doc.data();
+          const time = d.timestamp?.toDate().toLocaleString() || "";
+          list.innerHTML += `
+            <div class="melody-item">
+              <p><strong>${d.uploader}</strong> (${time})</p>
+              <audio controls src="${d.audioUrl}"></audio>
+            </div>
+          `;
+        });
+      });
+    });
+
+    // Dil sistemi
+    window.setLang = function (lang) {
+      document.documentElement.lang = lang;
+      document.getElementById("title").innerText = texts[lang].title;
+      document.getElementById("upload-btn").innerText = texts[lang].upload;
+      document.getElementById("home-btn").innerText = texts[lang].home;
+      document.getElementById("melody-title").innerText = texts[lang].list;
+    };
+
+    function getText(key) {
+      const lang = document.documentElement.lang;
+      return texts[lang][key];
     }
+
+    const texts = {
+      tr: {
+        title: "Melodi Yükle",
+        upload: "Yükle",
+        home: "Anasayfaya Dön",
+        list: "Yüklenen Melodiler",
+        selectFile: "Lütfen bir ses dosyası seçin.",
+        uploadError: "Dosya yüklenemedi:",
+        uploadSuccess: "Melodi başarıyla yüklendi!"
+      },
+      en: {
+        title: "Upload Melody",
+        upload: "Upload",
+        home: "Home Page",
+        list: "Uploaded Melodies",
+        selectFile: "Please select an audio file.",
+        uploadError: "File upload failed:",
+        uploadSuccess: "Melody uploaded successfully!"
+      }
+    };
+  </script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
       background-size: 400% 400%;
       animation: gradientShift 15s ease infinite;
+      font-family: Arial, sans-serif;
       color: white;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      text-align: center;
       padding: 20px;
+      text-align: center;
     }
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px 20px;
-      width: 100%;
-    }
-    .lang-btn {
-      padding: 6px 10px;
-      border: none;
-      border-radius: 6px;
-      background: linear-gradient(to right, #6a11cb, #2575fc);
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      margin-left: 10px;
-    }
+    h1 { margin-bottom: 20px; }
     .btn {
       padding: 12px 20px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
       border: none;
-      border-radius: 12px;
+      border-radius: 10px;
       color: white;
       font-weight: bold;
-      text-decoration: none;
-      margin: 8px auto;
+      margin: 10px;
       cursor: pointer;
-      transition: all 0.3s ease;
-      width: 100%;
-      max-width: 320px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      display: block;
-      text-align: center;
+      transition: 0.3s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
-    .btn:hover {
-      transform: scale(1.03);
-      background: linear-gradient(to right, #2575fc, #6a11cb);
+    input[type="file"] {
+      margin: 10px;
+      color: white;
     }
-    .button-group {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin: 20px 0;
-      width: 100%;
-      max-width: 340px;
-    }
-    .song-list {
-      width: 100%;
-      max-width: 600px;
-      margin-top: 20px;
-    }
-    .song-item {
-      background: rgba(255, 255, 255, 0.1);
+    .melody-item {
+      background: rgba(255,255,255,0.1);
       padding: 15px;
-      margin-bottom: 10px;
-      border-radius: 6px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      margin: 15px auto;
+      border-radius: 8px;
+      max-width: 600px;
     }
-    .song-item h3 {
-      margin-bottom: 10px;
-    }
-    .song-item audio {
+    audio {
       width: 100%;
-      border-radius: 6px;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h2 id="pageTitle">Hazır Şarkılar</h2>
-    <div>
-      <button class="lang-btn" id="homeBtn">🏠 Ana Sayfa</button>
-      <button class="lang-btn" id="btnTr">🇹🇷 Türkçe</button>
-      <button class="lang-btn" id="btnEn">🇬🇧 English</button>
-    </div>
-  </header>
 
-  <h3 id="shareSongTitle">Şarkınızı Paylaş</h3>
-  <div class="button-group">
-    <input type="text" id="songTitle" placeholder="Şarkı Başlığı" />
-    <textarea id="songLyrics" placeholder="Şarkı Sözleri" rows="5"></textarea>
-    <input type="file" id="audioFile" accept="audio/*" />
-    <select id="friendSelect">
-      <option value="">Arkadaş Seçin</option>
-    </select>
-    <button class="btn" id="shareBtn">Şarkıyı Paylaş</button>
+  <div>
+    <button class="btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
+    <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
   </div>
 
-  <h3>Paylaşılan Şarkılar</h3>
-  <div class="song-list" id="songList"></div>
+  <h1 id="title">Melodi Yükle</h1>
+  <input type="file" id="melodyInput" accept="audio/*" />
+  <button class="btn" onclick="uploadMelody()" id="upload-btn">Yükle</button>
+  <button class="btn" onclick="location.href='anasayfa.html'" id="home-btn">Anasayfa</button>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js";
+  <h2 id="melody-title">Yüklenen Melodiler</h2>
+  <div id="melodyList"></div>
 
-    // Firebase yapılandırması
-    const firebaseConfig = {
-      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-      authDomain: "tunetra-2579b.firebaseapp.com",
-      projectId: "tunetra-2579b",
-      storageBucket: "tunetra-2579b.appspot.com",
-      messagingSenderId: "576238823779",
-      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-    };
-
-    // Firebase ve Supabase istemcilerini başlat
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    const supabaseUrl = 'https://kqgbdfnqckcgrfizjdgt.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZ2JkZm5xY2tjZ3JmaXpqZGd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5Nzk2NDQsImV4cCI6MjA1ODU1NTY0NH0.oxyfinrgv7AscolwMv6CuTMHBLeNokdERCKH00d1kfo';
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    let currentUser = null;
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        currentUser = user;
-        loadFriends(user.uid);
-      } else {
-        location.href = "index.html";
-      }
-    });
-
-    async function loadFriends(uid) {
-      const { data: friends, error } = await supabase
-        .from('friends') // Arkadaşlar tablosu
-        .select('username, id')
-        .eq('user_id', uid); // Arkadaşları yükle
-
-      const friendsList = document.getElementById("friendSelect");
-      friendsList.innerHTML = '<option value="">Arkadaş Seçin</option>';
-
-      if (error) {
-        console.error("Arkadaşlar yüklenirken hata oluştu: ", error.message);
-        return;
-      }
-
-      if (friends && friends.length > 0) {
-        friends.forEach(friend => {
-          const option = document.createElement("option");
-          option.value = friend.id;
-          option.textContent = friend.username;
-          friendsList.appendChild(option);
-        });
-      } else {
-        friendsList.innerHTML = '<option value="">Arkadaşınız yok</option>';
-      }
-    }
-
-    window.shareSong = async () => {
-      const songTitle = document.getElementById("songTitle").value;
-      const songLyrics = document.getElementById("songLyrics").value;
-      const audioFile = document.getElementById("audioFile").files[0];
-      const selectedFriend = document.getElementById("friendSelect").value;
-
-      if (!songTitle || !songLyrics || !audioFile || !selectedFriend) {
-        alert("Lütfen tüm alanları doldurun!");
-        return;
-      }
-
-      const { data: fileData, error: uploadError } = await supabase.storage
-        .from('songs')
-        .upload(`public/${audioFile.name}`, audioFile);
-
-      if (uploadError) {
-        alert("Ses dosyası yüklenirken bir hata oluştu: " + uploadError.message);
-        return;
-      }
-
-      const audioUrl = `${supabaseUrl}/storage/v1/object/public/songs/${fileData.path}`;
-
-      const { error: dbError } = await supabase
-        .from('songs')
-        .insert([{
-            title: songTitle,
-            lyrics: songLyrics,
-            audio_url: audioUrl,
-            shared_at: new Date(),
-            users: [currentUser.uid, selectedFriend]
-        }]);
-
-      if (dbError) {
-        alert("Şarkı veritabanına eklenirken bir hata oluştu: " + dbError.message);
-        return;
-      }
-
-      alert("Şarkınız başarıyla paylaşıldı!");
-      document.getElementById("songTitle").value = "";
-      document.getElementById("songLyrics").value = "";
-      document.getElementById("audioFile").value = "";
-    };
-
-    // Ana sayfaya gitme
-    window.goHome = () => location.href = "anasayfa.html";
-
-    // Dil ayarlama
-    function setLang(lang) {
-      const langElements = {
-        title: {
-          tr: "Hazır Şarkılar",
-          en: "Ready Songs"
-        },
-        shareTitle: {
-          tr: "Şarkınızı Paylaş",
-          en: "Share Your Song"
-        },
-        songTitle: {
-          tr: "Şarkı Başlığı",
-          en: "Song Title"
-        },
-        songLyrics: {
-          tr: "Şarkı Sözleri",
-          en: "Song Lyrics"
-        },
-        shareBtn: {
-          tr: "Şarkıyı Paylaş",
-          en: "Share Song"
-        }
-      };
-
-      document.getElementById("pageTitle").textContent = langElements.title[lang];
-      document.querySelector("h3:nth-of-type(1)").textContent = langElements.shareTitle[lang];
-      document.getElementById("songTitle").placeholder = langElements.songTitle[lang];
-      document.getElementById("songLyrics").placeholder = langElements.songLyrics[lang];
-      document.getElementById("shareBtn").textContent = langElements.shareBtn[lang];
-
-      if (lang === 'tr') {
-        document.getElementById("btnTr").style.backgroundColor = '#2575fc';
-        document.getElementById("btnEn").style.backgroundColor = 'transparent';
-      } 
-      if (lang === 'en'){
-        document.getElementById("btnEn").style.backgroundColor = '#2575fc';
-        document.getElementById("btnTr").style.backgroundColor = 'transparent';
-      }
-    }
-
-    // Butonlara olay dinleyicisi ekleme
-    document.getElementById("btnTr").addEventListener("click", () => setLang("tr"));
-    document.getElementById("btnEn").addEventListener("click", () => setLang("en"));
-    document.getElementById("homeBtn").addEventListener("click", goHome);
-
-    window.addEventListener("DOMContentLoaded", () => {
-      setLang("tr");
-    });
-  </script>
 </body>
 </html>
