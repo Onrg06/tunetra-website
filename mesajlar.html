@@ -181,11 +181,10 @@
     import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = { apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg", authDomain: "tunetra-2579b.firebaseapp.com", projectId: "tunetra-2579b", storageBucket: "tunetra-2579b.appspot.com", messagingSenderId: "576238823779", appId: "1:576238823779:web:b1796f089427e3b6fecb56" };
-    const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    let currentUser   = null, selectedFriendId = null, unsubscribe = null, lang = localStorage.getItem("lang") || "tr";
+    let currentUser = null, selectedFriendId = null, unsubscribe = null, lang = localStorage.getItem("lang") || "tr";
     const t = { tr: { pageTitle: "Mesajlar", placeholder: "Mesaj yaz...", send: "Gönder", home: "Ana Sayfa", turkish: "🇹🇷 Türkçe", english: "🇬🇧 English", sentAt: "Gönderildi" }, en: { pageTitle: "Messages", placeholder: "Type a message...", send: "Send", home: "Home Page", turkish: "🇹🇷 Turkish", english: "🇬🇧 English", sentAt: "Sent at" } };
 
     function setLang(l) {
@@ -225,75 +224,72 @@
       }
     }
 
-async function openChat(fid, el) {
-  selectedFriendId = fid;
-  document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
-  el.classList.add("active");
+    async function openChat(fid, el) {
+      selectedFriendId = fid;
+      document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
+      el.classList.add("active");
 
-  if (unsubscribe) unsubscribe();
+      if (unsubscribe) unsubscribe();
 
-  const convoId = getConversationId(currentUser.uid, fid);
-  const convoRef = doc(db, "conversations", convoId);
-  const area = document.getElementById("messageArea");
-  area.innerHTML = "";
+      const convoId = getConversationId(currentUser.uid, fid);
+      const convoRef = doc(db, "conversations", convoId);
+      const area = document.getElementById("messageArea");
+      area.innerHTML = "";
 
-  const snap = await getDoc(convoRef);
-  if (snap.exists()) {
-    const convoData = snap.data();
-    const msgs = convoData.messages || [];
-    msgs.sort((a, b) => a.timestamp - b.timestamp);
+      const snap = await getDoc(convoRef);
+      if (snap.exists()) {
+        const convoData = snap.data();
+        const msgs = convoData.messages || [];
+        msgs.sort((a, b) => a.timestamp - b.timestamp);
 
-    for (const msg of msgs) {
-      const div = document.createElement("div");
-      div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
-      div.innerHTML = `<div>${msg.text}</div><div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>`;
-      area.appendChild(div);
-    }
-  }
-
-  // **Kaydırma işlemi düzeltilmiş hali**
-  setTimeout(() => {
-    area.scrollTop = area.scrollHeight;
-    const lastMessage = area.lastElementChild;
-    if (lastMessage) {
-      lastMessage.scrollIntoView({ behavior: "smooth" });
-    }
-  }, 100);
-
-  // Yeni mesajları dinle
-  unsubscribe = onSnapshot(convoRef, async (snap) => {
-    if (!snap.exists()) return;
-    const convoData = snap.data();
-    const msgs = convoData.messages || [];
-    msgs.sort((a, b) => a.timestamp - b.timestamp);
-
-    area.innerHTML = "";
-
-    for (const msg of msgs) {
-      const div = document.createElement("div");
-      div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
-      div.innerHTML = `<div>${msg.text}</div><div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>`;
-      area.appendChild(div);
-    }
-
-    // **Yeni mesajlar geldikçe kaydır**
-    setTimeout(() => {
-      area.scrollTop = area.scrollHeight;
-      const lastMessage = area.lastElementChild;
-      if (lastMessage) {
-        lastMessage.scrollIntoView({ behavior: "smooth" });
+        for (const msg of msgs) {
+          const div = document.createElement("div");
+          div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
+          div.innerHTML = `<div>${msg.text}</div><div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>`;
+          area.appendChild(div);
+        }
       }
-    }, 100);
-  });
-}
+
+      setTimeout(() => {
+        area.scrollTop = area.scrollHeight;
+        const lastMessage = area.lastElementChild;
+        if (lastMessage) {
+          lastMessage.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
+
+      unsubscribe = onSnapshot(convoRef, async (snap) => {
+        if (!snap.exists()) return;
+        const convoData = snap.data();
+        const msgs = convoData.messages || [];
+        msgs.sort((a, b) => a.timestamp - b.timestamp);
+
+        area.innerHTML = "";
+
+        for (const msg of msgs) {
+          const div = document.createElement("div");
+          div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
+          div.innerHTML = `<div>${msg.text}</div><div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>`;
+          area.appendChild(div);
+        }
+
+        setTimeout(() => {
+          area.scrollTop = area.scrollHeight;
+          const lastMessage = area.lastElementChild;
+          if (lastMessage) {
+            lastMessage.scrollIntoView({ behavior: "smooth" });
+          }
+        }, 100);
+      });
+    }
 
     window.sendMessage = async () => {
       const input = document.getElementById("messageInput");
       const text = input.value.trim();
       if (!text || !selectedFriendId || !currentUser ) return;
       const id = crypto.randomUUID();
-      const msg = { id, sender: currentUser .uid, text, timestamp: Date.now(), seenBy: [] };
-      const convoId = getConversationId(currentUser .uid, selectedFriendId);
+      const msg = { id, sender: currentUser.uid, text, timestamp: Date.now(), seenBy: [] };
+      const convoId = getConversationId(currentUser.uid, selectedFriendId);
       const convoRef = doc(db, "conversations", convoId);
       const snap = await getDoc(convoRef);
 
@@ -301,7 +297,7 @@ async function openChat(fid, el) {
         const oldMsgs = snap.data().messages || [];
         await setDoc(convoRef, { ...snap.data(), messages: [...oldMsgs, msg] });
       } else {
-        await setDoc(convoRef, { users: [currentUser .uid, selectedFriendId], messages: [msg] });
+        await setDoc(convoRef, { users: [currentUser.uid, selectedFriendId], messages: [msg] });
       }
       input.value = "";
     };
@@ -310,7 +306,7 @@ async function openChat(fid, el) {
     window.setLang = setLang;
     onAuthStateChanged(auth, user => {
       if (!user) return location.href = "index.html";
-      currentUser  = user;
+      currentUser = user;
       setLang(lang);
       loadFriends(user.uid);
     });
