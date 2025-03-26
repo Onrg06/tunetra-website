@@ -207,22 +207,36 @@
       return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
     }
 
-    async function loadFriends(uid) {
-      const snap = await getDoc(doc(db, "friends", uid));
-      const list = document.getElementById("chatList");
-      list.innerHTML = "";
-      const friends = snap.exists() ? snap.data().list || [] : [];
-      for (const fid of friends) {
-        const fdoc = await getDoc(doc(db, "users", fid));
-        if (!fdoc.exists()) continue;
-        const name = fdoc.data().username;
-        const div = document.createElement("div");
-        div.className = "chat-item";
-        div.innerText = name;
-        div.onclick = () => openChat(fid, div);
-        list.appendChild(div);
-      }
+async function loadFriends(uid) {
+  try {
+    const snap = await getDoc(doc(db, "friends", uid));
+    const list = document.getElementById("chatList");
+    list.innerHTML = "";
+    
+    if (!snap.exists()) {
+      console.log("Arkadaşlar verisi bulunamadı.");
+      return;
     }
+    
+    const friends = snap.data().list || [];
+    if (friends.length === 0) {
+      console.log("Arkadaş listesi boş.");
+    }
+
+    for (const fid of friends) {
+      const fdoc = await getDoc(doc(db, "users", fid));
+      if (!fdoc.exists()) continue;
+      const name = fdoc.data().username;
+      const div = document.createElement("div");
+      div.className = "chat-item";
+      div.innerText = name;
+      div.onclick = () => openChat(fid, div);
+      list.appendChild(div);
+    }
+  } catch (error) {
+    console.error("Hata:", error);
+  }
+}
 
     async function openChat(fid, el) {
       selectedFriendId = fid;
