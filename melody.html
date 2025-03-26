@@ -10,7 +10,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore-compat.js"></script>
 
-  <!-- Supabase (ESM modülü) -->
+  <!-- Supabase -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
@@ -43,22 +43,25 @@
 
       const fileName = `${Date.now()}_${file.name}`;
       const { error } = await supabase.storage.from(bucket).upload(fileName, file);
-if (error) {
-  console.error("Yükleme hatası:", error.message); // Konsola yazar
-  alert("Dosya yüklenemedi: " + error.message);   // Kullanıcıya gösterir
-  return;
-}
+      if (error) {
+        console.error("Yükleme hatası:", error.message);
+        return alert(getText("uploadError") + " " + error.message);
+      }
 
       const { publicUrl } = supabase.storage.from(bucket).getPublicUrl(fileName);
 
-      await db.collection("melodies").add({
-        uploader: currentUser,
-        audioUrl: publicUrl,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-
-      alert(getText("uploadSuccess"));
-      document.getElementById("melodyInput").value = "";
+      try {
+        await db.collection("melodies").add({
+          uploader: currentUser,
+          audioUrl: publicUrl,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert(getText("uploadSuccess"));
+        document.getElementById("melodyInput").value = "";
+      } catch (err) {
+        console.error("Firestore hatası:", err.message);
+        alert("Firestore’a yazılamadı: " + err.message);
+      }
     };
 
     // Listeleme
@@ -99,7 +102,7 @@ if (error) {
         home: "Anasayfaya Dön",
         list: "Yüklenen Melodiler",
         selectFile: "Lütfen bir ses dosyası seçin.",
-        uploadError: "Dosya yüklenemedi.",
+        uploadError: "Dosya yüklenemedi:",
         uploadSuccess: "Melodi başarıyla yüklendi!"
       },
       en: {
@@ -108,7 +111,7 @@ if (error) {
         home: "Return Home",
         list: "Uploaded Melodies",
         selectFile: "Please select an audio file.",
-        uploadError: "File upload failed.",
+        uploadError: "File upload failed:",
         uploadSuccess: "Melody uploaded successfully!"
       }
     };
