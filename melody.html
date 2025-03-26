@@ -43,7 +43,11 @@
 
       const fileName = `${Date.now()}_${file.name}`;
       const { error } = await supabase.storage.from(bucket).upload(fileName, file);
-      if (error) return alert(getText("uploadError"));
+if (error) {
+  console.error("Yükleme hatası:", error.message); // Konsola yazar
+  alert("Dosya yüklenemedi: " + error.message);   // Kullanıcıya gösterir
+  return;
+}
 
       const { publicUrl } = supabase.storage.from(bucket).getPublicUrl(fileName);
 
