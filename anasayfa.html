@@ -211,15 +211,6 @@
 
     let currentLang = "tr";
 
-    window.setLang = function(lang) {
-      currentLang = lang;
-      updateUI();
-    };
-
-    function updateUI() {
-      const user = auth.currentUser;
-      if (!user) return;
-
       const docRef = doc(db, "users", user.uid);
       getDoc(docRef).then(userDoc => {
         if (userDoc.exists()) {
@@ -237,58 +228,92 @@
         }
       });
 
-      const requestRef = doc(db, "friendRequests", user.uid);
-      getDoc(requestRef).then(requestSnap => {
-        let count = 0;
-        if (requestSnap.exists()) {
-          const data = requestSnap.data();
-          count = data.requests?.length || 0;
-        }
-        const friendsBase = translations[currentLang].friends;
-        document.getElementById("btnFriends").innerText = `${friendsBase} (${count})`;
-      });
+  window.setLang = function(lang) {
+    currentLang = lang;
+    updateUI();
+  };
 
-      const convoQuery = query(
-        collection(db, "conversations"),
-        where("users", "array-contains", user.uid)
-      );
+  async function markMessagesAsRead(conversationId, userId) {
+    const conversationRef = doc(db, "conversations", conversationId);
+    const conversationSnap = await getDoc(conversationRef);
 
-      onSnapshot(convoQuery, (snapshot) => {
-        let msgCount = 0;
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          const messages = data.messages || [];
-          const hasUnread = messages.some(m =>
-            m.sender !== user.uid &&
-            (!m.seenBy || !m.seenBy.includes(user.uid))
-          );
-          if (hasUnread) {
-            msgCount++;
-          }
-        });
-        const messagesBase = translations[currentLang].messages;
-        document.getElementById("btnMessages").innerText = `📨 ${messagesBase} (${msgCount})`;
-      });
-    }
+    if (!conversationSnap.exists()) return;
 
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = "index.html";
-      } else {
-        updateUI();
+    const conversationData = conversationSnap.data();
+    const updatedMessages = conversationData.messages.map(msg => {
+      if (!msg.seenBy || !msg.seenBy.includes(userId)) {
+        return { ...msg, seenBy: [...(msg.seenBy || []), userId] };
       }
+      return msg;
     });
 
-    window.logout = function() {
-      signOut(auth).then(() => {
-        window.location.href = "index.html";
+    await updateDoc(conversationRef, { messages: updatedMessages });
+  }
+
+  async function markAllAsRead() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const convoQuery = query(
+      collection(db, "conversations"),
+      where("users", "array-contains", user.uid)
+    );
+
+    const snapshot = await getDocs(convoQuery);
+    snapshot.forEach(docSnap => {
+      markMessagesAsRead(docSnap.id, user.uid);
+    });
+  }
+
+  function updateUI() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
+    document.getElementById("btnMessages").innerText = `📨 ${translations[currentLang].messages}`;
+
+    const convoQuery = query(
+      collection(db, "conversations"),
+      where("users", "array-contains", user.uid)
+    );
+
+    onSnapshot(convoQuery, (snapshot) => {
+      let msgCount = 0;
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        const messages = data.messages || [];
+        const hasUnread = messages.some(m =>
+          m.sender !== user.uid &&
+          (!m.seenBy || !m.seenBy.includes(user.uid))
+        );
+
+        if (hasUnread) {
+          msgCount++;
+        }
       });
-    };
 
-    window.addEventListener("DOMContentLoaded", () => {
-      setLang("tr");
+      document.getElementById("btnMessages").innerText = `📨 ${translations[currentLang].messages} (${msgCount})`;
     });
-  </script>
+  }
+
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      window.location.href = "index.html";
+    } else {
+      updateUI();
+    }
+  });
+
+  window.logout = function() {
+    signOut(auth).then(() => {
+      window.location.href = "index.html";
+    });
+  };
+
+  window.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("btnMessages").addEventListener("click", markAllAsRead);
+    setLang("tr");
+  });
 </body>
 </html>
 
