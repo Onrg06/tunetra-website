@@ -236,7 +236,7 @@
       for (const fid of friends) {
         const fdoc = await getDoc(doc(db, "users", fid));
         if (!fdoc.exists()) continue;
-        const name = fdoc.data().username;
+        const name = fdoc.data().username; // Kullanıcı adı
         const div = document.createElement("div");
         div.className = "chat-item";
         div.innerText = name;
@@ -284,8 +284,9 @@
         for (const msg of msgs) {
           const div = document.createElement("div");
           div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
+          const senderName = msg.sender === currentUser.uid ? (lang === "tr" ? 'Sen' : 'You') : msg.sender;
           div.innerHTML = `
-            <div class="sender">${msg.sender === currentUser.uid ? (lang === "tr" ? 'Sen' : 'You') : msg.sender}</div>
+            <div class="sender">${senderName}</div>
             <div>${msg.text}</div>
             <div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>
           `;
@@ -328,8 +329,9 @@
         for (const msg of msgs) {
           const div = document.createElement("div");
           div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
+          const senderName = msg.sender === currentUser.uid ? (lang === "tr" ? 'Sen' : 'You') : msg.sender;
           div.innerHTML = `
-            <div class="sender">${msg.sender === currentUser.uid ? (lang === "tr" ? 'Sen' : 'You') : msg.sender}</div>
+            <div class="sender">${senderName}</div>
             <div>${msg.text}</div>
             <div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>
           `;
