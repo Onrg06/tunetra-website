@@ -237,15 +237,17 @@
         div.className = "chat-item";
         div.innerText = name;
         
-        // Check if there are new messages for the friend
+        // Konuşma ID'si alındı
         const convoId = getConversationId(uid, fid);
         const convoRef = doc(db, "conversations", convoId);
         const convoSnap = await getDoc(convoRef);
+        
+        // Yeni mesajlar olup olmadığını kontrol et
         if (convoSnap.exists()) {
           const messages = convoSnap.data().messages || [];
-          const newMessages = messages.filter(msg => msg.sender !== uid && !msg.seenBy.includes(uid));
+          const newMessages = messages.filter(msg => msg.sender !== uid && !msg.seenBy.includes(uid)); // Mesaj okunmamışsa
           if (newMessages.length > 0) {
-            div.classList.add("new-message");
+            div.classList.add("new-message"); // Yeni mesaj varsa işareti göster
           }
         }
 
@@ -258,6 +260,9 @@
       selectedFriendId = fid;
       document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
       el.classList.add("active");
+
+      // Yeni mesaj işaretini kaldır
+      el.classList.remove("new-message");
 
       if (unsubscribe) unsubscribe();
 
@@ -277,6 +282,20 @@
           div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
           div.innerHTML = `<div>${msg.text}</div><div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>`;
           area.appendChild(div);
+        }
+
+        // Görülmeyen mesajları işaretle
+        const unseenMessages = msgs.filter(msg => !msg.seenBy.includes(currentUser.uid));
+        if (unseenMessages.length > 0) {
+          // Mesajları okundu olarak işaretle
+          await updateDoc(convoRef, {
+            messages: msgs.map(msg => {
+              if (!msg.seenBy.includes(currentUser.uid)) {
+                msg.seenBy.push(currentUser.uid);
+              }
+              return msg;
+            })
+          });
         }
       }
 
