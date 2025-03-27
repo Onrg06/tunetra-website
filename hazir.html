@@ -163,7 +163,7 @@ window.uploadMelodyFull = async function () {
 
   const publicUrl = supabase.storage.from(bucket).getPublicUrl(fileName).data.publicUrl;
 
-  await addDoc(collection(db, "melodies"), {
+  await addDoc(collection(db, "songs"), {
     uploader: currentUser,
     uploaderUID: currentUID,
     collaborator: selectedFriend.username,
