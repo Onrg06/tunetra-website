@@ -241,14 +241,6 @@ function setLang(l) {
   document.getElementById("btnEn").innerText = t[lang].english;
 }
 
-// Kullanıcı kimlik doğrulaması kontrolü
-onAuthStateChanged(auth, user => {
-  if (!user) return location.href = "mesajlar.html";
-  currentUser = user;
-  setLang(lang);
-  loadChatList(user.uid);
-});
-
 // Kullanıcı listesi ve mesajları yükle
 async function loadChatList(uid) {
   const friendsSnap = await getDoc(doc(db, "friends", uid));
