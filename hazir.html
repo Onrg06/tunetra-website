@@ -59,7 +59,11 @@
 </div>
 
 <h1 id="title">Melodi Yükle</h1>
-<input type="file" id="melodyInput" accept="audio/*" />
+
+<input type="file" id="melodyInput" accept="audio/*" style="display:none;" />
+<button class="btn" onclick="document.getElementById('melodyInput').click()" id="file-label">Ses Dosyası Seç</button>
+<span id="file-name" style="display:block; margin-top:5px;"></span>
+
 <input type="text" id="song-title" placeholder="Şarkı başlığı" />
 <textarea id="song-lyrics" placeholder="Şarkı sözlerini buraya yaz..."></textarea>
 
@@ -82,7 +86,7 @@ import {
   getAuth, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
 
-// Firebase config
+// Firebase config (tam)
 const firebaseConfig = {
   apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
   authDomain: "tunetra-2579b.firebaseapp.com",
@@ -95,7 +99,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth();
 
-// Supabase config
+// Supabase config (tam)
 const supabase = createClient(
   "https://kqgbdfnqckcgrfizjdgt.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZ2JkZm5xY2tjZ3JmaXpqZGd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5Nzk2NDQsImV4cCI6MjA1ODU1NTY0NH0.oxyfinrgv7AscolwMv6CuTMHBLeNokdERCKH00d1kfo"
@@ -174,6 +178,7 @@ window.uploadMelodyFull = async function () {
   document.getElementById("melodyInput").value = "";
   document.getElementById("song-title").value = "";
   document.getElementById("song-lyrics").value = "";
+  document.getElementById("file-name").innerText = "";
   document.getElementById("friend-name").selectedIndex = 0;
 };
 
@@ -195,6 +200,11 @@ onSnapshot(q, (snapshot) => {
   });
 });
 
+document.getElementById("melodyInput").addEventListener("change", function() {
+  const file = this.files[0];
+  document.getElementById("file-name").innerText = file ? file.name : "";
+});
+
 const texts = {
   tr: {
     title: "Melodi Yükle",
@@ -202,6 +212,7 @@ const texts = {
     home: "Anasayfaya Dön",
     list: "Yüklenen Şarkılar",
     selectFile: "Lütfen bir ses dosyası seçin.",
+    selectFileBtn: "Ses Dosyası Seç",
     uploadError: "Dosya yüklenemedi:",
     uploadSuccess: "Melodi başarıyla yüklendi!",
     uploadTitleEmpty: "Lütfen şarkının başlığını yazın.",
@@ -215,6 +226,7 @@ const texts = {
     home: "Back to Home",
     list: "Uploaded Songs",
     selectFile: "Please select an audio file.",
+    selectFileBtn: "Choose Audio File",
     uploadError: "File upload failed:",
     uploadSuccess: "Melody uploaded successfully!",
     uploadTitleEmpty: "Please enter the song title.",
@@ -232,6 +244,8 @@ window.setLang = function (lang) {
   document.getElementById("home-btn").innerText = texts[lang].home;
   document.getElementById("song-title").placeholder = lang === "tr" ? "Şarkı başlığı" : "Song title";
   document.getElementById("song-lyrics").placeholder = lang === "tr" ? "Şarkı sözlerini buraya yaz..." : "Write your lyrics here...";
+  document.getElementById("file-label").innerText = texts[lang].selectFileBtn;
+  document.querySelector("#friend-name option[value='']").textContent = texts[lang].friendPlaceholder;
 };
 
 function getText(key) {
