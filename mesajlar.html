@@ -197,7 +197,10 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, orderBy, limit, startAfter, addDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
+  collection, query, orderBy, limit, startAfter, addDoc, getDocs, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -239,9 +242,9 @@ function scrollToBottom(force = false) {
   const area = document.getElementById("messageArea");
   const nearBottom = area.scrollHeight - area.scrollTop <= area.clientHeight + 100;
   if (force || nearBottom) {
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       area.scrollTop = area.scrollHeight;
-    }, 50);
+    });
   }
 }
 
@@ -323,7 +326,8 @@ async function openChat(fid, el) {
       const div = await buildMessageDiv(msg);
       area.appendChild(div);
     }
-    scrollToBottom(); // canlı yeni mesaj geldiğinde scroll});
+    scrollToBottom(); // canlı yeni mesaj geldiğinde scroll
+  });
 }
 
 function attachScrollLoader(messagesCol) {
