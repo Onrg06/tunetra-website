@@ -6,7 +6,6 @@
   <title>TuneTRa | Mesajlar</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-
     body {
       background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
       background-size: 400% 400%;
@@ -16,13 +15,11 @@
       display: flex;
       flex-direction: column;
     }
-
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-
     header {
       display: flex;
       justify-content: space-between;
@@ -30,7 +27,6 @@
       padding: 15px 20px;
       flex-wrap: wrap;
     }
-
     .lang-btn {
       padding: 6px 10px;
       border: none;
@@ -41,13 +37,11 @@
       cursor: pointer;
       margin-left: 10px;
     }
-
     .container {
       display: flex;
       flex: 1;
       overflow: hidden;
     }
-
     .chat-list {
       width: 30%;
       max-width: 250px;
@@ -55,7 +49,6 @@
       padding: 20px;
       overflow-y: auto;
     }
-
     .chat-item {
       padding: 10px;
       background: rgba(255, 255, 255, 0.1);
@@ -65,27 +58,20 @@
       text-align: center;
       position: relative;
     }
-
     .chat-item.active {
       background: #007bff;
       font-weight: bold;
     }
-
     .chat-item .notification {
       position: absolute;
-      top: 5px;
-      right: 5px;
-      width: 8px;
-      height: 8px;
+      top: 8px;
+      right: 8px;
+      width: 10px;
+      height: 10px;
       background-color: red;
       border-radius: 50%;
-      display: none;
-    }
-
-    .chat-item.new-message .notification {
       display: block;
     }
-
     .chat-window {
       flex: 1;
       padding: 20px;
@@ -94,13 +80,11 @@
       justify-content: space-between;
       background: rgba(0, 0, 0, 0.2);
     }
-
     .messages {
       flex: 1;
       overflow-y: auto;
       margin-bottom: 20px;
     }
-
     .message {
       padding: 10px;
       margin-bottom: 10px;
@@ -109,30 +93,25 @@
       max-width: 80%;
       position: relative;
     }
-
     .message.you {
       background: rgba(0, 255, 127, 0.3);
       align-self: flex-end;
     }
-
     .timestamp {
       font-size: 0.75rem;
       opacity: 0.7;
       margin-top: 5px;
     }
-
     .send-box {
       display: flex;
       gap: 10px;
     }
-
     input[type="text"] {
       flex: 1;
       padding: 10px;
       border: none;
       border-radius: 6px;
     }
-
     button.send-btn {
       padding: 10px 20px;
       border: none;
@@ -142,12 +121,10 @@
       font-weight: bold;
       cursor: pointer;
     }
-
     @media (max-width: 768px) {
       .container {
         flex-direction: column;
       }
-
       .chat-list {
         width: 100%;
         max-width: none;
@@ -158,7 +135,6 @@
         gap: 10px;
         scroll-snap-type: x mandatory;
       }
-
       .chat-item {
         flex: 0 0 auto;
         min-width: 120px;
@@ -196,13 +172,23 @@
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const firebaseConfig = { apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg", authDomain: "tunetra-2579b.firebaseapp.com", projectId: "tunetra-2579b", storageBucket: "tunetra-2579b.appspot.com", messagingSenderId: "576238823779", appId: "1:576238823779:web:b1796f089427e3b6fecb56" };
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+    };
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
     let currentUser = null, selectedFriendId = null, unsubscribe = null, lang = localStorage.getItem("lang") || "tr";
-    const t = { tr: { pageTitle: "Mesajlar", placeholder: "Mesaj yaz...", send: "Gönder", home: "Ana Sayfa", turkish: "🇹🇷 Türkçe", english: "🇬🇧 English", sentAt: "Gönderildi" }, en: { pageTitle: "Messages", placeholder: "Type a message...", send: "Send", home: "Home Page", turkish: "🇹🇷 Turkish", english: "🇬🇧 English", sentAt: "Sent at" } };
+    const t = {
+      tr: { pageTitle: "Mesajlar", placeholder: "Mesaj yaz...", send: "Gönder", home: "Ana Sayfa", turkish: "🇹🇷 Türkçe", english: "🇬🇧 English", sentAt: "Gönderildi" },
+      en: { pageTitle: "Messages", placeholder: "Type a message...", send: "Send", home: "Home Page", turkish: "🇹🇷 Turkish", english: "🇬🇧 English", sentAt: "Sent at" }
+    };
 
     function setLang(l) {
       lang = l;
@@ -228,30 +214,40 @@
       const snap = await getDoc(doc(db, "friends", uid));
       const list = document.getElementById("chatList");
       list.innerHTML = "";
+
       const friends = snap.exists() ? snap.data().list || [] : [];
+      const friendsWithUnread = [];
+
       for (const fid of friends) {
         const fdoc = await getDoc(doc(db, "users", fid));
         if (!fdoc.exists()) continue;
         const name = fdoc.data().username;
-        const div = document.createElement("div");
-        div.className = "chat-item";
-        div.innerText = name;
-        
-        // Konuşma ID'si alındı
         const convoId = getConversationId(uid, fid);
         const convoRef = doc(db, "conversations", convoId);
         const convoSnap = await getDoc(convoRef);
-        
-        // Yeni mesajlar olup olmadığını kontrol et
+        let hasNewMessage = false;
+
         if (convoSnap.exists()) {
           const messages = convoSnap.data().messages || [];
-          const newMessages = messages.filter(msg => msg.sender !== uid && !msg.seenBy.includes(uid)); // Mesaj okunmamışsa
-          if (newMessages.length > 0) {
-            div.classList.add("new-message"); // Yeni mesaj varsa işareti göster
-          }
+          const newMessages = messages.filter(msg => msg.sender !== uid && !msg.seenBy.includes(uid));
+          if (newMessages.length > 0) hasNewMessage = true;
         }
 
-        div.onclick = () => openChat(fid, div);
+        friendsWithUnread.push({ uid: fid, username: name, hasNewMessage });
+      }
+
+      friendsWithUnread.sort((a, b) => b.hasNewMessage - a.hasNewMessage);
+
+      for (const f of friendsWithUnread) {
+        const div = document.createElement("div");
+        div.className = "chat-item";
+        div.innerText = f.username;
+        if (f.hasNewMessage) {
+          const notif = document.createElement("div");
+          notif.className = "notification";
+          div.appendChild(notif);
+        }
+        div.onclick = () => openChat(f.uid, div);
         list.appendChild(div);
       }
     }
@@ -260,12 +256,10 @@
       selectedFriendId = fid;
       document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
       el.classList.add("active");
-
-      // Yeni mesaj işaretini kaldır
-      el.classList.remove("new-message");
+      const notif = el.querySelector(".notification");
+      if (notif) notif.remove();
 
       if (unsubscribe) unsubscribe();
-
       const convoId = getConversationId(currentUser.uid, fid);
       const convoRef = doc(db, "conversations", convoId);
       const area = document.getElementById("messageArea");
@@ -273,8 +267,7 @@
 
       const snap = await getDoc(convoRef);
       if (snap.exists()) {
-        const convoData = snap.data();
-        const msgs = convoData.messages || [];
+        const msgs = snap.data().messages || [];
         msgs.sort((a, b) => a.timestamp - b.timestamp);
 
         for (const msg of msgs) {
@@ -284,10 +277,8 @@
           area.appendChild(div);
         }
 
-        // Görülmeyen mesajları işaretle
         const unseenMessages = msgs.filter(msg => !msg.seenBy.includes(currentUser.uid));
         if (unseenMessages.length > 0) {
-          // Mesajları okundu olarak işaretle
           await updateDoc(convoRef, {
             messages: msgs.map(msg => {
               if (!msg.seenBy.includes(currentUser.uid)) {
@@ -299,7 +290,6 @@
         }
       }
 
-      // Kaydırma işlemi düzeltilmiş hali
       setTimeout(() => {
         area.scrollTop = area.scrollHeight;
         const lastMessage = area.lastElementChild;
@@ -308,23 +298,17 @@
         }
       }, 100);
 
-      // Yeni mesajları dinle
       unsubscribe = onSnapshot(convoRef, async (snap) => {
         if (!snap.exists()) return;
-        const convoData = snap.data();
-        const msgs = convoData.messages || [];
+        const msgs = snap.data().messages || [];
         msgs.sort((a, b) => a.timestamp - b.timestamp);
-
         area.innerHTML = "";
-
         for (const msg of msgs) {
           const div = document.createElement("div");
           div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
           div.innerHTML = `<div>${msg.text}</div><div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>`;
           area.appendChild(div);
         }
-
-        // Yeni mesajlar geldikçe kaydır
         setTimeout(() => {
           area.scrollTop = area.scrollHeight;
           const lastMessage = area.lastElementChild;
@@ -356,6 +340,7 @@
 
     window.goHome = () => location.href = "anasayfa.html";
     window.setLang = setLang;
+
     onAuthStateChanged(auth, user => {
       if (!user) return location.href = "index.html";
       currentUser = user;
@@ -363,7 +348,5 @@
       loadFriends(user.uid);
     });
   </script>
-</body>
-</html>
 </body>
 </html>
