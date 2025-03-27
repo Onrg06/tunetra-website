@@ -197,10 +197,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import {
-  getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
-  collection, query, orderBy, limit, startAfter, addDoc, getDocs, onSnapshot, where
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, orderBy, limit, startAfter, addDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -255,20 +252,6 @@ function getConversationId(uid1, uid2) {
 function formatTimestamp(ts) {
   const d = new Date(ts);
   return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
-
-async function markMessagesAsSeen(convoId) {
-  const messagesCol = collection(db, "conversations", convoId, "messages");
-  const unseenSnap = await getDocs(query(messagesCol, where("seenBy", "not-in", [currentUser.uid])));
-  unseenSnap.forEach(async docSnap => {
-    const msgRef = doc(messagesCol, docSnap.id);
-    const msg = docSnap.data();
-    if (!msg.seenBy?.includes(currentUser.uid)) {
-      await updateDoc(msgRef, {
-        seenBy: [...(msg.seenBy || []), currentUser.uid]
-      });
-    }
-  });
 }
 
 async function loadChatList(uid) {
@@ -333,8 +316,6 @@ async function openChat(fid, el) {
   scrollToBottom(true);
   attachScrollLoader(messagesCol);
 
-  await markMessagesAsSeen(convoId);
-
   unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "asc")), async snap => {
     area.innerHTML = "";
     for (const docSnap of snap.docs) {
@@ -342,7 +323,7 @@ async function openChat(fid, el) {
       const div = await buildMessageDiv(msg);
       area.appendChild(div);
     }
-    scrollToBottom(); // yeni mesaj geldiğinde scroll
+    scrollToBottom(); // canlı yeni mesaj geldiğinde scroll
   });
 }
 
@@ -438,7 +419,6 @@ window.sendMessage = async () => {
   }
 
   input.value = "";
-  scrollToBottom(true);
 };
 
 window.setLang = setLang;
