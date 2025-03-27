@@ -53,7 +53,6 @@
 </head>
 <body>
 
-<!-- Dil Butonları -->
 <div>
   <button class="btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
   <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
@@ -71,6 +70,7 @@
 <a href="/anasayfa.html" class="btn" id="home-btn">Anasayfaya Dön</a>
 <h2 id="melody-title">Yüklenen Şarkılar</h2>
 <div id="melodyList"></div>
+
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
@@ -116,24 +116,21 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-// GÜNCELLENMİŞ: Hem array hem map destekleyen versiyon
+// BURASI mesajlar.html'deki sistemle aynıdır
 async function loadFriendsFromUID(uid) {
   try {
-    const snap = await getDoc(doc(db, "friends", uid));
-    if (!snap.exists()) return;
+    const ref = doc(db, "friends", uid);
+    const snap = await getDoc(ref);
+    const friends = snap.exists() ? snap.data().list || [] : [];
 
-    const rawList = snap.data().list;
-    let friendUIDs = [];
-
-    if (Array.isArray(rawList)) {
-      friendUIDs = rawList;
-    } else if (typeof rawList === "object" && rawList !== null) {
-      friendUIDs = Object.values(rawList); // map yapısı için
+    if (!friends.length) {
+      console.warn("Hiç arkadaş bulunamadı.");
+      return;
     }
 
-    await getUsernamesFromUIDs(friendUIDs);
+    await getUsernamesFromUIDs(friends);
   } catch (e) {
-    console.error("Arkadaşlar alınamadı:", e);
+    console.error("Arkadaşlar çekilemedi:", e);
   }
 }
 
@@ -194,7 +191,6 @@ window.uploadMelodyFull = async function () {
   document.getElementById("friend-name").selectedIndex = 0;
 };
 
-// Listeleme
 const list = document.getElementById("melodyList");
 const q = query(collection(db, "melodies"), orderBy("timestamp", "desc"));
 onSnapshot(q, (snapshot) => {
@@ -213,7 +209,6 @@ onSnapshot(q, (snapshot) => {
   });
 });
 
-// Dil sistemi
 const texts = {
   tr: {
     title: "Melodi Yükle",
