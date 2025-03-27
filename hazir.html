@@ -116,19 +116,17 @@
     }
   });
 
-  async function loadFriendsFromUID(uid) {
-    const snapshot = await getDocs(collection(db, "friends"));
-    const friendUIDs = [];
+async function loadFriendsFromUID(uid) {
+  try {
+    const snap = await getDoc(doc(db, "friends", uid));
+    if (!snap.exists()) return;
 
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      if (data.list) {
-        const values = Object.values(data.list);
-        if (values.includes(uid)) {
-          const otherUID = values.find(v => v !== uid);
-          if (otherUID) friendUIDs.push(otherUID);
-        }
-      }
+    const friendUIDs = snap.data().list || [];
+    await getUsernamesFromUIDs(friendUIDs);
+  } catch (error) {
+    console.error("Arkadaş listesi alınırken hata:", error);
+  }
+}
     });
 
     await getUsernamesFromUIDs(friendUIDs);
