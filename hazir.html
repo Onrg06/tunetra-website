@@ -20,7 +20,6 @@
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-    h1 { margin-bottom: 20px; }
     .btn {
       padding: 12px 20px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
@@ -56,32 +55,39 @@
   </style>
 </head>
 <body>
-  <div>
-    <select onchange="setLang(this.value)">
-      <option value="tr">🇹🇷 Türkçe</option>
-      <option value="en">🇬🇧 English</option>
-    </select>
+
+  <!-- Dil Seçimi -->
+  <div style="margin-bottom: 15px;">
+    <button class="btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
+    <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
   </div>
 
+  <!-- Başlık -->
   <h1 id="title">Melodi Yükle</h1>
+
+  <!-- Form -->
   <input type="file" id="melodyInput" accept="audio/*" />
   <br />
   <input type="text" id="song-title" placeholder="Şarkı başlığı" />
   <br />
   <textarea id="song-lyrics" placeholder="Şarkı sözlerini buraya yaz..."></textarea>
   <br />
+  <input type="text" id="friend-name" placeholder="Ortak (Arkadaş) kullanıcı adı" />
+  <br />
   <button class="btn" onclick="uploadMelodyFull()" id="upload-btn">Yükle</button>
 
+  <!-- Liste Başlık -->
   <h2 id="melody-title">Yüklenen Melodiler</h2>
   <div id="melodyList"></div>
 
-  <!-- Supabase -->
+  <!-- JS -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
     import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
 
+    // Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
       authDomain: "tunetra-2579b.firebaseapp.com",
@@ -90,13 +96,13 @@
       messagingSenderId: "576238823779",
       appId: "1:576238823779:web:b1796f089427e3b6fecb56"
     };
-
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth();
 
+    // Supabase
     const supabaseUrl = "https://kqgbdfnqckcgrfizjdgt.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZ2JkZm5xY2tjZ3JmaXpqZGd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5Nzk2NDQsImV4cCI6MjA1ODU1NTY0NH0.oxyfinrgv7AscolwMv6CuTMHBLeNokdERCKH00d1kfo";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
     const supabase = createClient(supabaseUrl, supabaseKey);
     const bucket = "melodies";
 
@@ -112,18 +118,20 @@
       }
     });
 
+    // Yükleme Fonksiyonu
     window.uploadMelodyFull = async function () {
       const file = document.getElementById("melodyInput").files[0];
       const title = document.getElementById("song-title").value.trim();
       const lyrics = document.getElementById("song-lyrics").value.trim();
+      const friend = document.getElementById("friend-name").value.trim();
 
       if (!file) return alert(getText("selectFile"));
-      if (title === "") return alert(getText("uploadTitleEmpty"));
-      if (lyrics === "") return alert(getText("uploadLyricsEmpty"));
+      if (!title) return alert(getText("uploadTitleEmpty"));
+      if (!lyrics) return alert(getText("uploadLyricsEmpty"));
+      if (!friend) return alert(getText("friendEmpty"));
 
       const fileName = `${Date.now()}_${file.name}`;
       const { error } = await supabase.storage.from(bucket).upload(fileName, file);
-
       if (error) return alert(getText("uploadError") + " " + error.message);
 
       const publicUrl = supabase.storage.from(bucket).getPublicUrl(fileName).data.publicUrl;
@@ -131,6 +139,7 @@
       try {
         await addDoc(collection(db, "melodies"), {
           uploader: currentUser,
+          collaborator: friend,
           audioUrl: publicUrl,
           title,
           lyrics,
@@ -141,14 +150,15 @@
         document.getElementById("melodyInput").value = "";
         document.getElementById("song-title").value = "";
         document.getElementById("song-lyrics").value = "";
+        document.getElementById("friend-name").value = "";
       } catch (err) {
         alert("Firestore’a yazılamadı: " + err.message);
       }
     };
 
+    // Listeleme
     const list = document.getElementById("melodyList");
     const q = query(collection(db, "melodies"), orderBy("timestamp", "desc"));
-
     onSnapshot(q, (snapshot) => {
       list.innerHTML = "";
       snapshot.forEach(doc => {
@@ -156,7 +166,7 @@
         const time = d.timestamp?.toDate().toLocaleString() || "";
         list.innerHTML += `
           <div class="melody-item">
-            <p><strong>${d.uploader}</strong> (${time})</p>
+            <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong> (${time})</p>
             <audio controls src="${d.audioUrl}"></audio>
             <h3 style="margin-top:10px;">${d.title}</h3>
             <p>${d.lyrics.replace(/\n/g, "<br>")}</p>
@@ -165,6 +175,7 @@
       });
     });
 
+    // Çoklu Dil Sistemi
     const texts = {
       tr: {
         title: "Melodi Yükle",
@@ -175,7 +186,11 @@
         uploadError: "Dosya yüklenemedi:",
         uploadSuccess: "Melodi başarıyla yüklendi!",
         uploadTitleEmpty: "Lütfen şarkının başlığını yazın.",
-        uploadLyricsEmpty: "Lütfen şarkı sözlerini yazın."
+        uploadLyricsEmpty: "Lütfen şarkı sözlerini yazın.",
+        friendEmpty: "Lütfen bir ortak kullanıcı adı yazın.",
+        titlePlaceholder: "Şarkı başlığı",
+        lyricsPlaceholder: "Şarkı sözlerini buraya yaz...",
+        friendPlaceholder: "Ortak (Arkadaş) kullanıcı adı"
       },
       en: {
         title: "Upload Melody",
@@ -186,7 +201,11 @@
         uploadError: "File upload failed:",
         uploadSuccess: "Melody uploaded successfully!",
         uploadTitleEmpty: "Please enter the song title.",
-        uploadLyricsEmpty: "Please enter the lyrics."
+        uploadLyricsEmpty: "Please enter the lyrics.",
+        friendEmpty: "Please enter your collaborator's name.",
+        titlePlaceholder: "Song title",
+        lyricsPlaceholder: "Write your lyrics here...",
+        friendPlaceholder: "Collaborator (Friend) username"
       }
     };
 
@@ -195,7 +214,14 @@
       document.getElementById("title").innerText = texts[lang].title;
       document.getElementById("upload-btn").innerText = texts[lang].upload;
       document.getElementById("melody-title").innerText = texts[lang].list;
+      updatePlaceholders(lang);
     };
+
+    function updatePlaceholders(lang) {
+      document.getElementById("song-title").placeholder = texts[lang].titlePlaceholder;
+      document.getElementById("song-lyrics").placeholder = texts[lang].lyricsPlaceholder;
+      document.getElementById("friend-name").placeholder = texts[lang].friendPlaceholder;
+    }
 
     function getText(key) {
       const lang = document.documentElement.lang;
