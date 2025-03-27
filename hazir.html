@@ -63,24 +63,24 @@
 <input type="text" id="song-title" placeholder="Şarkı başlığı" />
 <textarea id="song-lyrics" placeholder="Şarkı sözlerini buraya yaz..."></textarea>
 <select id="friend-name">
-  <option value="">-- Arkadaş seç --</option>
+  <option value="">-- Kullanıcı seç --</option>
 </select>
 <button class="btn" onclick="uploadMelodyFull()" id="upload-btn">Yükle</button>
 
 <a href="/anasayfa.html" class="btn" id="home-btn">Anasayfaya Dön</a>
 <h2 id="melody-title">Yüklenen Şarkılar</h2>
-<div id="melodyList"></div>
-<script type="module">
+<div id="melodyList"></div><script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
 import {
   getFirestore, collection, addDoc, query, orderBy, onSnapshot,
-  serverTimestamp, doc, getDoc
+  serverTimestamp, doc, getDoc, getDocs
 } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
 import {
   getAuth, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
 
+// Firebase ayarları
 const firebaseConfig = {
   apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7YI...",
   authDomain: "tunetra-2579b.firebaseapp.com",
@@ -90,6 +90,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth();
 
+// Supabase ayarları
 const supabase = createClient(
   "https://kqgbdfnqckcgrfizjdgt.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -106,30 +107,28 @@ onAuthStateChanged(auth, async (user) => {
     const userRef = doc(db, "users", currentUID);
     const userSnap = await getDoc(userRef);
     currentUser = userSnap.exists() ? userSnap.data().username || "Anonim" : "Anonim";
-    await loadFriends(currentUID);
+    await loadAllUsernames(); // Tüm kullanıcıları getir
   } else {
     await signInAnonymously(auth);
   }
 });
 
-async function loadFriends(uid) {
-  const snap = await getDoc(doc(db, "friends", uid));
-  const friendUIDs = snap.exists() ? snap.data().list || [] : [];
+async function loadAllUsernames() {
+  const snap = await getDocs(collection(db, "users"));
   const select = document.getElementById("friend-name");
   select.innerHTML = `<option value="">-- ${getText("friendPlaceholder")} --</option>`;
-
   friendList = [];
-  for (const fid of friendUIDs) {
-    const fdoc = await getDoc(doc(db, "users", fid));
-    if (fdoc.exists()) {
-      const uname = fdoc.data().username;
-      friendList.push({ uid: fid, username: uname });
+
+  snap.forEach(docSnap => {
+    const data = docSnap.data();
+    if (data.username) {
+      friendList.push({ uid: docSnap.id, username: data.username });
       const opt = document.createElement("option");
-      opt.value = fid;
-      opt.textContent = uname;
+      opt.value = docSnap.id;
+      opt.textContent = data.username;
       select.appendChild(opt);
     }
-  }
+  });
 }
 
 window.uploadMelodyFull = async function () {
@@ -197,8 +196,8 @@ const texts = {
     uploadSuccess: "Melodi başarıyla yüklendi!",
     uploadTitleEmpty: "Lütfen şarkının başlığını yazın.",
     uploadLyricsEmpty: "Lütfen şarkı sözlerini yazın.",
-    friendInvalid: "Lütfen yalnızca arkadaş listenizden birini seçin.",
-    friendPlaceholder: "Arkadaş seç"
+    friendInvalid: "Lütfen bir kullanıcı seçin.",
+    friendPlaceholder: "Kullanıcı seç"
   },
   en: {
     title: "Upload Melody",
@@ -210,8 +209,8 @@ const texts = {
     uploadSuccess: "Melody uploaded successfully!",
     uploadTitleEmpty: "Please enter the song title.",
     uploadLyricsEmpty: "Please enter the lyrics.",
-    friendInvalid: "Please select only from your friend list.",
-    friendPlaceholder: "Select a friend"
+    friendInvalid: "Please select a user.",
+    friendPlaceholder: "Select a user"
   }
 };
 
