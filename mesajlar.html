@@ -55,7 +55,7 @@
       margin-bottom: 10px;
       border-radius: 6px;
       cursor: pointer;
-      text-align: center;
+      text-align: left;
       position: relative;
     }
     .chat-item.active {
@@ -64,13 +64,17 @@
     }
     .chat-item .notification {
       position: absolute;
-      top: 8px;
-      right: 8px;
+      top: 10px;
+      right: 10px;
       width: 10px;
       height: 10px;
       background-color: red;
       border-radius: 50%;
-      display: block;
+    }
+    .last-message {
+      font-size: 0.85em;
+      color: #ddd;
+      margin-top: 5px;
     }
     .chat-window {
       flex: 1;
@@ -96,6 +100,10 @@
     .message.you {
       background: rgba(0, 255, 127, 0.3);
       align-self: flex-end;
+    }
+    .sender-label {
+      font-weight: bold;
+      margin-bottom: 5px;
     }
     .timestamp {
       font-size: 0.75rem;
@@ -137,13 +145,9 @@
       }
       .chat-item {
         flex: 0 0 auto;
-        min-width: 120px;
-        max-width: 180px;
+        min-width: 140px;
+        max-width: 200px;
         scroll-snap-align: start;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        text-align: center;
       }
     }
   </style>
@@ -166,187 +170,222 @@
         <button class="send-btn" onclick="sendMessage()">Gönder</button>
       </div>
     </div>
-  </div>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  </div><script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-      authDomain: "tunetra-2579b.firebaseapp.com",
-      projectId: "tunetra-2579b",
-      storageBucket: "tunetra-2579b.appspot.com",
-      messagingSenderId: "576238823779",
-      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-    };
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+const firebaseConfig = {
+  apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+  authDomain: "tunetra-2579b.firebaseapp.com",
+  projectId: "tunetra-2579b",
+  storageBucket: "tunetra-2579b.appspot.com",
+  messagingSenderId: "576238823779",
+  appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-    let currentUser = null, selectedFriendId = null, unsubscribe = null, lang = localStorage.getItem("lang") || "tr";
-    const t = {
-      tr: { pageTitle: "Mesajlar", placeholder: "Mesaj yaz...", send: "Gönder", home: "Ana Sayfa", turkish: "🇹🇷 Türkçe", english: "🇬🇧 English", sentAt: "Gönderildi" },
-      en: { pageTitle: "Messages", placeholder: "Type a message...", send: "Send", home: "Home Page", turkish: "🇹🇷 Turkish", english: "🇬🇧 English", sentAt: "Sent at" }
-    };
+let currentUser = null;
+let selectedFriendId = null;
+let unsubscribe = null;
+let lang = localStorage.getItem("lang") || "tr";
 
-    function setLang(l) {
-      lang = l;
-      localStorage.setItem("lang", lang);
-      document.getElementById("pageTitle").innerText = t[lang].pageTitle;
-      document.getElementById("messageInput").placeholder = t[lang].placeholder;
-      document.querySelector(".send-btn").innerText = t[lang].send;
-      document.getElementById("homeBtn").innerText = "🏠 " + t[lang].home;
-      document.getElementById("btnTr").innerText = t[lang].turkish;
-      document.getElementById("btnEn").innerText = t[lang].english;
+const t = {
+  tr: {
+    pageTitle: "Mesajlar",
+    placeholder: "Mesaj yaz...",
+    send: "Gönder",
+    home: "Ana Sayfa",
+    turkish: "🇹🇷 Türkçe",
+    english: "🇬🇧 English",
+    sentAt: "Gönderildi",
+    you: "Sen"
+  },
+  en: {
+    pageTitle: "Messages",
+    placeholder: "Type a message...",
+    send: "Send",
+    home: "Home Page",
+    turkish: "🇹🇷 Turkish",
+    english: "🇬🇧 English",
+    sentAt: "Sent at",
+    you: "You"
+  }
+};
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem("lang", lang);
+  document.getElementById("pageTitle").innerText = t[lang].pageTitle;
+  document.getElementById("messageInput").placeholder = t[lang].placeholder;
+  document.querySelector(".send-btn").innerText = t[lang].send;
+  document.getElementById("homeBtn").innerText = "🏠 " + t[lang].home;
+  document.getElementById("btnTr").innerText = t[lang].turkish;
+  document.getElementById("btnEn").innerText = t[lang].english;
+}
+
+function getConversationId(uid1, uid2) {
+  return [uid1, uid2].sort().join("_");
+}
+
+function formatTimestamp(ts) {
+  const d = new Date(ts);
+  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+async function loadFriends(uid) {
+  const snap = await getDoc(doc(db, "friends", uid));
+  const list = document.getElementById("chatList");
+  list.innerHTML = "";
+  const friends = snap.exists() ? snap.data().list || [] : [];
+  const previewList = [];
+
+  for (const fid of friends) {
+    const fdoc = await getDoc(doc(db, "users", fid));
+    if (!fdoc.exists()) continue;
+    const name = fdoc.data().username;
+    const convoId = getConversationId(uid, fid);
+    const convoRef = doc(db, "conversations", convoId);
+    const convoSnap = await getDoc(convoRef);
+
+    let hasNewMessage = false;
+    let lastMsg = "";
+
+    if (convoSnap.exists()) {
+      const messages = convoSnap.data().messages || [];
+      messages.sort((a, b) => b.timestamp - a.timestamp);
+      const newMessages = messages.filter(msg => msg.sender !== uid && !msg.seenBy.includes(uid));
+      if (newMessages.length > 0) hasNewMessage = true;
+      if (messages.length > 0) lastMsg = messages[0].text;
     }
 
-    function getConversationId(uid1, uid2) {
-      return [uid1, uid2].sort().join("_");
+    previewList.push({ uid: fid, username: name, hasNewMessage, lastMsg });
+  }
+
+  previewList.sort((a, b) => b.hasNewMessage - a.hasNewMessage);
+
+  for (const f of previewList) {
+    const div = document.createElement("div");
+    div.className = "chat-item";
+    div.innerHTML = `<strong>${f.username}</strong><div class="last-message">${f.lastMsg || ""}</div>`;
+    if (f.hasNewMessage) {
+      const notif = document.createElement("div");
+      notif.className = "notification";
+      div.appendChild(notif);
+    }
+    div.onclick = () => openChat(f.uid, div);
+    list.appendChild(div);
+  }
+}
+
+async function openChat(fid, el) {
+  selectedFriendId = fid;
+  document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
+  el.classList.add("active");
+  const notif = el.querySelector(".notification");
+  if (notif) notif.remove();
+
+  if (unsubscribe) unsubscribe();
+
+  const convoId = getConversationId(currentUser.uid, fid);
+  const convoRef = doc(db, "conversations", convoId);
+  const area = document.getElementById("messageArea");
+  area.innerHTML = "";
+
+  const snap = await getDoc(convoRef);
+  if (snap.exists()) {
+    const msgs = snap.data().messages || [];
+    msgs.sort((a, b) => a.timestamp - b.timestamp);
+
+    for (const msg of msgs) {
+      const div = document.createElement("div");
+      const senderName = msg.sender === currentUser.uid
+        ? t[lang].you
+        : (await getDoc(doc(db, "users", msg.sender))).data()?.username || "Bilinmeyen";
+      div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
+      div.innerHTML = `<div class="sender-label">${senderName}</div><div>${msg.text}</div><div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>`;
+      area.appendChild(div);
     }
 
-    function formatTimestamp(ts) {
-      const d = new Date(ts);
-      return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
-    }
-
-    async function loadFriends(uid) {
-      const snap = await getDoc(doc(db, "friends", uid));
-      const list = document.getElementById("chatList");
-      list.innerHTML = "";
-
-      const friends = snap.exists() ? snap.data().list || [] : [];
-      const friendsWithUnread = [];
-
-      for (const fid of friends) {
-        const fdoc = await getDoc(doc(db, "users", fid));
-        if (!fdoc.exists()) continue;
-        const name = fdoc.data().username;
-        const convoId = getConversationId(uid, fid);
-        const convoRef = doc(db, "conversations", convoId);
-        const convoSnap = await getDoc(convoRef);
-        let hasNewMessage = false;
-
-        if (convoSnap.exists()) {
-          const messages = convoSnap.data().messages || [];
-          const newMessages = messages.filter(msg => msg.sender !== uid && !msg.seenBy.includes(uid));
-          if (newMessages.length > 0) hasNewMessage = true;
-        }
-
-        friendsWithUnread.push({ uid: fid, username: name, hasNewMessage });
-      }
-
-      friendsWithUnread.sort((a, b) => b.hasNewMessage - a.hasNewMessage);
-
-      for (const f of friendsWithUnread) {
-        const div = document.createElement("div");
-        div.className = "chat-item";
-        div.innerText = f.username;
-        if (f.hasNewMessage) {
-          const notif = document.createElement("div");
-          notif.className = "notification";
-          div.appendChild(notif);
-        }
-        div.onclick = () => openChat(f.uid, div);
-        list.appendChild(div);
-      }
-    }
-
-    async function openChat(fid, el) {
-      selectedFriendId = fid;
-      document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
-      el.classList.add("active");
-      const notif = el.querySelector(".notification");
-      if (notif) notif.remove();
-
-      if (unsubscribe) unsubscribe();
-      const convoId = getConversationId(currentUser.uid, fid);
-      const convoRef = doc(db, "conversations", convoId);
-      const area = document.getElementById("messageArea");
-      area.innerHTML = "";
-
-      const snap = await getDoc(convoRef);
-      if (snap.exists()) {
-        const msgs = snap.data().messages || [];
-        msgs.sort((a, b) => a.timestamp - b.timestamp);
-
-        for (const msg of msgs) {
-          const div = document.createElement("div");
-          div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
-          div.innerHTML = `<div>${msg.text}</div><div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>`;
-          area.appendChild(div);
-        }
-
-        const unseenMessages = msgs.filter(msg => !msg.seenBy.includes(currentUser.uid));
-        if (unseenMessages.length > 0) {
-          await updateDoc(convoRef, {
-            messages: msgs.map(msg => {
-              if (!msg.seenBy.includes(currentUser.uid)) {
-                msg.seenBy.push(currentUser.uid);
-              }
-              return msg;
-            })
-          });
-        }
-      }
-
-      setTimeout(() => {
-        area.scrollTop = area.scrollHeight;
-        const lastMessage = area.lastElementChild;
-        if (lastMessage) {
-          lastMessage.scrollIntoView({ behavior: "smooth" });
-        }
-      }, 100);
-
-      unsubscribe = onSnapshot(convoRef, async (snap) => {
-        if (!snap.exists()) return;
-        const msgs = snap.data().messages || [];
-        msgs.sort((a, b) => a.timestamp - b.timestamp);
-        area.innerHTML = "";
-        for (const msg of msgs) {
-          const div = document.createElement("div");
-          div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
-          div.innerHTML = `<div>${msg.text}</div><div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>`;
-          area.appendChild(div);
-        }
-        setTimeout(() => {
-          area.scrollTop = area.scrollHeight;
-          const lastMessage = area.lastElementChild;
-          if (lastMessage) {
-            lastMessage.scrollIntoView({ behavior: "smooth" });
+    const unseenMessages = msgs.filter(msg => !msg.seenBy.includes(currentUser.uid));
+    if (unseenMessages.length > 0) {
+      await updateDoc(convoRef, {
+        messages: msgs.map(msg => {
+          if (!msg.seenBy.includes(currentUser.uid)) {
+            msg.seenBy.push(currentUser.uid);
           }
-        }, 100);
+          return msg;
+        })
       });
     }
+  }
 
-    window.sendMessage = async () => {
-      const input = document.getElementById("messageInput");
-      const text = input.value.trim();
-      if (!text || !selectedFriendId || !currentUser ) return;
-      const id = crypto.randomUUID();
-      const msg = { id, sender: currentUser.uid, text, timestamp: Date.now(), seenBy: [] };
-      const convoId = getConversationId(currentUser.uid, selectedFriendId);
-      const convoRef = doc(db, "conversations", convoId);
-      const snap = await getDoc(convoRef);
+  setTimeout(() => {
+    area.scrollTop = area.scrollHeight;
+    const lastMessage = area.lastElementChild;
+    if (lastMessage) {
+      lastMessage.scrollIntoView({ behavior: "smooth" });
+    }
+  }, 100);
 
-      if (snap.exists()) {
-        const oldMsgs = snap.data().messages || [];
-        await setDoc(convoRef, { ...snap.data(), messages: [...oldMsgs, msg] });
-      } else {
-        await setDoc(convoRef, { users: [currentUser.uid, selectedFriendId], messages: [msg] });
-      }
-      input.value = "";
-    };
+  unsubscribe = onSnapshot(convoRef, async (snap) => {
+    if (!snap.exists()) return;
+    const msgs = snap.data().messages || [];
+    msgs.sort((a, b) => a.timestamp - b.timestamp);
+    area.innerHTML = "";
+    for (const msg of msgs) {
+      const div = document.createElement("div");
+      const senderName = msg.sender === currentUser.uid
+        ? t[lang].you
+        : (await getDoc(doc(db, "users", msg.sender))).data()?.username || "Bilinmeyen";
+      div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
+      div.innerHTML = `<div class="sender-label">${senderName}</div><div>${msg.text}</div><div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>`;
+      area.appendChild(div);
+    }
+  });
+}
 
-    window.goHome = () => location.href = "anasayfa.html";
-    window.setLang = setLang;
+window.sendMessage = async () => {
+  const input = document.getElementById("messageInput");
+  const text = input.value.trim();
+  if (!text || !selectedFriendId || !currentUser) return;
 
-    onAuthStateChanged(auth, user => {
-      if (!user) return location.href = "index.html";
-      currentUser = user;
-      setLang(lang);
-      loadFriends(user.uid);
-    });
-  </script>
+  const id = crypto.randomUUID();
+  const msg = {
+    id,
+    sender: currentUser.uid,
+    text,
+    timestamp: Date.now(),
+    seenBy: []
+  };
+  const convoId = getConversationId(currentUser.uid, selectedFriendId);
+  const convoRef = doc(db, "conversations", convoId);
+  const snap = await getDoc(convoRef);
+
+  if (snap.exists()) {
+    const oldMsgs = snap.data().messages || [];
+    await setDoc(convoRef, { ...snap.data(), messages: [...oldMsgs, msg] });
+  } else {
+    await setDoc(convoRef, { users: [currentUser.uid, selectedFriendId], messages: [msg] });
+  }
+
+  input.value = "";
+};
+
+window.goHome = () => location.href = "anasayfa.html";
+window.setLang = setLang;
+
+onAuthStateChanged(auth, user => {
+  if (!user) return location.href = "index.html";
+  currentUser = user;
+  setLang(lang);
+  loadFriends(user.uid);
+});
+</script>
 </body>
 </html>
