@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TuneTRa | Mesajlar</title>
-    <style>
+   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
 
     body {
@@ -202,9 +202,8 @@ import {
   collection, query, orderBy, limit, startAfter, addDoc, getDocs, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Firebase yapılandırması
 const firebaseConfig = {
-  apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IlV1VNkH73ldg",
+  apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
   authDomain: "tunetra-2579b.firebaseapp.com",
   projectId: "tunetra-2579b",
   storageBucket: "tunetra-2579b.appspot.com",
@@ -212,24 +211,22 @@ const firebaseConfig = {
   appId: "1:576238823779:web:b1796f089427e3b6fecb56"
 };
 
-// Firebase başlatma
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Kullanıcı ve sohbet bilgileri
 let currentUser = null;
 let selectedFriendId = null;
 let lang = localStorage.getItem("lang") || "tr";
+let lastVisible = null;
+let isLoading = false;
 let unsubMessages = null;
 
-// Dil desteği
 const t = {
   tr: { pageTitle: "Mesajlar", placeholder: "Mesaj yaz...", send: "Gönder", home: "Ana Sayfa", turkish: "🇹🇷 Türkçe", english: "🇬🇧 English", sentAt: "Gönderildi", you: "Sen" },
   en: { pageTitle: "Messages", placeholder: "Type a message...", send: "Send", home: "Home Page", turkish: "🇹🇷 Turkish", english: "🇬🇧 English", sentAt: "Sent at", you: "You" }
 };
 
-// Sayfa dilini ayarla
 function setLang(l) {
   lang = l;
   localStorage.setItem("lang", lang);
@@ -241,16 +238,30 @@ function setLang(l) {
   document.getElementById("btnEn").innerText = t[lang].english;
 }
 
-// Kullanıcı listesi ve mesajları yükle
+function scrollToBottom(force = false) {
+  const area = document.getElementById("messageArea");
+  const nearBottom = area.scrollHeight - area.scrollTop <= area.clientHeight + 100;
+  if (force || nearBottom) {
+    requestAnimationFrame(() => {
+      area.scrollTop = area.scrollHeight;
+    });
+  }
+}
+
+function getConversationId(uid1, uid2) {
+  return [uid1, uid2].sort().join("_");
+}
+
+function formatTimestamp(ts) {
+  const d = new Date(ts);
+  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
 async function loadChatList(uid) {
   const friendsSnap = await getDoc(doc(db, "friends", uid));
   const list = document.getElementById("chatList");
-  list.innerHTML = "Yükleniyor...";
-
-  if (!friendsSnap.exists()) return (list.innerHTML = "Sohbet yok.");
-  
   list.innerHTML = "";
-  const friends = friendsSnap.data().list || [];
+  const friends = friendsSnap.exists() ? friendsSnap.data().list || [] : [];
 
   for (const fid of friends) {
     const fdoc = await getDoc(doc(db, "users", fid));
@@ -258,32 +269,29 @@ async function loadChatList(uid) {
     const name = fdoc.data().username;
     const convoId = getConversationId(uid, fid);
     const messagesCol = collection(db, "conversations", convoId, "messages");
+    const lastMsgSnap = await getDocs(query(messagesCol, orderBy("timestamp", "desc"), limit(1)));
+    let lastMsg = "", hasNew = false;
 
-    // Son mesajı al
-    onSnapshot(query(messagesCol, orderBy("timestamp", "desc"), limit(1)), (snap) => {
-      let lastMsg = "", hasNew = false;
-      if (!snap.empty) {
-        const msg = snap.docs[0].data();
-        lastMsg = msg.text;
-        hasNew = !msg.seenBy?.includes(uid);
-      }
+    if (!lastMsgSnap.empty) {
+      const msg = lastMsgSnap.docs[0].data();
+      lastMsg = msg.text;
+      hasNew = !msg.seenBy?.includes(uid);
+    }
 
-      const div = document.createElement("div");
-      div.className = "chat-item";
-      div.innerHTML = `<strong>${name}</strong><div class="last-message">${lastMsg}</div>`;
-      if (hasNew) {
-        const notif = document.createElement("div");
-        notif.className = "notification";
-        div.appendChild(notif);
-      }
+    const div = document.createElement("div");
+    div.className = "chat-item";
+    div.innerHTML = `<strong>${name}</strong><div class="last-message">${lastMsg}</div>`;
+    if (hasNew) {
+      const notif = document.createElement("div");
+      notif.className = "notification";
+      div.appendChild(notif);
+    }
 
-      div.onclick = () => openChat(fid, div);
-      list.appendChild(div);
-    });
+    div.onclick = () => openChat(fid, div);
+    list.appendChild(div);
   }
 }
 
-// Sohbeti aç ve mesajları dinle
 async function openChat(fid, el) {
   selectedFriendId = fid;
   document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
@@ -291,44 +299,60 @@ async function openChat(fid, el) {
 
   const area = document.getElementById("messageArea");
   area.innerHTML = "";
+  lastVisible = null;
 
   if (unsubMessages) unsubMessages();
 
   const convoId = getConversationId(currentUser.uid, fid);
   const messagesCol = collection(db, "conversations", convoId, "messages");
 
-  unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "asc")), async (snap) => {
+  const snap = await getDocs(query(messagesCol, orderBy("timestamp", "desc"), limit(20)));
+  let messages = [];
+  snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
+  messages.reverse().forEach(async msg => {
+    const div = await buildMessageDiv(msg);
+    area.appendChild(div);
+  });
+
+  if (!snap.empty) lastVisible = snap.docs[snap.docs.length - 1];
+
+  scrollToBottom(true);
+  attachScrollLoader(messagesCol);
+
+  unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "asc")), async snap => {
     area.innerHTML = "";
     for (const docSnap of snap.docs) {
       const msg = { id: docSnap.id, ...docSnap.data() };
       const div = await buildMessageDiv(msg);
       area.appendChild(div);
     }
-    scrollToBottom(true);
+    scrollToBottom(); // canlı yeni mesaj geldiğinde scroll
   });
 }
 
-// Mesaj gönderme
-window.sendMessage = async () => {
-  const input = document.getElementById("messageInput");
-  const text = input.value.trim();
-  if (!text || !selectedFriendId || !currentUser) return;
+function attachScrollLoader(messagesCol) {
+  const area = document.getElementById("messageArea");
+  area.onscroll = async () => {
+    if (area.scrollTop === 0 && !isLoading && lastVisible) {
+      isLoading = true;
+      const snap = await getDocs(query(messagesCol, orderBy("timestamp", "desc"), startAfter(lastVisible), limit(20)));
+      let messages = [];
+      snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
+      messages.reverse();
 
-  const convoId = getConversationId(currentUser.uid, selectedFriendId);
-  const msgCol = collection(db, "conversations", convoId, "messages");
+      const scrollBefore = area.scrollHeight;
+      for (const msg of messages) {
+        const div = await buildMessageDiv(msg);
+        area.prepend(div);
+      }
+      area.scrollTop = area.scrollHeight - scrollBefore;
 
-  const msg = {
-    sender: currentUser.uid,
-    text,
-    timestamp: Date.now(),
-    seenBy: []
+      if (!snap.empty) lastVisible = snap.docs[snap.docs.length - 1];
+      isLoading = false;
+    }
   };
+}
 
-  await addDoc(msgCol, msg);
-  input.value = "";
-};
-
-// Mesajları oluşturma
 async function buildMessageDiv(msg) {
   const div = document.createElement("div");
   const senderName = msg.sender === currentUser.uid
@@ -340,35 +364,75 @@ async function buildMessageDiv(msg) {
     <div class="msg-text">${msg.text}</div>
     <div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>
   `;
+
+  if (msg.sender === currentUser.uid) {
+    const editBtn = document.createElement("button");
+    editBtn.textContent = "✏️";
+    editBtn.style.marginLeft = "6px";
+    editBtn.onclick = () => {
+      const input = document.getElementById("messageInput");
+      input.value = msg.text;
+      input.focus();
+      input.dataset.editing = msg.id;
+    };
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "🗑️";
+    deleteBtn.onclick = async () => {
+      if (confirm("Mesaj silinsin mi?")) {
+        const convoId = getConversationId(currentUser.uid, selectedFriendId);
+        await deleteDoc(doc(db, "conversations", convoId, "messages", msg.id));
+      }
+    };
+
+    div.appendChild(editBtn);
+    div.appendChild(deleteBtn);
+  }
+
   return div;
 }
 
-// Sayfanın en altına kaydırma
-function scrollToBottom(force = false) {
-  const area = document.getElementById("messageArea");
-  const nearBottom = area.scrollHeight - area.scrollTop <= area.clientHeight + 100;
-  if (force || nearBottom) {
-    requestAnimationFrame(() => {
-      area.scrollTop = area.scrollHeight;
-    });
+window.sendMessage = async () => {
+  const input = document.getElementById("messageInput");
+  const text = input.value.trim();
+  const editId = input.dataset.editing;
+  if (!text || !selectedFriendId || !currentUser) return;
+
+  const convoId = getConversationId(currentUser.uid, selectedFriendId);
+  const msgCol = collection(db, "conversations", convoId, "messages");
+
+  if (editId) {
+    await updateDoc(doc(msgCol, editId), { text });
+    delete input.dataset.editing;
+  } else {
+    const msg = {
+      sender: currentUser.uid,
+      text,
+      timestamp: Date.now(),
+      seenBy: []
+    };
+
+    await addDoc(msgCol, msg);
+
+    const convoRef = doc(db, "conversations", convoId);
+    const convoSnap = await getDoc(convoRef);
+    if (!convoSnap.exists()) {
+      await setDoc(convoRef, { users: [currentUser.uid, selectedFriendId] });
+    }
   }
-}
 
-// Kullanıcılar arası konuşma kimliği oluşturma
-function getConversationId(uid1, uid2) {
-  return [uid1, uid2].sort().join("_");
-}
+  input.value = "";
+};
 
-// Zaman damgasını formatlama
-function formatTimestamp(ts) {
-  const d = new Date(ts);
-  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
-
-// Dil ve yönlendirme işlemleri
 window.setLang = setLang;
 window.goHome = () => location.href = "anasayfa.html";
-</script>
 
+onAuthStateChanged(auth, user => {
+  if (!user) return location.href = "index.html";
+  currentUser = user;
+  setLang(lang);
+  loadChatList(user.uid);
+});
+</script>
 </body>
 </html>
