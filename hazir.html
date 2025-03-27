@@ -116,35 +116,27 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-// BURASI mesajlar.html'deki sistemle aynıdır
 async function loadFriendsFromUID(uid) {
   try {
-    const ref = doc(db, "friends", uid);
-    const snap = await getDoc(ref);
-    const friends = snap.exists() ? snap.data().list || [] : [];
+    const snap = await getDoc(doc(db, "friends", uid));
+    const list = snap.exists() ? snap.data().list || [] : [];
 
-    if (!friends.length) {
-      console.warn("Hiç arkadaş bulunamadı.");
-      return;
+    if (!list.length) return;
+    const usernames = [];
+
+    for (const fid of list) {
+      const fdoc = await getDoc(doc(db, "users", fid));
+      if (fdoc.exists()) {
+        const name = fdoc.data().username;
+        if (name) usernames.push(name);
+      }
     }
 
-    await getUsernamesFromUIDs(friends);
-  } catch (e) {
-    console.error("Arkadaşlar çekilemedi:", e);
+    friendList = usernames;
+    populateFriendSelect(friendList);
+  } catch (err) {
+    console.error("Arkadaşlar çekilemedi:", err);
   }
-}
-
-async function getUsernamesFromUIDs(uids) {
-  friendList = [];
-  for (const uid of uids) {
-    const ref = doc(db, "users", uid);
-    const snap = await getDoc(ref);
-    if (snap.exists()) {
-      const uname = snap.data().username;
-      if (uname) friendList.push(uname);
-    }
-  }
-  populateFriendSelect(friendList);
 }
 
 function populateFriendSelect(friends) {
@@ -203,7 +195,7 @@ onSnapshot(q, (snapshot) => {
         <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong> (${time})</p>
         <audio controls src="${d.audioUrl}"></audio>
         <h3>${d.title}</h3>
-        <p>${d.lyrics.replace(/\n/g, "<br>")}</p>
+        <p>${d.lyrics.replace(/\\n/g, "<br>")}</p>
       </div>
     `;
   });
