@@ -70,7 +70,6 @@
 <a href="/anasayfa.html" class="btn" id="home-btn">Anasayfaya Dön</a>
 <h2 id="melody-title">Yüklenen Şarkılar</h2>
 <div id="melodyList"></div>
-
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
@@ -85,10 +84,7 @@ import {
 const firebaseConfig = {
   apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7YI...",
   authDomain: "tunetra-2579b.firebaseapp.com",
-  projectId: "tunetra-2579b",
-  storageBucket: "tunetra-2579b.appspot.com",
-  messagingSenderId: "576238823779",
-  appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+  projectId: "tunetra-2579b"
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -102,7 +98,7 @@ const bucket = "melodies";
 
 let currentUID = "";
 let currentUser = "Anonim";
-let friendList = [];
+let friendList = []; // [{ uid, username }]
 
 onAuthStateChanged(auth, async (user) => {
   if (user) {
@@ -110,56 +106,43 @@ onAuthStateChanged(auth, async (user) => {
     const userRef = doc(db, "users", currentUID);
     const userSnap = await getDoc(userRef);
     currentUser = userSnap.exists() ? userSnap.data().username || "Anonim" : "Anonim";
-    await loadFriendsFromUID(currentUID);
+    await loadFriends(currentUID);
   } else {
     await signInAnonymously(auth);
   }
 });
 
-async function loadFriendsFromUID(uid) {
-  try {
-    const snap = await getDoc(doc(db, "friends", uid));
-    const list = snap.exists() ? snap.data().list || [] : [];
-
-    if (!list.length) return;
-    const usernames = [];
-
-    for (const fid of list) {
-      const fdoc = await getDoc(doc(db, "users", fid));
-      if (fdoc.exists()) {
-        const name = fdoc.data().username;
-        if (name) usernames.push(name);
-      }
-    }
-
-    friendList = usernames;
-    populateFriendSelect(friendList);
-  } catch (err) {
-    console.error("Arkadaşlar çekilemedi:", err);
-  }
-}
-
-function populateFriendSelect(friends) {
+async function loadFriends(uid) {
+  const snap = await getDoc(doc(db, "friends", uid));
+  const friendUIDs = snap.exists() ? snap.data().list || [] : [];
   const select = document.getElementById("friend-name");
   select.innerHTML = `<option value="">-- ${getText("friendPlaceholder")} --</option>`;
-  friends.forEach(friend => {
-    const opt = document.createElement("option");
-    opt.value = friend;
-    opt.textContent = friend;
-    select.appendChild(opt);
-  });
+
+  friendList = [];
+  for (const fid of friendUIDs) {
+    const fdoc = await getDoc(doc(db, "users", fid));
+    if (fdoc.exists()) {
+      const uname = fdoc.data().username;
+      friendList.push({ uid: fid, username: uname });
+      const opt = document.createElement("option");
+      opt.value = fid;
+      opt.textContent = uname;
+      select.appendChild(opt);
+    }
+  }
 }
 
 window.uploadMelodyFull = async function () {
   const file = document.getElementById("melodyInput").files[0];
   const title = document.getElementById("song-title").value.trim();
   const lyrics = document.getElementById("song-lyrics").value.trim();
-  const friend = document.getElementById("friend-name").value;
+  const selectedUID = document.getElementById("friend-name").value;
+  const selectedFriend = friendList.find(f => f.uid === selectedUID);
 
   if (!file) return alert(getText("selectFile"));
   if (!title) return alert(getText("uploadTitleEmpty"));
   if (!lyrics) return alert(getText("uploadLyricsEmpty"));
-  if (!friend || !friendList.includes(friend)) return alert(getText("friendInvalid"));
+  if (!selectedFriend) return alert(getText("friendInvalid"));
 
   const fileName = `${Date.now()}_${file.name}`;
   const { error } = await supabase.storage.from(bucket).upload(fileName, file);
@@ -169,7 +152,9 @@ window.uploadMelodyFull = async function () {
 
   await addDoc(collection(db, "melodies"), {
     uploader: currentUser,
-    collaborator: friend,
+    uploaderUID: currentUID,
+    collaborator: selectedFriend.username,
+    collaboratorUID: selectedFriend.uid,
     audioUrl: publicUrl,
     title,
     lyrics,
@@ -238,11 +223,10 @@ window.setLang = function (lang) {
   document.getElementById("home-btn").innerText = texts[lang].home;
   document.getElementById("song-title").placeholder = lang === "tr" ? "Şarkı başlığı" : "Song title";
   document.getElementById("song-lyrics").placeholder = lang === "tr" ? "Şarkı sözlerini buraya yaz..." : "Write your lyrics here...";
-  populateFriendSelect(friendList);
 };
 
 function getText(key) {
-  const lang = document.documentElement.lang;
+  const lang = document.documentElement.lang || "tr";
   return texts[lang][key];
 }
 </script>
