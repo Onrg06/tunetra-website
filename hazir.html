@@ -183,7 +183,7 @@ window.uploadMelodyFull = async function () {
 };
 
 const list = document.getElementById("melodyList");
-const q = query(collection(db, "melodies"), orderBy("timestamp", "desc"));
+const q = query(collection(db, "songs"), orderBy("timestamp", "desc"));
 onSnapshot(q, (snapshot) => {
   list.innerHTML = "";
   snapshot.forEach(doc => {
