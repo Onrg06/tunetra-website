@@ -243,7 +243,7 @@ function setLang(l) {
 
 // Kullanıcı kimlik doğrulaması kontrolü
 onAuthStateChanged(auth, user => {
-  if (!user) return location.href = "index.html";
+  if (!user) return location.href = "mesajlar.html";
   currentUser = user;
   setLang(lang);
   loadChatList(user.uid);
