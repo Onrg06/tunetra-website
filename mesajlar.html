@@ -178,7 +178,8 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
   collection, query, orderBy, limitToLast, endBefore,
-  addDoc, getDocs, onSnapshot, arrayUnion, limit
+  addDoc, getDocs, onSnapshot, arrayUnion, limit,
+  Timestamp
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -202,48 +203,6 @@ let unsubMessages = null;
 const loadedMessageIds = new Set();
 let lang = localStorage.getItem("lang") || "tr";
 
-const t = {
-  tr: {
-    pageTitle: "Mesajlar", placeholder: "Mesaj yaz...", send: "Gönder",
-    home: "Ana Sayfa", turkish: "🇹🇷 Türkçe", english: "🇬🇧 English",
-    sentAt: "Gönderildi", you: "Sen"
-  },
-  en: {
-    pageTitle: "Messages", placeholder: "Type a message...", send: "Send",
-    home: "Home Page", turkish: "🇹🇷 Turkish", english: "🇬🇧 English",
-    sentAt: "Sent at", you: "You"
-  }
-};
-
-function updateTexts() {
-  document.getElementById("pageTitle").innerText = t[lang].pageTitle;
-  document.getElementById("messageInput").placeholder = t[lang].placeholder;
-  document.querySelector(".send-btn").innerText = t[lang].send;
-  document.getElementById("homeBtn").innerText = "🏠 " + t[lang].home;
-  document.getElementById("btnTr").innerText = t[lang].turkish;
-  document.getElementById("btnEn").innerText = t[lang].english;
-
-  document.querySelectorAll(".message").forEach(msg => {
-    const isYou = msg.classList.contains("you");
-    const ts = msg.dataset.timestamp;
-    const sender = isYou ? t[lang].you : msg.dataset.senderName || "";
-    msg.querySelector(".sender-label").innerText = sender;
-    msg.querySelector(".timestamp").innerText = `${t[lang].sentAt}: ${formatTimestamp(ts)}`;
-  });
-}
-
-function setLang(l) {
-  lang = l;
-  localStorage.setItem("lang", lang);
-  updateTexts();
-}
-window.setLang = setLang;
-
-function formatTimestamp(ts) {
-  const d = new Date(Number(ts));
-  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
-
 function getConversationId(uid1, uid2) {
   return [uid1, uid2].sort().join("_");
 }
@@ -251,9 +210,13 @@ function getConversationId(uid1, uid2) {
 onAuthStateChanged(auth, user => {
   if (!user) return location.href = "index.html";
   currentUser = user;
-  setLang(lang);
   loadChatList(user.uid);
 });
+
+function formatTimestamp(ts) {
+  const d = ts.toDate();
+  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
 
 async function loadChatList(uid) {
   const friendsSnap = await getDoc(doc(db, "friends", uid));
@@ -289,6 +252,7 @@ async function loadChatList(uid) {
     list.appendChild(div);
   }
 }
+
 async function openChat(fid, el) {
   selectedFriendId = fid;
   const area = document.getElementById("messageArea");
@@ -313,7 +277,7 @@ async function openChat(fid, el) {
 
   for (const msg of messages) {
     const div = await buildMessageDiv(msg);
-    area.appendChild(div);
+    document.getElementById("messageArea").appendChild(div);
     loadedMessageIds.add(msg.id);
 
     if (!msg.seenBy?.includes(currentUser.uid)) {
@@ -323,11 +287,9 @@ async function openChat(fid, el) {
     }
   }
 
-  // En son mesajı göster
   area.lastElementChild?.scrollIntoView({ behavior: "auto" });
 
   attachScrollLoader(messagesCol);
-  updateTexts();
 
   unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "desc"), limit(1)), async snap => {
     for (const docSnap of snap.docChanges()) {
@@ -335,7 +297,7 @@ async function openChat(fid, el) {
       if (docSnap.type === "added" && !loadedMessageIds.has(msg.id)) {
         loadedMessageIds.add(msg.id);
         const div = await buildMessageDiv(msg);
-        area.appendChild(div);
+        document.getElementById("messageArea").appendChild(div);
         setTimeout(() => {
           div.scrollIntoView({ behavior: "smooth" });
         }, 50);
@@ -355,16 +317,38 @@ async function openChat(fid, el) {
 function attachScrollLoader(messagesCol) {
   const area = document.getElementById("messageArea");
   area.onscroll = async () => {
-    if (area.scrollTop < 100 && !isLoading && firstVisible) {
+    if (area.scrollTop < 300 && !isLoading && firstVisible) {
       isLoading = true;
       const prevHeight = area.scrollHeight;
 
       const snap = await getDocs(query(
-      messagesCol,
-      orderBy("timestamp", "asc"),
-      endBefore(firstVisible),
-      limitToLast(20)
-    ));
+        messagesCol,
+        orderBy("timestamp", "asc"),
+        endBefore(firstVisible),
+        limitToLast(20)
+      ));
+
+      if (snap.empty) {
+        isLoading = false;
+        return;
+      }
+
+      const messages = [];
+      snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
+      firstVisible = snap.docs[0];
+
+      for (const msg of messages.reverse()) {
+        if (!loadedMessageIds.has(msg.id)) {
+          const div = await buildMessageDiv(msg);
+          area.insertBefore(div, area.firstChild);
+          loadedMessageIds.add(msg.id);
+        }
+      }
+
+      const newHeight = area.scrollHeight;
+      area.scrollTop += newHeight - prevHeight;
+
+      isLoading = false;
     }
   };
 }
@@ -373,31 +357,28 @@ async function buildMessageDiv(msg) {
   const div = document.createElement("div");
   div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
   div.setAttribute("data-id", msg.id);
-  div.setAttribute("data-timestamp", msg.timestamp);
 
-  let senderName = t[lang].you;
+  let senderName = msg.sender === currentUser.uid ? "Sen" : "Kullanıcı";
   if (msg.sender !== currentUser.uid) {
     const senderDoc = await getDoc(doc(db, "users", msg.sender));
     senderName = senderDoc.exists() ? senderDoc.data().username : "Bilinmeyen";
   }
 
-  div.setAttribute("data-sender-name", senderName);
-
   div.innerHTML = `
     <div class="sender-label">${senderName}</div>
     <div class="msg-text">${msg.text}</div>
-    <div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>
+    <div class="timestamp">Gönderildi: ${formatTimestamp(msg.timestamp)}</div>
   `;
 
   if (msg.sender === currentUser.uid) {
+    const input = document.getElementById("messageInput");
+
     const editBtn = document.createElement("button");
     editBtn.textContent = "✏️";
-    editBtn.style.marginLeft = "6px";
     editBtn.onclick = () => {
-      const input = document.getElementById("messageInput");
       input.value = msg.text;
-      input.focus();
       input.dataset.editing = msg.id;
+      input.focus();
     };
 
     const deleteBtn = document.createElement("button");
@@ -432,9 +413,7 @@ window.sendMessage = async () => {
     const msg = {
       sender: currentUser.uid,
       text,
-import { Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-// sonra:
-timestamp: Timestamp.now()
+      timestamp: Timestamp.now(),
       seenBy: []
     };
     await addDoc(msgCol, msg);
