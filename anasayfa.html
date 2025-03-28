@@ -238,41 +238,38 @@
     } else {
       updateUI();
 
-      // Gerçek zamanlı arkadaşlık isteği bildirimi
+      // --- Gerçek Zamanlı Arkadaşlık İstekleri ---
       onSnapshot(doc(db, "friendRequests", user.uid), (docSnap) => {
         const count = docSnap.exists() ? (docSnap.data().requests?.length || 0) : 0;
         const base = translations[currentLang].friends;
         document.getElementById("btnFriends").innerText = count > 0 ? `${base} (${count})` : base;
       });
 
-      // Gerçek zamanlı mesaj bildirimi
+      // --- Gerçek Zamanlı Mesajlar (Kişi bazlı sayım) ---
       onSnapshot(
         query(collection(db, "conversations"), where("users", "array-contains", user.uid)),
         (convoSnap) => {
-          let msgCount = 0;
           const base = translations[currentLang].messages;
+          const unseenFrom = new Set();
 
           convoSnap.docs.forEach(convo => {
             const convoId = convo.id;
             const messagesRef = collection(db, "conversations", convoId, "messages");
 
-            // Her konuşmanın son mesajını dinle
             onSnapshot(
               query(messagesRef, orderBy("timestamp", "desc"), limit(1)),
               (msgSnap) => {
-                let unseenFound = false;
-
                 msgSnap.forEach(doc => {
                   const msg = doc.data();
-                  if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
-                    unseenFound = true;
+                  if (
+                    msg.sender !== user.uid &&
+                    (!msg.seenBy || !msg.seenBy.includes(user.uid))
+                  ) {
+                    unseenFrom.add(msg.sender); // Sadece 1 kere sayar
                   }
                 });
 
-                if (unseenFound) {
-                  msgCount++;
-                }
-
+                const msgCount = unseenFrom.size;
                 document.getElementById("btnMessages").innerText =
                   msgCount > 0 ? `📨 ${base} (${msgCount})` : `📨 ${base}`;
               }
