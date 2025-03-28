@@ -177,7 +177,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
-  collection, query, orderBy, limit, startAfter, addDoc, getDocs, onSnapshot, arrayUnion
+  collection, query, orderBy, limitToLast, endBefore,
+  addDoc, getDocs, onSnapshot, arrayUnion, limit
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -195,7 +196,7 @@ const db = getFirestore(app);
 
 let currentUser = null;
 let selectedFriendId = null;
-let lastVisible = null;
+let firstVisible = null;
 let isLoading = false;
 let unsubMessages = null;
 const loadedMessageIds = new Set();
@@ -288,13 +289,12 @@ async function loadChatList(uid) {
     list.appendChild(div);
   }
 }
-
 async function openChat(fid, el) {
   selectedFriendId = fid;
   const area = document.getElementById("messageArea");
   area.innerHTML = "";
-  lastVisible = null;
   loadedMessageIds.clear();
+  firstVisible = null;
 
   if (unsubMessages) unsubMessages();
   document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
@@ -306,17 +306,16 @@ async function openChat(fid, el) {
   const convoId = getConversationId(currentUser.uid, fid);
   const messagesCol = collection(db, "conversations", convoId, "messages");
 
-  const snap = await getDocs(query(messagesCol, orderBy("timestamp", "desc"), limit(20)));
-  let messages = [];
+  const snap = await getDocs(query(messagesCol, orderBy("timestamp", "asc"), limitToLast(20)));
+  const messages = [];
   snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
-  messages.reverse();
+  firstVisible = snap.docs[0];
 
   for (const msg of messages) {
     const div = await buildMessageDiv(msg);
     area.appendChild(div);
     loadedMessageIds.add(msg.id);
 
-    // Kalıcı olarak "seenBy" güncelle
     if (!msg.seenBy?.includes(currentUser.uid)) {
       await updateDoc(doc(db, "conversations", convoId, "messages", msg.id), {
         seenBy: arrayUnion(currentUser.uid)
@@ -324,63 +323,60 @@ async function openChat(fid, el) {
     }
   }
 
-  if (!snap.empty) lastVisible = snap.docs[snap.docs.length - 1];
-
-  // DOM tamamen yüklendikten sonra scroll en alta
-  setTimeout(() => {
-    area.scrollTop = area.scrollHeight;
-  }, 300);
+  // En son mesajı göster
+  area.lastElementChild?.scrollIntoView({ behavior: "auto" });
 
   attachScrollLoader(messagesCol);
+  updateTexts();
 
   unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "desc"), limit(1)), async snap => {
     for (const docSnap of snap.docChanges()) {
       const msg = { id: docSnap.doc.id, ...docSnap.doc.data() };
-
       if (docSnap.type === "added" && !loadedMessageIds.has(msg.id)) {
         loadedMessageIds.add(msg.id);
         const div = await buildMessageDiv(msg);
         area.appendChild(div);
         setTimeout(() => {
-          area.scrollTop = area.scrollHeight;
-        }, 100);
+          div.scrollIntoView({ behavior: "smooth" });
+        }, 50);
       }
-
       if (docSnap.type === "modified") {
-        const existing = document.querySelector(`.message[data-id="${msg.id}"]`);
-        if (existing) existing.querySelector(".msg-text").innerText = msg.text;
+        const el = document.querySelector(`.message[data-id="${msg.id}"]`);
+        if (el) el.querySelector(".msg-text").innerText = msg.text;
       }
-
       if (docSnap.type === "removed") {
-        const deleted = document.querySelector(`.message[data-id="${msg.id}"]`);
-        if (deleted) deleted.remove();
+        const el = document.querySelector(`.message[data-id="${msg.id}"]`);
+        if (el) el.remove();
       }
     }
   });
-
-  updateTexts();
 }
 
 function attachScrollLoader(messagesCol) {
   const area = document.getElementById("messageArea");
   area.onscroll = async () => {
-    if (area.scrollTop < 100 && !isLoading && lastVisible) {
+    if (area.scrollTop < 100 && !isLoading && firstVisible) {
       isLoading = true;
       const prevHeight = area.scrollHeight;
 
-      const snap = await getDocs(query(messagesCol, orderBy("timestamp", "desc"), startAfter(lastVisible), limit(20)));
-      let messages = [];
+      const snap = await getDocs(query(
+        messagesCol,
+        orderBy("timestamp", "asc"),
+        endBefore(firstVisible),
+        limitToLast(20)
+      ));
+
+      const messages = [];
       snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
-      messages.reverse();
+      if (snap.docs.length > 0) firstVisible = snap.docs[0];
 
-      for (const msg of messages) {
-        if (loadedMessageIds.has(msg.id)) continue;
-        const div = await buildMessageDiv(msg);
-        area.insertBefore(div, area.firstChild);
-        loadedMessageIds.add(msg.id);
+      for (const msg of messages.reverse()) {
+        if (!loadedMessageIds.has(msg.id)) {
+          const div = await buildMessageDiv(msg);
+          area.insertBefore(div, area.firstChild);
+          loadedMessageIds.add(msg.id);
+        }
       }
-
-      if (!snap.empty) lastVisible = snap.docs[snap.docs.length - 1];
 
       const newHeight = area.scrollHeight;
       area.scrollTop += newHeight - prevHeight;
@@ -456,9 +452,7 @@ window.sendMessage = async () => {
       timestamp: Date.now(),
       seenBy: []
     };
-
     await addDoc(msgCol, msg);
-
     const convoRef = doc(db, "conversations", convoId);
     const convoSnap = await getDoc(convoRef);
     if (!convoSnap.exists()) {
