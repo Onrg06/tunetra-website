@@ -90,7 +90,7 @@
       margin-bottom: 20px;
       padding-right: 10px;
       display: flex;
-      flex-direction: column; /* ÖNEMLİ: Yukarıdan aşağı sıralamak için */
+      flex-direction: column-reverse; /* ÖNEMLİ: Yukarıdan aşağı sıralamak için */
     }
     .message {
       padding: 10px;
@@ -180,6 +180,7 @@ import {
   collection, query, orderBy, limit, startAfter, addDoc, getDocs, onSnapshot, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
   authDomain: "tunetra-2579b.firebaseapp.com",
@@ -230,14 +231,6 @@ function setLang(l) {
   }
 }
 
-function scrollToBottom(force = false) {
-  const area = document.getElementById("messageArea");
-  const isAtBottom = area.scrollHeight - area.scrollTop - area.clientHeight < 100;
-  if (force || isAtBottom) {
-    setTimeout(() => area.scrollTop = area.scrollHeight, 100);
-  }
-}
-
 function getConversationId(uid1, uid2) {
   return [uid1, uid2].sort().join("_");
 }
@@ -285,7 +278,6 @@ async function loadChatList(uid) {
 async function openChat(fid, el) {
   selectedFriendId = fid;
 
-  // Bildirimi sil
   const notifDot = el.querySelector(".notification");
   if (notifDot) notifDot.remove();
 
@@ -304,7 +296,8 @@ async function openChat(fid, el) {
 
   const snap = await getDocs(query(messagesCol, orderBy("timestamp", "desc"), limit(20)));
   let messages = [];
-  snap.forEach(doc => messages.unshift({ id: doc.id, ...doc.data() }));
+  snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
+
   for (const msg of messages) {
     const div = await buildMessageDiv(msg);
     area.appendChild(div);
@@ -312,10 +305,9 @@ async function openChat(fid, el) {
   }
 
   if (!snap.empty) lastVisible = snap.docs[snap.docs.length - 1];
-  scrollToBottom(true);
   attachScrollLoader(messagesCol);
 
-  unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "asc")), async snap => {
+  unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "desc"), limit(1)), async snap => {
     for (const docSnap of snap.docChanges()) {
       if (docSnap.type === "added") {
         const msg = { id: docSnap.doc.id, ...docSnap.doc.data() };
@@ -328,7 +320,6 @@ async function openChat(fid, el) {
           }
           const div = await buildMessageDiv(msg);
           area.appendChild(div);
-          scrollToBottom();
         }
       }
     }
@@ -338,18 +329,16 @@ async function openChat(fid, el) {
 function attachScrollLoader(messagesCol) {
   const area = document.getElementById("messageArea");
   area.onscroll = async () => {
-    if (area.scrollTop === 0 && !isLoading && lastVisible) {
+    if (area.scrollTop >= area.scrollHeight - area.clientHeight - 50 && !isLoading && lastVisible) {
       isLoading = true;
       const snap = await getDocs(query(messagesCol, orderBy("timestamp", "asc"), startAfter(lastVisible), limit(20)));
       let messages = [];
       snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
-      const scrollBefore = area.scrollHeight;
       for (const msg of messages) {
         const div = await buildMessageDiv(msg);
-        area.insertBefore(div, area.firstChild);
+        area.appendChild(div);
         loadedMessageIds.add(msg.id);
       }
-      area.scrollTop = area.scrollHeight - scrollBefore;
       if (!snap.empty) lastVisible = snap.docs[snap.docs.length - 1];
       isLoading = false;
     }
