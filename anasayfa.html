@@ -244,23 +244,30 @@
         where("users", "array-contains", user.uid)
       );
 
-      onSnapshot(convoQuery, (snapshot) => {
-        let msgCount = 0;
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          const messages = data.messages || [];
-          const hasUnread = messages.some(m =>
-            m.sender !== user.uid &&
-            (!m.seenBy || !m.seenBy.includes(user.uid))
-          );
-          if (hasUnread) {
-            msgCount++;
-          }
-        });
-        const messagesBase = translations[currentLang].messages;
-        document.getElementById("btnMessages").innerText = `📨 ${messagesBase} (${msgCount})`;
-      });
-    }
+      onSnapshot(convoQuery, async (snapshot) => {
+  let msgCount = 0;
+  const user = auth.currentUser;
+  if (!user) return;
+
+  for (const convo of snapshot.docs) {
+    const convoId = convo.id;
+    const messagesRef = collection(db, "conversations", convoId, "messages");
+
+    // En son 10 mesajı al (performans için limit koyduk)
+    const messageSnap = await getDocs(
+      query(messagesRef, orderBy("timestamp", "desc"), limit(10))
+    );
+
+    messageSnap.forEach(doc => {
+      const msg = doc.data();
+      const isUnread = msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid));
+      if (isUnread) msgCount++;
+    });
+  }
+
+  const messagesBase = translations[currentLang].messages;
+  document.getElementById("btnMessages").innerText = `📨 ${messagesBase} (${msgCount})`;
+});
 
     onAuthStateChanged(auth, (user) => {
       if (!user) {
