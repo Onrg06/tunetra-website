@@ -245,6 +245,10 @@
       );
 
       onSnapshot(convoQuery, async (snapshot) => {
+  const user = auth.currentUser;
+  if (!user) return;
+  const userId = user.uid;
+
   let msgCount = 0;
 
   for (const convo of snapshot.docs) {
@@ -254,9 +258,9 @@
 
     for (const doc of snap.docs) {
       const msg = doc.data();
-      if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
+      if (msg.sender !== userId && (!msg.seenBy || !msg.seenBy.includes(userId))) {
         msgCount++;
-        break; // Bu konuşmadan sadece bir tane unread yeter
+        break;
       }
     }
   }
