@@ -189,99 +189,95 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove,
+  collection, getDocs, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-      authDomain: "tunetra-2579b.firebaseapp.com",
-      projectId: "tunetra-2579b",
-      storageBucket: "tunetra-2579b.appspot.com",
-      messagingSenderId: "576238823779",
-      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-    };
+const firebaseConfig = {
+  apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+  authDomain: "tunetra-2579b.firebaseapp.com",
+  projectId: "tunetra-2579b",
+  storageBucket: "tunetra-2579b.appspot.com",
+  messagingSenderId: "576238823779",
+  appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+};
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-    let currentUser;
-    let currentLang = localStorage.getItem("lang") || "tr";
+let currentUser;
+let currentLang = localStorage.getItem("lang") || "tr";
 
-    const t = {
-      tr: {
-        pageTitle: "Arkadaşlar",
-        searchTitle: "Kullanıcı Ara",
-        receivedRequestsTitle: "Gelen İstekler",
-        sentRequestsTitle: "Gönderilen İstekler",
-        friendsListTitle: "Arkadaşlarım",
-        btnSearch: "Ara",
-        placeholder: "Kullanıcı adı gir...",
-        accept: "Kabul Et",
-        reject: "Reddet",
-        cancel: "İptal Et",
-        unfriend: "Arkadaşlıktan Çıkar",
-        requestSent: "İstek gönderildi!",
-        home: "Ana Sayfa"
-      },
-      en: {
-        pageTitle: "Friends",
-        searchTitle: "Search Users",
-        receivedRequestsTitle: "Incoming Requests",
-        sentRequestsTitle: "Sent Requests",
-        friendsListTitle: "My Friends",
-        btnSearch: "Search",
-        placeholder: "Enter username...",
-        accept: "Accept",
-        reject: "Reject",
-        cancel: "Cancel",
-        unfriend: "Unfriend",
-        requestSent: "Request sent!",
-        home: "Home"
-      }
-    };
+const t = {
+  tr: {
+    pageTitle: "Arkadaşlar",
+    searchTitle: "Kullanıcı Ara",
+    receivedRequestsTitle: "Gelen İstekler",
+    sentRequestsTitle: "Gönderilen İstekler",
+    friendsListTitle: "Arkadaşlarım",
+    btnSearch: "Ara",
+    placeholder: "Kullanıcı adı gir...",
+    accept: "Kabul Et",
+    reject: "Reddet",
+    cancel: "İptal Et",
+    unfriend: "Arkadaşlıktan Çıkar",
+    requestSent: "İstek gönderildi!",
+    home: "Ana Sayfa"
+  },
+  en: {
+    pageTitle: "Friends",
+    searchTitle: "Search Users",
+    receivedRequestsTitle: "Incoming Requests",
+    sentRequestsTitle: "Sent Requests",
+    friendsListTitle: "My Friends",
+    btnSearch: "Search",
+    placeholder: "Enter username...",
+    accept: "Accept",
+    reject: "Reject",
+    cancel: "Cancel",
+    unfriend: "Unfriend",
+    requestSent: "Request sent!",
+    home: "Home"
+  }
+};
 
-    function translate(id, key) {
-      document.getElementById(id).innerText = t[currentLang][key];
-    }
+function translate(id, key) {
+  document.getElementById(id).innerText = t[currentLang][key];
+}
 
-    window.changeLang = function(lang) {
-      currentLang = lang;
-      localStorage.setItem("lang", lang);
-      translate("pageTitle", "pageTitle");
-      translate("searchTitle", "searchTitle");
-      translate("receivedRequestsTitle", "receivedRequestsTitle");
-      translate("sentRequestsTitle", "sentRequestsTitle");
-      translate("friendsListTitle", "friendsListTitle");
-      translate("btnSearch", "btnSearch");
-      document.getElementById("searchInput").placeholder = t[currentLang].placeholder;
-      document.getElementById("homeBtn").innerText = t[currentLang].home;
-      loadReceivedRequests();
-      loadSentRequests();
-      loadFriends();
-    };
+window.changeLang = function(lang) {
+  currentLang = lang;
+  localStorage.setItem("lang", lang);
+  translate("pageTitle", "pageTitle");
+  translate("searchTitle", "searchTitle");
+  translate("receivedRequestsTitle", "receivedRequestsTitle");
+  translate("sentRequestsTitle", "sentRequestsTitle");
+  translate("friendsListTitle", "friendsListTitle");
+  translate("btnSearch", "btnSearch");
+  document.getElementById("searchInput").placeholder = t[currentLang].placeholder;
+  document.getElementById("homeBtn").innerText = t[currentLang].home;
+};
 
-    window.goHome = function () {
-      window.location.href = "anasayfa.html";
-    };
+window.goHome = function () {
+  location.href = "anasayfa.html";
+};
 
-    window.searchUser = async function() {
+window.searchUser = async function() {
   const input = document.getElementById("searchInput").value.trim().toLowerCase();
   const results = document.getElementById("searchResults");
   results.innerHTML = "";
 
-  // Tüm kullanıcıları al
   const usersSnap = await getDocs(collection(db, "users"));
-
-  // Senin arkadaş listen
   const friendsSnap = await getDoc(doc(db, "friends", currentUser.uid));
   const friends = friendsSnap.exists() ? friendsSnap.data().list || [] : [];
 
-  // Tüm istekleri kontrol et
   const allRequestSnaps = await getDocs(collection(db, "friendRequests"));
-  const sentTo = new Set();       // Senin istek gönderdiğin kişiler
-  const receivedFrom = new Set(); // Sana istek atan kişiler
+  const sentTo = new Set();
+  const receivedFrom = new Set();
 
   allRequestSnaps.forEach(snap => {
     const id = snap.id;
@@ -294,26 +290,24 @@
     }
   });
 
-  // Kullanıcıları filtrele
   usersSnap.forEach(docSnap => {
     const data = docSnap.data();
     const uid = docSnap.id;
 
     if (!data.username || uid === currentUser.uid) return;
 
-    const username = data.username.toLowerCase();
-    const match = username.includes(input);
-    const alreadyFriend = friends.includes(uid);
-    const alreadySent = sentTo.has(uid);
-    const alreadyReceived = receivedFrom.has(uid);
-
-    if (match && !alreadyFriend && !alreadySent && !alreadyReceived) {
+    const match = data.username.toLowerCase().includes(input);
+    if (
+      match &&
+      !friends.includes(uid) &&
+      !sentTo.has(uid) &&
+      !receivedFrom.has(uid)
+    ) {
       const div = document.createElement("div");
       div.innerText = data.username;
 
       const btn = document.createElement("button");
       btn.innerText = "➕";
-      btn.setAttribute("data-id", uid);
       btn.onclick = () => sendRequest(uid, btn);
 
       div.appendChild(btn);
@@ -322,7 +316,7 @@
   });
 };
 
-    async function sendRequest(targetId, buttonEl) {
+async function sendRequest(targetId, buttonEl) {
   const ref = doc(db, "friendRequests", targetId);
   const snap = await getDoc(ref);
 
@@ -332,117 +326,126 @@
     await setDoc(ref, { requests: [currentUser.uid] });
   }
 
-  // Butonu güncelle
   if (buttonEl) {
     buttonEl.innerText = "✔️";
     buttonEl.disabled = true;
   }
 
-  // Kullanıcıya bilgi ver
   alert(t[currentLang].requestSent);
-
-  // Listeyi yeniden güncelle (tam güvenli)
   searchUser();
 }
 
-    async function loadReceivedRequests() {
-      const ref = doc(db, "friendRequests", currentUser.uid);
-      const snap = await getDoc(ref);
-      const container = document.getElementById("receivedRequests");
-      container.innerHTML = "";
-      if (!snap.exists()) return;
-      for (const id of snap.data().requests || []) {
-        const userSnap = await getDoc(doc(db, "users", id));
-        const username = userSnap.exists() ? userSnap.data().username : id;
+function listenToReceivedRequests() {
+  const container = document.getElementById("receivedRequests");
+
+  onSnapshot(doc(db, "friendRequests", currentUser.uid), async (snap) => {
+    container.innerHTML = "";
+    if (!snap.exists()) return;
+
+    const requests = snap.data().requests || [];
+    for (const id of requests) {
+      const userSnap = await getDoc(doc(db, "users", id));
+      const username = userSnap.exists() ? userSnap.data().username : id;
+
+      const div = document.createElement("div");
+      div.innerText = username;
+
+      const accept = document.createElement("button");
+      accept.innerText = t[currentLang].accept;
+      accept.onclick = () => acceptRequest(id);
+
+      const reject = document.createElement("button");
+      reject.innerText = t[currentLang].reject;
+      reject.onclick = () => rejectRequest(id);
+
+      div.appendChild(accept);
+      div.appendChild(reject);
+      container.appendChild(div);
+    }
+  });
+}
+
+async function acceptRequest(id) {
+  await updateDoc(doc(db, "friendRequests", currentUser.uid), {
+    requests: arrayRemove(id)
+  });
+  await Promise.all([
+    updateDoc(doc(db, "friends", currentUser.uid), { list: arrayUnion(id) }).catch(() => setDoc(doc(db, "friends", currentUser.uid), { list: [id] })),
+    updateDoc(doc(db, "friends", id), { list: arrayUnion(currentUser.uid) }).catch(() => setDoc(doc(db, "friends", id), { list: [currentUser.uid] }))
+  ]);
+}
+
+async function rejectRequest(id) {
+  await updateDoc(doc(db, "friendRequests", currentUser.uid), {
+    requests: arrayRemove(id)
+  });
+}
+
+function listenToSentRequests() {
+  const container = document.getElementById("sentRequests");
+
+  onSnapshot(collection(db, "friendRequests"), async (snaps) => {
+    container.innerHTML = "";
+
+    for (const s of snaps.docs) {
+      const data = s.data();
+      if (data.requests && data.requests.includes(currentUser.uid)) {
+        const user = await getDoc(doc(db, "users", s.id));
         const div = document.createElement("div");
-        div.innerText = username;
-        const accept = document.createElement("button");
-        accept.innerText = t[currentLang].accept;
-        accept.onclick = () => acceptRequest(id);
-        const reject = document.createElement("button");
-        reject.innerText = t[currentLang].reject;
-        reject.onclick = () => rejectRequest(id);
-        div.appendChild(accept);
-        div.appendChild(reject);
+        div.innerText = user.exists() ? user.data().username : s.id;
+
+        const cancel = document.createElement("button");
+        cancel.innerText = t[currentLang].cancel;
+        cancel.onclick = () => cancelRequest(s.id);
+
+        div.appendChild(cancel);
         container.appendChild(div);
       }
     }
+  });
+}
 
-    async function acceptRequest(id) {
-      await updateDoc(doc(db, "friendRequests", currentUser.uid), {
-        requests: arrayRemove(id)
-      });
-      await Promise.all([
-        updateDoc(doc(db, "friends", currentUser.uid), { list: arrayUnion(id) }).catch(() => setDoc(doc(db, "friends", currentUser.uid), { list: [id] })),
-        updateDoc(doc(db, "friends", id), { list: arrayUnion(currentUser.uid) }).catch(() => setDoc(doc(db, "friends", id), { list: [currentUser.uid] }))
-      ]);
-      loadReceivedRequests();
-      loadFriends();
+async function cancelRequest(targetId) {
+  await updateDoc(doc(db, "friendRequests", targetId), {
+    requests: arrayRemove(currentUser.uid)
+  });
+}
+
+function listenToFriends() {
+  const container = document.getElementById("friendsList");
+
+  onSnapshot(doc(db, "friends", currentUser.uid), async (snap) => {
+    container.innerHTML = "";
+    const ids = snap.exists() ? snap.data().list || [] : [];
+
+    for (const id of ids) {
+      const user = await getDoc(doc(db, "users", id));
+      const div = document.createElement("div");
+      div.innerText = user.exists() ? user.data().username : id;
+
+      const remove = document.createElement("button");
+      remove.innerText = t[currentLang].unfriend;
+      remove.onclick = () => unfriend(id);
+
+      div.appendChild(remove);
+      container.appendChild(div);
     }
+  });
+}
 
-    async function rejectRequest(id) {
-      await updateDoc(doc(db, "friendRequests", currentUser.uid), {
-        requests: arrayRemove(id)
-      });
-      loadReceivedRequests();
-    }
+async function unfriend(id) {
+  await Promise.all([
+    updateDoc(doc(db, "friends", currentUser.uid), { list: arrayRemove(id) }),
+    updateDoc(doc(db, "friends", id), { list: arrayRemove(currentUser.uid) })
+  ]);
+}
 
-    async function loadSentRequests() {
-      const container = document.getElementById("sentRequests");
-      container.innerHTML = "";
-      const snaps = await getDocs(collection(db, "friendRequests"));
-      for (const s of snaps.docs) {
-        const data = s.data();
-        if (data.requests && data.requests.includes(currentUser.uid)) {
-          const user = await getDoc(doc(db, "users", s.id));
-          const div = document.createElement("div");
-          div.innerText = user.exists() ? user.data().username : s.id;
-          const cancel = document.createElement("button");
-          cancel.innerText = t[currentLang].cancel;
-          cancel.onclick = () => cancelRequest(s.id);
-          div.appendChild(cancel);
-          container.appendChild(div);
-        }
-      }
-    }
-
-    async function cancelRequest(targetId) {
-      await updateDoc(doc(db, "friendRequests", targetId), {
-        requests: arrayRemove(currentUser.uid)
-      });
-      loadSentRequests();
-    }
-
-    async function loadFriends() {
-      const container = document.getElementById("friendsList");
-      container.innerHTML = "";
-      const snap = await getDoc(doc(db, "friends", currentUser.uid));
-      const ids = snap.exists() ? snap.data().list || [] : [];
-      for (const id of ids) {
-        const user = await getDoc(doc(db, "users", id));
-        const div = document.createElement("div");
-        div.innerText = user.exists() ? user.data().username : id;
-        const remove = document.createElement("button");
-        remove.innerText = t[currentLang].unfriend;
-        remove.onclick = () => unfriend(id);
-        div.appendChild(remove);
-        container.appendChild(div);
-      }
-    }
-
-    async function unfriend(id) {
-      await Promise.all([
-        updateDoc(doc(db, "friends", currentUser.uid), { list: arrayRemove(id) }),
-        updateDoc(doc(db, "friends", id), { list: arrayRemove(currentUser.uid) })
-      ]);
-      loadFriends();
-    }
-
-    onAuthStateChanged(auth, user => {
-      if (!user) return location.href = "index.html";
-      currentUser = user;
-      changeLang(currentLang);
-    });
-  </script>
-</body>
-</html>
+onAuthStateChanged(auth, user => {
+  if (!user) return location.href = "index.html";
+  currentUser = user;
+  changeLang(currentLang);
+  listenToFriends();
+  listenToSentRequests();
+  listenToReceivedRequests();
+});
+</script>
