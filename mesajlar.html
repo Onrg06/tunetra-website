@@ -417,16 +417,31 @@ async function buildMessageDiv(msg) {
       input.value = msg.text;
       input.focus();
       input.dataset.editing = msg.id;
+      if (editId) {
+  await updateDoc(doc(msgCol, editId), { text });
+
+  // DOM'da mesaj metnini güncelle
+  const msgDiv = document.querySelector(`.message[data-id="${editId}"]`);
+  if (msgDiv) {
+    msgDiv.querySelector(".msg-text").innerText = text;
+  }
+
+  delete input.dataset.editing;
+}
     };
 
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "🗑️";
     deleteBtn.onclick = async () => {
-      if (confirm("Mesaj silinsin mi?")) {
-        const convoId = getConversationId(currentUser.uid, selectedFriendId);
-        await deleteDoc(doc(db, "conversations", convoId, "messages", msg.id));
-      }
-    };
+  if (confirm("Mesaj silinsin mi?")) {
+    const convoId = getConversationId(currentUser.uid, selectedFriendId);
+    await deleteDoc(doc(db, "conversations", convoId, "messages", msg.id));
+
+    // DOM'dan mesajı kaldır
+    const divToRemove = document.querySelector(`.message[data-id="${msg.id}"]`);
+    if (divToRemove) divToRemove.remove();
+  }
+};
 
     div.appendChild(editBtn);
     div.appendChild(deleteBtn);
@@ -446,6 +461,13 @@ window.sendMessage = async () => {
 
   if (editId) {
     await updateDoc(doc(msgCol, editId), { text });
+
+    // DOM'da mesaj metnini güncelle
+    const msgDiv = document.querySelector(`.message[data-id="${editId}"]`);
+    if (msgDiv) {
+      msgDiv.querySelector(".msg-text").innerText = text;
+    }
+
     delete input.dataset.editing;
   } else {
     const msg = {
@@ -455,11 +477,6 @@ window.sendMessage = async () => {
       seenBy: []
     };
     await addDoc(msgCol, msg);
-    const convoRef = doc(db, "conversations", convoId);
-    const convoSnap = await getDoc(convoRef);
-    if (!convoSnap.exists()) {
-      await setDoc(convoRef, { users: [currentUser.uid, selectedFriendId] });
-    }
   }
 
   input.value = "";
