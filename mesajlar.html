@@ -242,13 +242,6 @@ function updateTexts() {
   document.getElementById("homeBtn").innerText = "🏠 " + t[lang].home;
   document.getElementById("btnTr").innerText = t[lang].turkish;
   document.getElementById("btnEn").innerText = t[lang].english;
-  document.querySelectorAll(".message").forEach(msg => {
-    const isYou = msg.classList.contains("you");
-    const ts = msg.dataset.timestamp;
-    const sender = isYou ? t[lang].you : msg.dataset.senderName || "";
-    msg.querySelector(".sender-label").innerText = sender;
-    msg.querySelector(".timestamp").innerText = `${t[lang].sentAt}: ${formatTimestamp(ts)}`;
-  });
 }
 
 function setLang(l) {
@@ -315,8 +308,8 @@ async function openChat(fid, el) {
   area.innerHTML = '<div id="loadingOlder"><div class="spinner"></div></div>';
   loadedMessageIds.clear();
   firstVisible = null;
-
   if (unsubMessages) unsubMessages();
+
   document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
   el.classList.add("active");
 
@@ -327,7 +320,7 @@ async function openChat(fid, el) {
   const messages = [];
   snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
   messages.reverse();
-  firstVisible = snap.docs[snap.docs.length - 1];
+  firstVisible = snap.docs[snap.docs.length - 1] || null;
 
   for (const msg of messages) {
     const div = await buildMessageDiv(msg);
@@ -343,36 +336,16 @@ async function openChat(fid, el) {
   area.lastElementChild?.scrollIntoView({ behavior: "auto" });
   attachScrollLoader(messagesCol);
   updateTexts();
-
-  unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "desc"), limit(1)), async snap => {
-    for (const docSnap of snap.docChanges()) {
-      const msg = { id: docSnap.doc.id, ...docSnap.doc.data() };
-      if (docSnap.type === "added" && !loadedMessageIds.has(msg.id)) {
-        loadedMessageIds.add(msg.id);
-        const div = await buildMessageDiv(msg);
-        document.getElementById("messageArea").appendChild(div);
-        setTimeout(() => {
-          div.scrollIntoView({ behavior: "smooth" });
-        }, 50);
-      }
-      if (docSnap.type === "modified") {
-        const el = document.querySelector(`.message[data-id="${msg.id}"]`);
-        if (el) el.querySelector(".msg-text").innerText = msg.text;
-      }
-      if (docSnap.type === "removed") {
-        const el = document.querySelector(`.message[data-id="${msg.id}"]`);
-        if (el) el.remove();
-      }
-    }
-  });
 }
 
 function attachScrollLoader(messagesCol) {
   const area = document.getElementById("messageArea");
+  const loader = document.getElementById("loadingOlder");
+
   area.onscroll = async () => {
-    if (area.scrollTop < 100 && !isLoading && firstVisible) {
+    if (area.scrollTop <= 150 && !isLoading && firstVisible) {
       isLoading = true;
-      document.getElementById("loadingOlder").style.display = "block";
+      loader.style.display = "block";
       const prevScrollHeight = area.scrollHeight;
 
       const snap = await getDocs(query(
@@ -389,19 +362,21 @@ function attachScrollLoader(messagesCol) {
       for (const msg of messages) {
         if (!loadedMessageIds.has(msg.id)) {
           const div = await buildMessageDiv(msg);
-          area.insertBefore(div, document.getElementById("loadingOlder").nextSibling);
+          area.insertBefore(div, loader.nextSibling);
           loadedMessageIds.add(msg.id);
         }
       }
 
-      if (!snap.empty) {
+      if (!snap.empty && snap.docs.length > 0) {
         firstVisible = snap.docs[snap.docs.length - 1];
       } else {
-        document.getElementById("loadingOlder").innerHTML = `<span style="color:#ccc;font-size:0.9em;">${t[lang].noMore}</span>`;
+        loader.innerHTML = `<span style="color:#ccc; font-size: 0.9em;">${t[lang].noMore}</span>`;
       }
 
       const newScrollHeight = area.scrollHeight;
       area.scrollTop = newScrollHeight - prevScrollHeight;
+
+      loader.style.display = "none";
       isLoading = false;
     }
   };
@@ -418,6 +393,7 @@ async function buildMessageDiv(msg) {
     const senderDoc = await getDoc(doc(db, "users", msg.sender));
     senderName = senderDoc.exists() ? senderDoc.data().username : "Bilinmeyen";
   }
+
   div.setAttribute("data-sender-name", senderName);
 
   div.innerHTML = `
@@ -485,5 +461,3 @@ window.sendMessage = async () => {
 
 window.goHome = () => location.href = "anasayfa.html";
 </script>
-</body>
-</html>
