@@ -1,205 +1,226 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Şarkı Sözleri Paylaş</title>
-    <link rel="icon" type="image/png" href="image.png" />
-    
-   <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js"></script>
-   <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js"></script>
-   <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js"></script>
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
-            color: white;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            text-align: center;
-            padding: 20px;
-        }
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .btn {
-            padding: 16px 20px;
-            background: linear-gradient(to right, #6a11cb, #2575fc);
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-weight: bold;
-            text-decoration: none;
-            margin: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 120px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        textarea {
-            width: 80%;
-            height: 150px;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 16px;
-            resize: none;
-        }
-        .shared-lyrics {
-            width: 100%;
-            max-width: 600px;
-            margin-top: 40px;
-        }
-        .lyric-item {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .lyric-item p {
-            font-size: 16px;
-        }
-        .username {
-            font-weight: bold;
-        }
-        .timestamp {
-            font-size: 0.8em;
-            color: #ccc;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Şarkı Sözleri Paylaş</title>
+  <link rel="icon" type="image/png" href="image.png" />
+
+  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      color: white;
+      min-height: 100vh;
+      padding: 20px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .btn {
+      padding: 14px 18px;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: bold;
+      text-decoration: none;
+      margin: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    input.song-title-input, textarea {
+      width: 100%;
+      max-width: 600px;
+      padding: 10px;
+      margin: 10px auto;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      display: block;
+    }
+    textarea {
+      height: 140px;
+      resize: none;
+    }
+    .shared-lyrics {
+      width: 100%;
+      max-width: 600px;
+      margin: 40px auto 20px;
+    }
+    .lyric-item {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .lyric-item p {
+      margin: 4px 0;
+    }
+    .username {
+      font-weight: bold;
+      font-size: 18px;
+      color: #ffcc70;
+    }
+    .song-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #ffffff;
+      margin: 6px 0;
+    }
+    .timestamp {
+      font-size: 0.9em;
+      color: #ffffffcc;
+      font-style: italic;
+    }
+    @media (max-width: 600px) {
+      .btn {
+        width: 100%;
+        margin: 6px 0;
+      }
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <button class="btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
-        <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
-        <h1 id="page-title">Şarkı Sözlerini Paylaş</h1>
-        <p id="info-text">Söz / Şiirlerinizi yazın ve paylaşın! (Telif hakkınız saklıdır)</p>
-    </header>
-    
-    <textarea id="song-lyrics" placeholder="Şarkı sözlerinizi yazın..."></textarea>
-    <button class="btn" id="share-button">Paylaş</button>
+  <header>
+    <button class="btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
+    <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
+    <h1 id="page-title">Şarkı Sözlerini Paylaş</h1>
+    <p id="info-text">Söz / Şiirlerinizi yazın ve paylaşın! (Telif hakkınız saklıdır)</p>
+  </header>
 
-    </div>
-    <button class="btn" id="home" onclick="window.location.href='anasayfa.html'">Anasayfa</button>
-    </div>
-    
-    <div class="shared-lyrics">
-        <h2 id="shared-title">Paylaşılan Şarkılar</h2>
-        <div id="lyrics-list"></div>
-    </div>
+  <input type="text" id="song-title" class="song-title-input" placeholder="Şarkı başlığını yazın..." />
+  <textarea id="song-lyrics" placeholder="Şarkı sözlerinizi yazın..."></textarea>
+  <button class="btn" id="share-button">Paylaş</button>
+  <button class="btn" id="home" onclick="window.location.href='anasayfa.html'">Anasayfa</button>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
+  <div class="shared-lyrics">
+    <h2 id="shared-title">Paylaşılan Sözler</h2>
+    <div id="lyrics-list"></div>
+  </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-            authDomain: "tunetra-2579b.firebaseapp.com",
-            projectId: "tunetra-2579b",
-            storageBucket: "tunetra-2579b.appspot.com",
-            messagingSenderId: "576238823779",
-            appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-        };
-        
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth();
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
 
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+    };
 
-let currentUsername = ""; // sadece boş tanımla
-        
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
+
+    let currentUsername = "";
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
         try {
-            const userRef = doc(db, "users", user.uid);
-            const userSnap = await getDoc(userRef);
-
-            if (userSnap.exists()) {
-                currentUsername = userSnap.data().username || "Anonim";
-                console.log("Kullanıcı adı:", currentUsername); // İstersen test için logla
-            } else {
-                console.warn("Kullanıcı Firestore'da bulunamadı.");
-            }
+          const userRef = doc(db, "users", user.uid);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            currentUsername = userSnap.data().username || "Anonim";
+          }
         } catch (error) {
-            console.error("Username alınırken hata:", error);
+          console.error("Username alınırken hata:", error);
         }
-    }
-});
+      }
+    });
 
-        
-        document.getElementById("share-button").addEventListener("click", async () => {
-            const songLyrics = document.getElementById("song-lyrics").value.trim();
-            if (songLyrics === "") {
-                alert("Lütfen şarkı sözlerinizi yazın.");
-                return;
-            }
-            try {
-                await addDoc(collection(db, "lyrics"), {
-                    lyrics: songLyrics,
-                    username: currentUsername,
-                    timestamp: serverTimestamp()
-                });
-                alert("Şarkı sözleri başarıyla paylaşıldı!");
-                document.getElementById("song-lyrics").value = "";
-            } catch (error) {
-                console.error("Hata:", error);
-                alert("Paylaşım sırasında hata oluştu.");
-            }
+    document.getElementById("share-button").addEventListener("click", async () => {
+      const title = document.getElementById("song-title").value.trim();
+      const lyrics = document.getElementById("song-lyrics").value.trim();
+
+      if (title === "" || lyrics === "") {
+        alert(currentLang === "tr" ? "Lütfen başlık ve sözleri yazın." : "Please enter both title and lyrics.");
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, "lyrics"), {
+          title,
+          lyrics,
+          username: currentUsername,
+          timestamp: serverTimestamp()
         });
+        alert(currentLang === "tr" ? "Paylaşım başarılı!" : "Shared successfully!");
+        document.getElementById("song-title").value = "";
+        document.getElementById("song-lyrics").value = "";
+      } catch (error) {
+        alert(currentLang === "tr" ? "Hata oluştu." : "An error occurred.");
+      }
+    });
 
-        const lyricsList = document.getElementById("lyrics-list");
-        const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
-        
-        onSnapshot(q, (snapshot) => {
-            lyricsList.innerHTML = "";
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                const lyricElement = document.createElement("div");
-                lyricElement.classList.add("lyric-item");
-                lyricElement.innerHTML = `
-                    <p class="username">${data.username}</p>
-                    <p>${data.lyrics}</p>
-                    <p class="timestamp">${data.timestamp?.toDate().toLocaleString()}</p>
-                `;
-                lyricsList.appendChild(lyricElement);
-            });
-        });
+    const lyricsList = document.getElementById("lyrics-list");
+    const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
 
-        window.setLang = function(lang) {
-            if (lang === "tr") {
-                document.getElementById("page-title").innerText = "Şarkı Sözlerini Paylaş";
-                document.getElementById("info-text").innerText = "Söz/Şiirlerinizi yazın ve paylaşın! (Telif hakkınız saklıdır)";
-                document.getElementById("shared-title").innerText = "Paylaşılan Şarkılar";
-                document.getElementById("share-button").innerText = "Paylaş";
-                document.getElementById("home").innerText = "Anasayfa";
-            } else if (lang === "en") {
-                document.getElementById("page-title").innerText = "Share Your Lyrics";
-                document.getElementById("info-text").innerText = "Write your lyrics and share! (Your copyright is protected)";
-                document.getElementById("shared-title").innerText = "Shared Songs";
-                document.getElementById("share-button").innerText = "Share";
-                document.getElementById("home").innerText = "Home Page";
-            }
-        }
-    </script>
+    onSnapshot(q, (snapshot) => {
+      lyricsList.innerHTML = "";
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const lyricElement = document.createElement("div");
+        lyricElement.classList.add("lyric-item");
+        lyricElement.innerHTML = `
+          <p class="username">${data.username}</p>
+          <p class="song-title">${data.title || "(Başlıksız)"}</p>
+          <p>${data.lyrics}</p>
+          <p class="timestamp">${data.timestamp?.toDate().toLocaleString()}</p>
+        `;
+        lyricsList.appendChild(lyricElement);
+      });
+    });
+
+    let currentLang = "tr";
+
+    window.setLang = function(lang) {
+      currentLang = lang;
+      if (lang === "tr") {
+        document.getElementById("page-title").innerText = "Şarkı Sözlerini Paylaş";
+        document.getElementById("info-text").innerText = "Söz / Şiirlerinizi yazın ve paylaşın! (Telif hakkınız saklıdır)";
+        document.getElementById("shared-title").innerText = "Paylaşılan Sözler";
+        document.getElementById("share-button").innerText = "Paylaş";
+        document.getElementById("home").innerText = "Anasayfa";
+        document.getElementById("song-title").placeholder = "Şarkı başlığını yazın...";
+        document.getElementById("song-lyrics").placeholder = "Şarkı sözlerinizi yazın...";
+      } else {
+        document.getElementById("page-title").innerText = "Share Your Lyrics";
+        document.getElementById("info-text").innerText = "Write your lyrics and share! (Your copyright is protected)";
+        document.getElementById("shared-title").innerText = "Shared Lyrics";
+        document.getElementById("share-button").innerText = "Share";
+        document.getElementById("home").innerText = "Home Page";
+        document.getElementById("song-title").placeholder = "Enter the song title...";
+        document.getElementById("song-lyrics").placeholder = "Write your lyrics here...";
+      }
+    };
+
+    window.addEventListener("DOMContentLoaded", () => {
+      setLang("tr");
+    });
+  </script>
 </body>
 </html>
