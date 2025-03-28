@@ -151,144 +151,138 @@
     <a href="index.html" class="btn" onclick="logout()" id="logoutBtn">Çıkış Yap</a>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  <!-- EN ÜST KISIM AYNI KALDI -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc, collection, query, where,
+    getDocs, orderBy, limit
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-      authDomain: "tunetra-2579b.firebaseapp.com",
-      projectId: "tunetra-2579b",
-      storageBucket: "tunetra-2579b.appspot.com",
-      messagingSenderId: "576238823779",
-      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+    authDomain: "tunetra-2579b.firebaseapp.com",
+    projectId: "tunetra-2579b",
+    storageBucket: "tunetra-2579b.appspot.com",
+    messagingSenderId: "576238823779",
+    appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    const translations = {
-      tr: {
-        welcome: "🎶 Hoş Geldin, ",
-        intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!</p>",
-        logout: "Çıkış Yap",
-        profile: "👤 Profilim",
-        friends: "🧑‍🤝‍🧑 Arkadaşlarım",
-        messages: "Mesajlarım",
-        feedback: "📮 Dilek & Şikayet Kutusu",
-        announcements: "📢 Duyurular",
-        about: "ℹ️ Hakkımızda",
-        lyrics: "✍️ Sözler / Şiirler",
-        melody: "🎵 Melodi",
-        songs: "🎶 Hazır Şarkılar"
-      },
-      en: {
-        welcome: "🎶 Welcome, ",
-        intro: "You’re in the right place to create your dream song.<br><br>Share your lyrics or melody, let others collaborate and turn them into music.<br><br>On Tunetra, music is born through collaboration!",
-        logout: "Log Out",
-        profile: "👤 My Profile",
-        friends: "🧑‍🤝‍🧑 My Friends",
-        messages: "My Messages",
-        feedback: "📮 Feedback & Complaints",
-        announcements: "📢 Announcements",
-        about: "ℹ️ About",
-        lyrics: "✍️ Lyrics",
-        melody: "🎵 Melody",
-        songs: "🎶 Ready Songs"
-      }
-    };
+  const translations = {
+    tr: {
+      welcome: "🎶 Hoş Geldin, ",
+      intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!",
+      logout: "Çıkış Yap",
+      profile: "👤 Profilim",
+      friends: "🧑‍🤝‍🧑 Arkadaşlarım",
+      messages: "Mesajlarım",
+      feedback: "📮 Dilek & Şikayet Kutusu",
+      announcements: "📢 Duyurular",
+      about: "ℹ️ Hakkımızda",
+      lyrics: "✍️ Sözler / Şiirler",
+      melody: "🎵 Melodi",
+      songs: "🎶 Hazır Şarkılar"
+    },
+    en: {
+      welcome: "🎶 Welcome, ",
+      intro: "You’re in the right place to create your dream song.<br><br>Share your lyrics or melody, let others collaborate and turn them into music.<br><br>On Tunetra, music is born through collaboration!",
+      logout: "Log Out",
+      profile: "👤 My Profile",
+      friends: "🧑‍🤝‍🧑 My Friends",
+      messages: "My Messages",
+      feedback: "📮 Feedback & Complaints",
+      announcements: "📢 Announcements",
+      about: "ℹ️ About",
+      lyrics: "✍️ Lyrics",
+      melody: "🎵 Melody",
+      songs: "🎶 Ready Songs"
+    }
+  };
 
-    let currentLang = "tr";
+  let currentLang = "tr";
 
-    window.setLang = function(lang) {
-      currentLang = lang;
-      updateUI();
-    };
+  window.setLang = function(lang) {
+    currentLang = lang;
+    updateUI();
+  };
 
-    function updateUI() {
-      const user = auth.currentUser;
-      if (!user) return;
+  async function updateUI() {
+    const user = auth.currentUser;
+    if (!user) return;
 
-      const docRef = doc(db, "users", user.uid);
-      getDoc(docRef).then(userDoc => {
-        if (userDoc.exists()) {
-          const username = userDoc.data().username;
-          document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
-          document.getElementById("introText").innerHTML = translations[currentLang].intro;
-          document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
-          document.getElementById("btnProfile").innerText = translations[currentLang].profile;
-          document.getElementById("btnFeedback").innerText = translations[currentLang].feedback;
-          document.getElementById("btnAbout").innerText = translations[currentLang].about;
-          document.getElementById("btnLyrics").innerText = translations[currentLang].lyrics;
-          document.getElementById("btnMelody").innerText = translations[currentLang].melody;
-          document.getElementById("btnSongs").innerText = translations[currentLang].songs;
-          document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
+    const docRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(docRef);
+
+    if (userDoc.exists()) {
+      const username = userDoc.data().username;
+      document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
+      document.getElementById("introText").innerHTML = translations[currentLang].intro;
+      document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
+      document.getElementById("btnProfile").innerText = translations[currentLang].profile;
+      document.getElementById("btnFeedback").innerText = translations[currentLang].feedback;
+      document.getElementById("btnAbout").innerText = translations[currentLang].about;
+      document.getElementById("btnLyrics").innerText = translations[currentLang].lyrics;
+      document.getElementById("btnMelody").innerText = translations[currentLang].melody;
+      document.getElementById("btnSongs").innerText = translations[currentLang].songs;
+      document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
+    }
+
+    // Arkadaş isteklerini çek
+    const requestRef = doc(db, "friendRequests", user.uid);
+    const requestSnap = await getDoc(requestRef);
+    let count = 0;
+    if (requestSnap.exists()) {
+      const data = requestSnap.data();
+      count = data.requests?.length || 0;
+    }
+    const friendsBase = translations[currentLang].friends;
+    document.getElementById("btnFriends").innerText = `${friendsBase} (${count})`;
+
+    // Mesaj sayısını çek
+    const convoQuery = query(collection(db, "conversations"), where("users", "array-contains", user.uid));
+    const snapshot = await getDocs(convoQuery);
+
+    let msgCount = 0;
+
+    for (const convo of snapshot.docs) {
+      const convoId = convo.id;
+      const messagesRef = collection(db, "conversations", convoId, "messages");
+
+      const msgSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(10)));
+
+      for (const doc of msgSnap.docs) {
+        const msg = doc.data();
+        if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
+          msgCount++;
+          break;
         }
-      });
-
-      const requestRef = doc(db, "friendRequests", user.uid);
-      getDoc(requestRef).then(requestSnap => {
-        let count = 0;
-        if (requestSnap.exists()) {
-          const data = requestSnap.data();
-          count = data.requests?.length || 0;
-        }
-        const friendsBase = translations[currentLang].friends;
-        document.getElementById("btnFriends").innerText = `${friendsBase} (${count})`;
-      });
-
-      const convoQuery = query(
-        collection(db, "conversations"),
-        where("users", "array-contains", user.uid)
-      );
-
-      onSnapshot(convoQuery, async (snapshot) => {
-  const user = auth.currentUser;
-  if (!user) return;
-  const userId = user.uid;
-
-  let msgCount = 0;
-
-  for (const convo of snapshot.docs) {
-    const convoId = convo.id;
-    const messagesRef = collection(db, "conversations", convoId, "messages");
-
-    const snap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(10)));
-
-    for (const doc of snap.docs) {
-      const msg = doc.data();
-      if (msg.sender !== userId && (!msg.seenBy || !msg.seenBy.includes(userId))) {
-        msgCount++;
-        break;
       }
     }
+
+    const messagesBase = translations[currentLang].messages;
+    document.getElementById("btnMessages").innerText = `📨 ${messagesBase} (${msgCount})`;
   }
 
-  // HER DİL DEĞİŞİMİNDE doğru metni çeker
-  const messagesBase = translations[currentLang].messages;
-  document.getElementById("btnMessages").innerText = `📨 ${messagesBase} (${msgCount})`;
-});
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      window.location.href = "index.html";
+    } else {
+      updateUI();
     }
+  });
 
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = "index.html";
-      } else {
-        updateUI();
-      }
+  window.logout = function() {
+    signOut(auth).then(() => {
+      window.location.href = "index.html";
     });
+  };
 
-    window.logout = function() {
-      signOut(auth).then(() => {
-        window.location.href = "index.html";
-      });
-    };
-
-    window.addEventListener("DOMContentLoaded", () => {
-      setLang("tr");
-    });
-  </script>
-</body>
-</html>
+  window.addEventListener("DOMContentLoaded", () => {
+    setLang("tr");
+  });
+</script>
