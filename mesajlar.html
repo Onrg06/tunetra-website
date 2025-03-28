@@ -180,7 +180,6 @@ import {
   collection, query, orderBy, limit, startAfter, addDoc, getDocs, onSnapshot, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
   authDomain: "tunetra-2579b.firebaseapp.com",
@@ -285,6 +284,11 @@ async function loadChatList(uid) {
 
 async function openChat(fid, el) {
   selectedFriendId = fid;
+
+  // Bildirimi sil
+  const notifDot = el.querySelector(".notification");
+  if (notifDot) notifDot.remove();
+
   document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
   el.classList.add("active");
 
@@ -298,9 +302,9 @@ async function openChat(fid, el) {
   const convoId = getConversationId(currentUser.uid, fid);
   const messagesCol = collection(db, "conversations", convoId, "messages");
 
-  const snap = await getDocs(query(messagesCol, orderBy("timestamp", "asc"), limit(20)));
+  const snap = await getDocs(query(messagesCol, orderBy("timestamp", "desc"), limit(20)));
   let messages = [];
-  snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
+  snap.forEach(doc => messages.unshift({ id: doc.id, ...doc.data() }));
   for (const msg of messages) {
     const div = await buildMessageDiv(msg);
     area.appendChild(div);
