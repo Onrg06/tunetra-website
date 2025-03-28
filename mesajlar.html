@@ -298,6 +298,10 @@ async function openChat(fid, el) {
   area.innerHTML = "";
   loadedMessageIds.clear();
   firstVisible = null;
+  // En son mesajı göster (Sayfa ilk açıldığında)
+setTimeout(() => {
+  area.scrollTop = area.scrollHeight;
+}, 100);
 
   if (unsubMessages) unsubMessages();
   document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
@@ -343,7 +347,9 @@ async function openChat(fid, el) {
         document.getElementById("messageArea").appendChild(div);
         setTimeout(() => {
           div.scrollIntoView({ behavior: "smooth" });
-        }, 50);
+        }, setTimeout(() => {
+  area.scrollTop = area.scrollHeight;
+}, 50););
       }
 
       if (change.type === "modified") {
