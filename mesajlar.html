@@ -180,6 +180,7 @@ import {
   collection, query, orderBy, limit, startAfter, addDoc, getDocs, onSnapshot, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+// Firebase config ve başlangıç ayarları burada
 const firebaseConfig = {
   apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
   authDomain: "tunetra-2579b.firebaseapp.com",
@@ -192,7 +193,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-
 let currentUser = null;
 let selectedFriendId = null;
 let lang = localStorage.getItem("lang") || "tr";
@@ -223,11 +223,6 @@ function setLang(l) {
   document.getElementById("homeBtn").innerText = "🏠 " + t[lang].home;
   document.getElementById("btnTr").innerText = t[lang].turkish;
   document.getElementById("btnEn").innerText = t[lang].english;
-
-  if (selectedFriendId) {
-    const selected = [...document.querySelectorAll(".chat-item")].find(el => el.classList.contains("active"));
-    if (selected) openChat(selectedFriendId, selected);
-  }
 }
 
 function getConversationId(uid1, uid2) {
@@ -280,7 +275,6 @@ async function openChat(fid, el) {
   area.innerHTML = "";
   lastVisible = null;
   loadedMessageIds.clear();
-
   if (unsubMessages) unsubMessages();
   document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
   el.classList.add("active");
@@ -288,9 +282,10 @@ async function openChat(fid, el) {
   const convoId = getConversationId(currentUser.uid, fid);
   const messagesCol = collection(db, "conversations", convoId, "messages");
 
-  const snap = await getDocs(query(messagesCol, orderBy("timestamp", "asc"), limit(20)));
+  const snap = await getDocs(query(messagesCol, orderBy("timestamp", "desc"), limit(20)));
   let messages = [];
   snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
+  messages.reverse(); // eski → yeni sıralama
   for (const msg of messages) {
     const div = await buildMessageDiv(msg);
     area.appendChild(div);
@@ -328,6 +323,11 @@ async function openChat(fid, el) {
           existing.querySelector(".msg-text").innerText = msg.text;
         }
       }
+
+      if (docSnap.type === "removed") {
+        const deleted = document.querySelector(`.message[data-id="${msg.id}"]`);
+        if (deleted) deleted.remove();
+      }
     }
   });
 }
@@ -341,13 +341,14 @@ function attachScrollLoader(messagesCol) {
 
       const snap = await getDocs(query(
         messagesCol,
-        orderBy("timestamp", "asc"),
+        orderBy("timestamp", "desc"),
         startAfter(lastVisible),
         limit(20)
       ));
 
       let messages = [];
       snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
+      messages.reverse();
 
       for (const msg of messages) {
         if (loadedMessageIds.has(msg.id)) continue;
@@ -437,6 +438,11 @@ window.sendMessage = async () => {
   }
 
   input.value = "";
+
+  setTimeout(() => {
+    const area = document.getElementById("messageArea");
+    area.scrollTop = area.scrollHeight;
+  }, 100);
 };
 
 window.setLang = setLang;
