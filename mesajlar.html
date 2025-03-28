@@ -236,6 +236,7 @@ function setLang(l) {
   localStorage.setItem("lang", lang);
   updateTexts();
 }
+
 window.setLang = setLang;
 
 function formatTimestamp(ts) {
@@ -288,7 +289,6 @@ async function loadChatList(uid) {
     list.appendChild(div);
   }
 }
-
 async function openChat(fid, el) {
   selectedFriendId = fid;
   const area = document.getElementById("messageArea");
@@ -300,16 +300,13 @@ async function openChat(fid, el) {
   document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
   el.classList.add("active");
 
-  const notifDot = el.querySelector(".notification");
-  if (notifDot) notifDot.remove();
-
   const convoId = getConversationId(currentUser.uid, fid);
   const messagesCol = collection(db, "conversations", convoId, "messages");
 
   const snap = await getDocs(query(messagesCol, orderBy("timestamp", "desc"), limit(20)));
   let messages = [];
   snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
-  messages.reverse();
+  messages.reverse(); // eski → yeni sıraya çevir
 
   for (const msg of messages) {
     const div = await buildMessageDiv(msg);
@@ -320,7 +317,7 @@ async function openChat(fid, el) {
   if (!snap.empty) lastVisible = snap.docs[snap.docs.length - 1];
 
   setTimeout(() => {
-    area.scrollTop = area.scrollHeight;
+    area.scrollTop = area.scrollHeight; // otomatik en alta in
   }, 100);
 
   attachScrollLoader(messagesCol);
@@ -340,7 +337,9 @@ async function openChat(fid, el) {
 
       if (docSnap.type === "modified") {
         const existing = document.querySelector(`.message[data-id="${msg.id}"]`);
-        if (existing) existing.querySelector(".msg-text").innerText = msg.text;
+        if (existing) {
+          existing.querySelector(".msg-text").innerText = msg.text;
+        }
       }
 
       if (docSnap.type === "removed") {
@@ -350,7 +349,7 @@ async function openChat(fid, el) {
     }
   });
 
-  updateTexts();
+  updateTexts(); // Dil anında uygula
 }
 
 function attachScrollLoader(messagesCol) {
@@ -360,7 +359,13 @@ function attachScrollLoader(messagesCol) {
       isLoading = true;
       const prevHeight = area.scrollHeight;
 
-      const snap = await getDocs(query(messagesCol, orderBy("timestamp", "desc"), startAfter(lastVisible), limit(20)));
+      const snap = await getDocs(query(
+        messagesCol,
+        orderBy("timestamp", "desc"),
+        startAfter(lastVisible),
+        limit(20)
+      ));
+
       let messages = [];
       snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
       messages.reverse();
@@ -387,17 +392,12 @@ async function buildMessageDiv(msg) {
   div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
   div.setAttribute("data-id", msg.id);
   div.setAttribute("data-timestamp", msg.timestamp);
+  div.setAttribute("data-sender-name", msg.sender);
 
-  let senderName = t[lang].you;
-  if (msg.sender !== currentUser.uid) {
-    const senderDoc = await getDoc(doc(db, "users", msg.sender));
-    senderName = senderDoc.exists() ? senderDoc.data().username : "Bilinmeyen";
-  }
-
-  div.setAttribute("data-sender-name", senderName);
+  const senderLabel = msg.sender === currentUser.uid ? t[lang].you : (await getDoc(doc(db, "users", msg.sender))).data()?.username || "User";
 
   div.innerHTML = `
-    <div class="sender-label">${senderName}</div>
+    <div class="sender-label">${senderLabel}</div>
     <div class="msg-text">${msg.text}</div>
     <div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>
   `;
