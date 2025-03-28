@@ -345,7 +345,7 @@ async function openChat(fid, el) {
       const existing = document.querySelector(`.message[data-id="${msg.id}"]`);
 
       if (change.type === "modified" && existing) {
-        existing.replaceWith(newDiv);
+        existing.replaceWith(newDiv); // Bu kısmı koru
       } else if (change.type === "added" && !loadedMessageIds.has(msg.id)) {
         loadedMessageIds.add(msg.id);
         area.appendChild(newDiv);
