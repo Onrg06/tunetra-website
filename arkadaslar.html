@@ -278,7 +278,7 @@
   const friendsSnap = await getDoc(doc(db, "friends", currentUser.uid));
   const friends = friendsSnap.exists() ? friendsSnap.data().list || [] : [];
 
-  // İstekleri kontrol et
+  // Tüm istekleri kontrol et
   const allRequestSnaps = await getDocs(collection(db, "friendRequests"));
   const sentTo = new Set();       // Senin istek gönderdiğin kişiler
   const receivedFrom = new Set(); // Sana istek atan kişiler
@@ -288,10 +288,8 @@
     const requests = snap.data().requests || [];
 
     if (id === currentUser.uid) {
-      // Sana gelen istekler
       requests.forEach(r => receivedFrom.add(r));
     } else if (requests.includes(currentUser.uid)) {
-      // Senin gönderdiğin istekler
       sentTo.add(id);
     }
   });
@@ -309,14 +307,14 @@
     const alreadySent = sentTo.has(uid);
     const alreadyReceived = receivedFrom.has(uid);
 
-    // Eğer arkadaş değilse, istek atılmamışsa ve istek alınmamışsa göster
     if (match && !alreadyFriend && !alreadySent && !alreadyReceived) {
       const div = document.createElement("div");
       div.innerText = data.username;
 
       const btn = document.createElement("button");
       btn.innerText = "➕";
-      btn.onclick = () => sendRequest(uid);
+      btn.setAttribute("data-id", uid);
+      btn.onclick = () => sendRequest(uid, btn);
 
       div.appendChild(btn);
       results.appendChild(div);
@@ -324,17 +322,28 @@
   });
 };
 
-    async function sendRequest(targetId) {
-      const ref = doc(db, "friendRequests", targetId);
-      const snap = await getDoc(ref);
-      if (snap.exists()) {
-        await updateDoc(ref, { requests: arrayUnion(currentUser.uid) });
-      } else {
-        await setDoc(ref, { requests: [currentUser.uid] });
-      }
-      alert(t[currentLang].requestSent);
-      loadSentRequests();
-    }
+    async function sendRequest(targetId, buttonEl) {
+  const ref = doc(db, "friendRequests", targetId);
+  const snap = await getDoc(ref);
+
+  if (snap.exists()) {
+    await updateDoc(ref, { requests: arrayUnion(currentUser.uid) });
+  } else {
+    await setDoc(ref, { requests: [currentUser.uid] });
+  }
+
+  // Butonu güncelle
+  if (buttonEl) {
+    buttonEl.innerText = "✔️";
+    buttonEl.disabled = true;
+  }
+
+  // Kullanıcıya bilgi ver
+  alert(t[currentLang].requestSent);
+
+  // Listeyi yeniden güncelle (tam güvenli)
+  searchUser();
+}
 
     async function loadReceivedRequests() {
       const ref = doc(db, "friendRequests", currentUser.uid);
