@@ -151,7 +151,6 @@
     <a href="index.html" class="btn" onclick="logout()" id="logoutBtn">Çıkış Yap</a>
   </div>
 
-  <!-- EN ÜST KISIM AYNI KALDI -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -206,7 +205,7 @@
 
   let currentLang = "tr";
 
-  window.setLang = function(lang) {
+  window.setLang = function (lang) {
     currentLang = lang;
     updateUI();
   };
@@ -232,23 +231,31 @@
       document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
     }
 
-    // Arkadaş isteklerini çek
+    // --- Arkadaş İstekleri ---
+    const friendsBtn = document.getElementById("btnFriends");
+    friendsBtn.style.display = "none"; // Önce gizle
+
     const requestRef = doc(db, "friendRequests", user.uid);
     const requestSnap = await getDoc(requestRef);
-    let count = 0;
+    let friendCount = 0;
     if (requestSnap.exists()) {
       const data = requestSnap.data();
-      count = data.requests?.length || 0;
+      friendCount = data.requests?.length || 0;
     }
-    const friendsBase = translations[currentLang].friends;
-    document.getElementById("btnFriends").innerText = `${friendsBase} (${count})`;
 
-    // Mesaj sayısını çek
+    if (friendCount > 0) {
+      friendsBtn.innerText = `${translations[currentLang].friends} (${friendCount})`;
+      friendsBtn.style.display = "block";
+    }
+
+    // --- Mesajlar ---
+    const messagesBtn = document.getElementById("btnMessages");
+    messagesBtn.style.display = "none"; // Önce gizle
+
     const convoQuery = query(collection(db, "conversations"), where("users", "array-contains", user.uid));
     const snapshot = await getDocs(convoQuery);
 
     let msgCount = 0;
-
     for (const convo of snapshot.docs) {
       const convoId = convo.id;
       const messagesRef = collection(db, "conversations", convoId, "messages");
@@ -264,8 +271,10 @@
       }
     }
 
-    const messagesBase = translations[currentLang].messages;
-    document.getElementById("btnMessages").innerText = `📨 ${messagesBase} (${msgCount})`;
+    if (msgCount > 0) {
+      messagesBtn.innerText = `📨 ${translations[currentLang].messages} (${msgCount})`;
+      messagesBtn.style.display = "block";
+    }
   }
 
   onAuthStateChanged(auth, (user) => {
@@ -276,7 +285,7 @@
     }
   });
 
-  window.logout = function() {
+  window.logout = function () {
     signOut(auth).then(() => {
       window.location.href = "index.html";
     });
