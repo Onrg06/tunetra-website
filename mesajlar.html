@@ -360,15 +360,17 @@ function attachScrollLoader(messagesCol) {
       const prevHeight = area.scrollHeight;
 
       const snap = await getDocs(query(
-        messagesCol,
-        orderBy("timestamp", "asc"),
-        endBefore(firstVisible),
-        limitToLast(20)
-      ));
+      messagesCol,
+      orderBy("timestamp", "asc"),
+      endBefore(firstVisible),
+      limitToLast(20)
+    ));
+
+if (snap.empty) return; // BONUS: yükleyecek mesaj kalmadıysa dur
 
       const messages = [];
       snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
-      if (snap.docs.length > 0) firstVisible = snap.docs[0];
+      if (!snap.empty) firstVisible = snap.docs[0];
 
       for (const msg of messages.reverse()) {
         if (!loadedMessageIds.has(msg.id)) {
