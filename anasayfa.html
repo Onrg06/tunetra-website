@@ -43,41 +43,44 @@
       padding: 0 10px;
     }
 
-    .btn, .lang-btn {
+    .btn, .lang-btn, .extra-btn {
       padding: 12px 20px;
       border: none;
       border-radius: 10px;
-      margin: 10px;
+      margin: 8px auto;
       cursor: pointer;
       font-weight: bold;
-      background: #444;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
       color: white;
+      width: 100%;
+      max-width: 320px;
+      display: block;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      text-decoration: none;
+      transition: transform 0.2s ease;
     }
 
-    .btn:hover, .lang-btn:hover {
-      background: #222;
+    .btn:hover, .lang-btn:hover, .extra-btn:hover {
+      transform: scale(1.03);
+      background: linear-gradient(to right, #2575fc, #6a11cb);
     }
 
     .button-group {
       display: flex;
-      flex-direction: column;
+      flex-wrap: wrap;
+      justify-content: center;
       gap: 10px;
-      margin-top: 30px;
-      width: 100%;
-      max-width: 320px;
+      margin: 20px 0;
     }
 
-    a {
-      text-decoration: none;
-      color: white;
-      background: #6a11cb;
-      padding: 12px;
-      border-radius: 10px;
-      display: block;
-    }
-
-    a:hover {
-      background: #2575fc;
+    @media (max-width: 768px) {
+      h1 { font-size: 2rem; }
+      p { font-size: 1rem; }
+      .button-group {
+        flex-direction: column;
+        align-items: center;
+      }
     }
   </style>
 </head>
@@ -91,10 +94,22 @@
   <p id="introText">Tunetra'da müzik, iş birliğiyle doğar!</p>
 
   <div class="button-group">
-    <a href="profil.html" id="btnProfile">👤 Profilim</a>
-    <a href="arkadaslar.html" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım (0)</a>
-    <a href="mesajlar.html" id="btnMessages">📨 Mesajlarım (0)</a>
-    <a href="#" onclick="logout()" class="btn" id="logoutBtn">Çıkış Yap</a>
+    <a href="profil.html" class="btn" id="btnProfile">👤 Profilim</a>
+    <a href="arkadaslar.html" class="btn" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım (0)</a>
+    <a href="mesajlar.html" class="btn" id="btnMessages">📨 Mesajlarım (0)</a>
+  </div>
+
+  <div class="button-group">
+    <a href="lyrics.html" class="extra-btn" id="btnLyrics">✍️ Sözler / Şiirler</a>
+    <a href="melody.html" class="extra-btn" id="btnMelody">🎵 Melodi</a>
+    <a href="hazir.html" class="extra-btn" id="btnSongs">🎶 Hazır Şarkılar</a>
+  </div>
+
+  <div class="button-group">
+    <a href="dilek.html" class="extra-btn" id="btnFeedback">📮 Dilek & Şikayet Kutusu</a>
+    <a href="duyuru.html" class="extra-btn" id="btnAnnouncements">📢 Duyurular</a>
+    <a href="hakkimizda.html" class="extra-btn" id="btnAbout">ℹ️ Hakkımızda</a>
+    <a href="#" class="btn" onclick="logout()" id="logoutBtn">Çıkış Yap</a>
   </div>
 
   <script type="module">
@@ -122,7 +137,13 @@
         profile: "👤 Profilim",
         friends: "🧑‍🤝‍🧑 Arkadaşlarım",
         messages: "Mesajlarım",
-        logout: "Çıkış Yap"
+        logout: "Çıkış Yap",
+        lyrics: "✍️ Sözler / Şiirler",
+        melody: "🎵 Melodi",
+        songs: "🎶 Hazır Şarkılar",
+        feedback: "📮 Dilek & Şikayet Kutusu",
+        announcements: "📢 Duyurular",
+        about: "ℹ️ Hakkımızda"
       },
       en: {
         welcome: "🎶 Welcome, ",
@@ -130,7 +151,13 @@
         profile: "👤 My Profile",
         friends: "🧑‍🤝‍🧑 My Friends",
         messages: "My Messages",
-        logout: "Log Out"
+        logout: "Log Out",
+        lyrics: "✍️ Lyrics",
+        melody: "🎵 Melody",
+        songs: "🎶 Ready Songs",
+        feedback: "📮 Feedback & Complaints",
+        announcements: "📢 Announcements",
+        about: "ℹ️ About"
       }
     };
 
@@ -152,6 +179,12 @@
       document.getElementById("introText").innerText = translations[currentLang].intro;
       document.getElementById("btnProfile").innerText = translations[currentLang].profile;
       document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
+      document.getElementById("btnLyrics").innerText = translations[currentLang].lyrics;
+      document.getElementById("btnMelody").innerText = translations[currentLang].melody;
+      document.getElementById("btnSongs").innerText = translations[currentLang].songs;
+      document.getElementById("btnFeedback").innerText = translations[currentLang].feedback;
+      document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
+      document.getElementById("btnAbout").innerText = translations[currentLang].about;
 
       const friendsRef = await getDoc(doc(db, "friendRequests", user.uid));
       let count = friendsRef.exists() ? friendsRef.data().requests?.length || 0 : 0;
@@ -165,7 +198,6 @@
         for (const convo of snapshot.docs) {
           const convoId = convo.id;
           const messagesRef = collection(db, "conversations", convoId, "messages");
-
           const snap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(10)));
 
           for (const doc of snap.docs) {
