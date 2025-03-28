@@ -306,7 +306,7 @@ async function openChat(fid, el) {
   const convoId = getConversationId(currentUser.uid, fid);
   const messagesCol = collection(db, "conversations", convoId, "messages");
 
-  const snap = await getDocs(query(messagesCol, orderBy("timestamp", "asc"), limitToLast(20)));
+  const snap = await getDocs(query(messagesCol, orderBy("timestamp", "asc"), limitToLast(1000)));
   const messages = [];
   snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
   firstVisible = snap.docs[0];
@@ -370,7 +370,7 @@ function attachScrollLoader(messagesCol) {
       messagesCol,
       orderBy("timestamp", "asc"),
       endBefore(firstVisible),
-      limitToLast(20)
+      limitToLast(1000)
     ));
     }
   };
