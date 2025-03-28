@@ -294,7 +294,7 @@ async function openChat(fid, el) {
   const area = document.getElementById("messageArea");
   area.innerHTML = "";
   loadedMessageIds.clear();
-  firstVisible = snap.docs[0] || null;
+  firstVisible = snap.docs[0];
 
   if (unsubMessages) unsubMessages();
   document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
@@ -309,7 +309,7 @@ async function openChat(fid, el) {
   const snap = await getDocs(query(messagesCol, orderBy("timestamp", "asc"), limitToLast(20)));
   const messages = [];
   snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
-  firstVisible = snap.docs[0];
+  firstVisible = snap.docs[0] || null;
 
   for (const msg of messages) {
     const div = await buildMessageDiv(msg);
