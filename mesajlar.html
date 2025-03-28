@@ -173,6 +173,7 @@
     </div>
   </div>
 <script type="module">
+// Firebase importları (değişmedi)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import {
@@ -181,6 +182,7 @@ import {
   addDoc, getDocs, onSnapshot, arrayUnion, limit
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
   authDomain: "tunetra-2579b.firebaseapp.com",
@@ -289,6 +291,7 @@ async function loadChatList(uid) {
     list.appendChild(div);
   }
 }
+
 async function openChat(fid, el) {
   selectedFriendId = fid;
   const area = document.getElementById("messageArea");
@@ -329,22 +332,26 @@ async function openChat(fid, el) {
   attachScrollLoader(messagesCol);
   updateTexts();
 
-  unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "desc"), limit(1)), async snap => {
-    for (const docSnap of snap.docChanges()) {
-      const msg = { id: docSnap.doc.id, ...docSnap.doc.data() };
-      if (docSnap.type === "added" && !loadedMessageIds.has(msg.id)) {
+  // --- DÜZENLENMİŞ onSnapshot KISMI ---
+  unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "asc")), async snapshot => {
+    for (const change of snapshot.docChanges()) {
+      const msg = { id: change.doc.id, ...change.doc.data() };
+
+      if (change.type === "added" && !loadedMessageIds.has(msg.id)) {
         loadedMessageIds.add(msg.id);
         const div = await buildMessageDiv(msg);
-        area.appendChild(div);
+        document.getElementById("messageArea").appendChild(div);
         setTimeout(() => {
           div.scrollIntoView({ behavior: "smooth" });
         }, 50);
       }
-      if (docSnap.type === "modified") {
+
+      if (change.type === "modified") {
         const el = document.querySelector(`.message[data-id="${msg.id}"]`);
         if (el) el.querySelector(".msg-text").innerText = msg.text;
       }
-      if (docSnap.type === "removed") {
+
+      if (change.type === "removed") {
         const el = document.querySelector(`.message[data-id="${msg.id}"]`);
         if (el) el.remove();
       }
@@ -360,11 +367,26 @@ function attachScrollLoader(messagesCol) {
       const prevHeight = area.scrollHeight;
 
       const snap = await getDocs(query(
-      messagesCol,
-      orderBy("timestamp", "asc"),
-      endBefore(firstVisible),
-      limitToLast(20)
-    ));
+        messagesCol,
+        orderBy("timestamp", "asc"),
+        endBefore(firstVisible),
+        limitToLast(20)
+      ));
+
+      const messages = [];
+      snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
+      if (messages.length > 0) firstVisible = snap.docs[0];
+
+      for (const msg of messages) {
+        if (!loadedMessageIds.has(msg.id)) {
+          loadedMessageIds.add(msg.id);
+          const div = await buildMessageDiv(msg);
+          area.insertBefore(div, area.firstChild);
+        }
+      }
+
+      area.scrollTop = area.scrollHeight - prevHeight;
+      isLoading = false;
     }
   };
 }
