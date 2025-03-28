@@ -6,8 +6,8 @@
   <title>TuneTRa | Ana Sayfa</title>
   <style>
     * {
-      box-sizing: border-box;
-      margin: 0;
+      box-sizing: border-box; 
+      margin: 0; 
       padding: 0;
       font-family: 'Segoe UI', sans-serif;
     }
@@ -21,8 +21,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
+      justify-content: flex-start;
       text-align: center;
+      padding: 20px;
     }
 
     @keyframes gradientShift {
@@ -34,6 +35,7 @@
     h1 {
       font-size: 2.5rem;
       margin: 30px 0 10px;
+      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
     }
 
     p {
@@ -43,31 +45,39 @@
       padding: 0 10px;
     }
 
-    .btn, .lang-btn, .extra-btn {
+    .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn, .extra-btn {
       padding: 12px 20px;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
+      color: white;
+      font-weight: bold;
+      text-decoration: none;
       margin: 8px auto;
       cursor: pointer;
-      font-weight: bold;
-      background: linear-gradient(to right, #6a11cb, #2575fc);
-      color: white;
+      transition: all 0.3s ease;
       width: 100%;
       max-width: 320px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       display: block;
       text-align: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      text-decoration: none;
-      transition: transform 0.2s ease;
     }
 
-    .btn:hover, .lang-btn:hover, .extra-btn:hover {
+    .btn:hover, .profile-btn:hover, .friends-btn:hover, .messages-btn:hover, .lang-btn:hover, .extra-btn:hover {
       transform: scale(1.03);
       background: linear-gradient(to right, #2575fc, #6a11cb);
     }
 
+    .language-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
     .button-group {
       display: flex;
+      flex-direction: row;
       flex-wrap: wrap;
       justify-content: center;
       gap: 10px;
@@ -75,28 +85,57 @@
     }
 
     @media (max-width: 768px) {
-      h1 { font-size: 2rem; }
-      p { font-size: 1rem; }
+      h1 {
+        font-size: 1.8rem;
+        margin-top: 20px;
+      }
+
+      p {
+        font-size: 1rem;
+      }
+
+      .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn, .extra-btn {
+        font-size: 0.95rem;
+        padding: 12px 20px;
+        width: 100%;
+        max-width: 340px;
+        margin: 8px auto;
+        text-align: center;
+      }
+
+      .language-buttons {
+        flex-direction: row;
+        justify-content: center;
+      }
+
       .button-group {
         flex-direction: column;
         align-items: center;
+        gap: 12px;
+        margin: 20px auto;
+        width: 100%;
+        max-width: 340px;
+        padding: 10px 0;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
       }
     }
   </style>
 </head>
 <body>
-  <div>
+  <div class="language-buttons">
     <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
     <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
   </div>
 
   <h1 id="welcomeMessage">🎶 Hoş Geldin!</h1>
-  <p id="introText">Tunetra'da müzik, iş birliğiyle doğar!</p>
+  <p id="introText">Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!</p>
 
   <div class="button-group">
-    <a href="profil.html" class="btn" id="btnProfile">👤 Profilim</a>
-    <a href="arkadaslar.html" class="btn" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım (0)</a>
-    <a href="mesajlar.html" class="btn" id="btnMessages">📨 Mesajlarım (0)</a>
+    <a href="profil.html" class="profile-btn" id="btnProfile">👤 Profilim</a>
+    <a href="arkadaslar.html" class="friends-btn" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım</a>
+    <a href="mesajlar.html" class="messages-btn" id="btnMessages">📨 Mesajlarım (0)</a>
   </div>
 
   <div class="button-group">
@@ -109,13 +148,13 @@
     <a href="dilek.html" class="extra-btn" id="btnFeedback">📮 Dilek & Şikayet Kutusu</a>
     <a href="duyuru.html" class="extra-btn" id="btnAnnouncements">📢 Duyurular</a>
     <a href="hakkimizda.html" class="extra-btn" id="btnAbout">ℹ️ Hakkımızda</a>
-    <a href="#" class="btn" onclick="logout()" id="logoutBtn">Çıkış Yap</a>
+    <a href="index.html" class="btn" onclick="logout()" id="logoutBtn">Çıkış Yap</a>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, query, where, onSnapshot, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -133,31 +172,31 @@
     const translations = {
       tr: {
         welcome: "🎶 Hoş Geldin, ",
-        intro: "Tunetra'da müzik, iş birliğiyle doğar!",
+        intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!</p>",
+        logout: "Çıkış Yap",
         profile: "👤 Profilim",
         friends: "🧑‍🤝‍🧑 Arkadaşlarım",
         messages: "Mesajlarım",
-        logout: "Çıkış Yap",
-        lyrics: "✍️ Sözler / Şiirler",
-        melody: "🎵 Melodi",
-        songs: "🎶 Hazır Şarkılar",
         feedback: "📮 Dilek & Şikayet Kutusu",
         announcements: "📢 Duyurular",
-        about: "ℹ️ Hakkımızda"
+        about: "ℹ️ Hakkımızda",
+        lyrics: "✍️ Sözler / Şiirler",
+        melody: "🎵 Melodi",
+        songs: "🎶 Hazır Şarkılar"
       },
       en: {
         welcome: "🎶 Welcome, ",
-        intro: "Music is born through collaboration on Tunetra!",
+        intro: "You’re in the right place to create your dream song.<br><br>Share your lyrics or melody, let others collaborate and turn them into music.<br><br>On Tunetra, music is born through collaboration!",
+        logout: "Log Out",
         profile: "👤 My Profile",
         friends: "🧑‍🤝‍🧑 My Friends",
         messages: "My Messages",
-        logout: "Log Out",
-        lyrics: "✍️ Lyrics",
-        melody: "🎵 Melody",
-        songs: "🎶 Ready Songs",
         feedback: "📮 Feedback & Complaints",
         announcements: "📢 Announcements",
-        about: "ℹ️ About"
+        about: "ℹ️ About",
+        lyrics: "✍️ Lyrics",
+        melody: "🎵 Melody",
+        songs: "🎶 Ready Songs"
       }
     };
 
@@ -168,49 +207,63 @@
       updateUI();
     };
 
-    async function updateUI() {
+    function updateUI() {
       const user = auth.currentUser;
       if (!user) return;
 
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      const name = userDoc.exists() ? userDoc.data().username : "Kullanıcı";
+      const docRef = doc(db, "users", user.uid);
+      getDoc(docRef).then(userDoc => {
+        if (userDoc.exists()) {
+          const username = userDoc.data().username;
+          document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
+          document.getElementById("introText").innerHTML = translations[currentLang].intro;
+          document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
+          document.getElementById("btnProfile").innerText = translations[currentLang].profile;
+          document.getElementById("btnFeedback").innerText = translations[currentLang].feedback;
+          document.getElementById("btnAbout").innerText = translations[currentLang].about;
+          document.getElementById("btnLyrics").innerText = translations[currentLang].lyrics;
+          document.getElementById("btnMelody").innerText = translations[currentLang].melody;
+          document.getElementById("btnSongs").innerText = translations[currentLang].songs;
+          document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
+        }
+      });
 
-      document.getElementById("welcomeMessage").innerText = translations[currentLang].welcome + name + "!";
-      document.getElementById("introText").innerText = translations[currentLang].intro;
-      document.getElementById("btnProfile").innerText = translations[currentLang].profile;
-      document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
-      document.getElementById("btnLyrics").innerText = translations[currentLang].lyrics;
-      document.getElementById("btnMelody").innerText = translations[currentLang].melody;
-      document.getElementById("btnSongs").innerText = translations[currentLang].songs;
-      document.getElementById("btnFeedback").innerText = translations[currentLang].feedback;
-      document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
-      document.getElementById("btnAbout").innerText = translations[currentLang].about;
+      const requestRef = doc(db, "friendRequests", user.uid);
+      getDoc(requestRef).then(requestSnap => {
+        let count = 0;
+        if (requestSnap.exists()) {
+          const data = requestSnap.data();
+          count = data.requests?.length || 0;
+        }
+        const friendsBase = translations[currentLang].friends;
+        document.getElementById("btnFriends").innerText = `${friendsBase} (${count})`;
+      });
 
-      const friendsRef = await getDoc(doc(db, "friendRequests", user.uid));
-      let count = friendsRef.exists() ? friendsRef.data().requests?.length || 0 : 0;
-      document.getElementById("btnFriends").innerText = `${translations[currentLang].friends} (${count})`;
-
-      const convoQuery = query(collection(db, "conversations"), where("users", "array-contains", user.uid));
+      const convoQuery = query(
+        collection(db, "conversations"),
+        where("users", "array-contains", user.uid)
+      );
 
       onSnapshot(convoQuery, async (snapshot) => {
-        let msgCount = 0;
+  let msgCount = 0;
 
-        for (const convo of snapshot.docs) {
-          const convoId = convo.id;
-          const messagesRef = collection(db, "conversations", convoId, "messages");
-          const snap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(10)));
+  for (const convo of snapshot.docs) {
+    const convoId = convo.id;
+    const messagesRef = collection(db, "conversations", convoId, "messages");
+    const snap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(10)));
 
-          for (const doc of snap.docs) {
-            const msg = doc.data();
-            if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
-              msgCount++;
-              break;
-            }
-          }
-        }
+    for (const doc of snap.docs) {
+      const msg = doc.data();
+      if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
+        msgCount++;
+        break; // Bu konuşmadan sadece bir tane unread yeter
+      }
+    }
+  }
 
-        document.getElementById("btnMessages").innerText = `📨 ${translations[currentLang].messages} (${msgCount})`;
-      });
+  const messagesBase = translations[currentLang].messages;
+  document.getElementById("btnMessages").innerText = `📨 ${messagesBase} (${msgCount})`;
+});
     }
 
     onAuthStateChanged(auth, (user) => {
