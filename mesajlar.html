@@ -363,7 +363,7 @@ function attachScrollLoader(messagesCol) {
       messagesCol,
       orderBy("timestamp", "asc"),
       endBefore(firstVisible),
-      limitToLast(20)
+      limitToLast(10000)
     ));
     }
   };
