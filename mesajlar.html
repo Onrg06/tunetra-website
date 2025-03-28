@@ -328,7 +328,7 @@ area.lastElementChild?.scrollIntoView({ behavior: "auto" });
 attachScrollLoader(messagesCol);
 updateTexts();
 
-unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "desc"), limit(1)), async snap => {
+unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "asc")), async snapshot => { async snap => {
 for (const docSnap of snap.docChanges()) {
 const msg = { id: docSnap.doc.id, ...docSnap.doc.data() };
 if (docSnap.type === "added" && !loadedMessageIds.has(msg.id)) {
