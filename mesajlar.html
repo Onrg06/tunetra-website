@@ -329,13 +329,15 @@ async function openChat(fid, el) {
   attachScrollLoader(messagesCol);
   updateTexts();
 
-  unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "desc"), limit(1)), async snap => {
+  unsubMessages = onSnapshot(
+  query(messagesCol, orderBy("timestamp", "asc"), limitToLast(1)),
+  async snap => {
     for (const docSnap of snap.docChanges()) {
       const msg = { id: docSnap.doc.id, ...docSnap.doc.data() };
       if (docSnap.type === "added" && !loadedMessageIds.has(msg.id)) {
         loadedMessageIds.add(msg.id);
         const div = await buildMessageDiv(msg);
-        area.appendChild(div);
+        document.getElementById("messageArea").appendChild(div);
         setTimeout(() => {
           div.scrollIntoView({ behavior: "smooth" });
         }, 50);
@@ -349,8 +351,9 @@ async function openChat(fid, el) {
         if (el) el.remove();
       }
     }
-  });
-}
+  }
+);
+
 
 function attachScrollLoader(messagesCol) {
   const area = document.getElementById("messageArea");
