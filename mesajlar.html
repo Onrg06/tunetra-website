@@ -192,6 +192,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
 let currentUser = null;
 let selectedFriendId = null;
 let lang = localStorage.getItem("lang") || "tr";
@@ -213,7 +214,9 @@ const t = {
   }
 };
 
-function updateLanguageTexts() {
+function setLang(l) {
+  lang = l;
+  localStorage.setItem("lang", lang);
   document.getElementById("pageTitle").innerText = t[lang].pageTitle;
   document.getElementById("messageInput").placeholder = t[lang].placeholder;
   document.querySelector(".send-btn").innerText = t[lang].send;
@@ -222,17 +225,11 @@ function updateLanguageTexts() {
   document.getElementById("btnEn").innerText = t[lang].english;
 
   document.querySelectorAll(".message").forEach(msg => {
-    const sender = msg.classList.contains("you") ? t[lang].you : msg.dataset.senderName;
+    const sender = msg.classList.contains("you") ? t[lang].you : msg.dataset.senderName || "";
     msg.querySelector(".sender-label").innerText = sender;
     const ts = msg.dataset.timestamp;
     msg.querySelector(".timestamp").innerText = `${t[lang].sentAt}: ${formatTimestamp(ts)}`;
   });
-}
-
-function setLang(l) {
-  lang = l;
-  localStorage.setItem("lang", lang);
-  updateLanguageTexts();
 }
 
 function getConversationId(uid1, uid2) {
@@ -293,16 +290,19 @@ async function openChat(fid, el) {
   const messagesCol = collection(db, "conversations", convoId, "messages");
 
   const snap = await getDocs(query(messagesCol, orderBy("timestamp", "desc"), limit(20)));
-  for (const doc of snap.docs) {
-    const msg = { id: doc.id, ...doc.data() };
+  let messages = [];
+  snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
+  messages.reverse(); // eski → yeni sırayla DOM'a eklensin
+  for (const msg of messages) {
     const div = await buildMessageDiv(msg);
     area.appendChild(div);
     loadedMessageIds.add(msg.id);
   }
   if (!snap.empty) lastVisible = snap.docs[snap.docs.length - 1];
 
+  // sohbet en altta başlasın
   setTimeout(() => {
-    area.scrollTop = 0; // column-reverse nedeniyle en altta başlamak için 0
+    area.scrollTop = area.scrollHeight;
   }, 100);
 
   attachScrollLoader(messagesCol);
@@ -319,7 +319,10 @@ async function openChat(fid, el) {
           });
         }
         const div = await buildMessageDiv(msg);
-        area.appendChild(div);
+        document.getElementById("messageArea").appendChild(div);
+        setTimeout(() => {
+          area.scrollTop = area.scrollHeight;
+        }, 100);
       }
 
       if (docSnap.type === "modified") {
@@ -336,38 +339,40 @@ async function openChat(fid, el) {
     }
   });
 
-  updateLanguageTexts();
+  setLang(lang); // dil güncelle
 }
 
 function attachScrollLoader(messagesCol) {
   const area = document.getElementById("messageArea");
   area.onscroll = async () => {
-    if (area.scrollTop > area.scrollHeight - area.clientHeight - 100 || isLoading || !lastVisible) return;
+    if (area.scrollTop < 100 && !isLoading && lastVisible) {
+      isLoading = true;
+      const prevHeight = area.scrollHeight;
 
-    isLoading = true;
-    const prevHeight = area.scrollHeight;
+      const snap = await getDocs(query(
+        messagesCol,
+        orderBy("timestamp", "desc"),
+        startAfter(lastVisible),
+        limit(20)
+      ));
 
-    const snap = await getDocs(query(
-      messagesCol,
-      orderBy("timestamp", "desc"),
-      startAfter(lastVisible),
-      limit(20)
-    ));
+      let messages = [];
+      snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
+      messages.reverse(); // DOM'a eski → yeni sırayla ekle
 
-    for (const doc of snap.docs) {
-      const msg = { id: doc.id, ...doc.data() };
-      if (loadedMessageIds.has(msg.id)) continue;
-      const div = await buildMessageDiv(msg);
-      area.insertBefore(div, area.firstChild);
-      loadedMessageIds.add(msg.id);
+      for (const msg of messages) {
+        if (loadedMessageIds.has(msg.id)) continue;
+        const div = await buildMessageDiv(msg);
+        area.insertBefore(div, area.firstChild);
+        loadedMessageIds.add(msg.id);
+      }
+
+      const newHeight = area.scrollHeight;
+      area.scrollTop += newHeight - prevHeight;
+
+      if (!snap.empty) lastVisible = snap.docs[snap.docs.length - 1];
+      isLoading = false;
     }
-
-    if (!snap.empty) lastVisible = snap.docs[snap.docs.length - 1];
-
-    const newHeight = area.scrollHeight;
-    area.scrollTop = newHeight - prevHeight;
-
-    isLoading = false;
   };
 }
 
@@ -451,9 +456,7 @@ window.goHome = () => location.href = "anasayfa.html";
 onAuthStateChanged(auth, user => {
   if (!user) return location.href = "index.html";
   currentUser = user;
-  updateLanguageTexts();
+  setLang(lang);
   loadChatList(user.uid);
 });
 </script>
-</body>
-</html>
