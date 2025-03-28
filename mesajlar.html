@@ -384,27 +384,29 @@ function attachScrollLoader(messagesCol) {
       snap.forEach(doc => {
         if (!loadedMessageIds.has(doc.id)) {
           messages.push({ id: doc.id, ...doc.data() });
+          loadedMessageIds.add(doc.id);
         }
       });
 
-      if (messages.length > 0) {
-        firstVisible = snap.docs[0]; // yeni firstVisible
-        const scrollAnchor = area.firstElementChild;
-        for (const msg of messages.reverse()) {
-          const div = await buildMessageDiv(msg);
-          area.insertBefore(div, area.firstElementChild);
-          loadedMessageIds.add(msg.id);
-        }
-        // Scroll pozisyonunu koru
-        setTimeout(() => {
-          area.scrollTop = area.scrollHeight - prevHeight;
-          isLoading = false;
-        }, 50);
-      } else {
-        isLoading = false;
+      // DOM'a ekle
+      for (const msg of messages.reverse()) {
+        const div = await buildMessageDiv(msg);
+        area.insertBefore(div, area.firstChild);
       }
+
+      // En eski yeni firstVisible olarak güncellensin
+      if (!snap.empty) {
+        firstVisible = snap.docs[0];
+      }
+
+      // Scroll pozisyonunu koru
+      const newHeight = area.scrollHeight;
+      area.scrollTop = newHeight - prevHeight;
+
+      isLoading = false;
     }
   };
+}
 }
 
 async function buildMessageDiv(msg) {
