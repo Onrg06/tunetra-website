@@ -365,25 +365,6 @@ function attachScrollLoader(messagesCol) {
       endBefore(firstVisible),
       limitToLast(20)
     ));
-
-if (snap.empty) return; // BONUS: yükleyecek mesaj kalmadıysa dur
-
-      const messages = [];
-      snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
-      if (!snap.empty) firstVisible = snap.docs[snap.docs.length - 1];
-
-      for (const msg of messages.reverse()) {
-        if (!loadedMessageIds.has(msg.id)) {
-          const div = await buildMessageDiv(msg);
-          area.insertBefore(div, area.firstChild);
-          loadedMessageIds.add(msg.id);
-        }
-      }
-
-      const newHeight = area.scrollHeight;
-      area.scrollTop += newHeight - prevHeight;
-
-      isLoading = false;
     }
   };
 }
