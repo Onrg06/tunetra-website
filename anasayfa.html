@@ -233,8 +233,6 @@
 
     // --- Arkadaş İstekleri ---
     const friendsBtn = document.getElementById("btnFriends");
-    friendsBtn.style.display = "none"; // Önce gizle
-
     const requestRef = doc(db, "friendRequests", user.uid);
     const requestSnap = await getDoc(requestRef);
     let friendCount = 0;
@@ -243,15 +241,11 @@
       friendCount = data.requests?.length || 0;
     }
 
-    if (friendCount > 0) {
-      friendsBtn.innerText = `${translations[currentLang].friends} (${friendCount})`;
-      friendsBtn.style.display = "block";
-    }
+    const friendsBase = translations[currentLang].friends;
+    friendsBtn.innerText = friendCount > 0 ? `${friendsBase} (${friendCount})` : friendsBase;
 
     // --- Mesajlar ---
     const messagesBtn = document.getElementById("btnMessages");
-    messagesBtn.style.display = "none"; // Önce gizle
-
     const convoQuery = query(collection(db, "conversations"), where("users", "array-contains", user.uid));
     const snapshot = await getDocs(convoQuery);
 
@@ -271,10 +265,8 @@
       }
     }
 
-    if (msgCount > 0) {
-      messagesBtn.innerText = `📨 ${translations[currentLang].messages} (${msgCount})`;
-      messagesBtn.style.display = "block";
-    }
+    const messagesBase = translations[currentLang].messages;
+    messagesBtn.innerText = msgCount > 0 ? `📨 ${messagesBase} (${msgCount})` : `📨 ${messagesBase}`;
   }
 
   onAuthStateChanged(auth, (user) => {
