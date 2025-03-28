@@ -328,6 +328,9 @@ area.lastElementChild?.scrollIntoView({ behavior: "auto" });
 attachScrollLoader(messagesCol);
 updateTexts();
 
+let unsubMessages = null;
+const loadedMessageIds = new Set();
+
 unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "asc")), async snapshot => {
   snapshot.docChanges().forEach(async change => {
     const msg = { id: change.doc.id, ...change.doc.data() };
