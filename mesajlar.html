@@ -359,29 +359,39 @@ function attachScrollLoader(messagesCol) {
       isLoading = true;
       const prevHeight = area.scrollHeight;
 
-      const snap = await getDocs(query(
-        messagesCol,
-        orderBy("timestamp", "asc"),
-        endBefore(firstVisible),
-        limit(20)
-      ));
+      try {
+        const snap = await getDocs(query(
+          messagesCol,
+          orderBy("timestamp", "asc"),
+          endBefore(firstVisible),
+          limit(20)
+        ));
 
-      if (snap.empty) return; // daha fazla mesaj yoksa çık
-
-      const messages = [];
-      snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
-      firstVisible = snap.docs[0]; // bu çok önemli
-
-      for (const msg of messages.reverse()) {
-        if (!loadedMessageIds.has(msg.id)) {
-          const div = await buildMessageDiv(msg);
-          area.insertBefore(div, area.firstChild);
-          loadedMessageIds.add(msg.id);
+        if (snap.empty) {
+          isLoading = false;
+          return; // Daha fazla mesaj yok
         }
-      }
 
-      const newHeight = area.scrollHeight;
-      area.scrollTop += newHeight - prevHeight;
+        const messages = [];
+        snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
+
+        // Yeni en eski mesaj
+        firstVisible = snap.docs[0];
+
+        for (const msg of messages.reverse()) {
+          if (!loadedMessageIds.has(msg.id)) {
+            const div = await buildMessageDiv(msg);
+            area.insertBefore(div, area.firstChild);
+            loadedMessageIds.add(msg.id);
+          }
+        }
+
+        const newHeight = area.scrollHeight;
+        area.scrollTop += newHeight - prevHeight;
+
+      } catch (e) {
+        console.error("Scroll yükleme hatası:", e); // sadece hata yakalama için
+      }
 
       isLoading = false;
     }
