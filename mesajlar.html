@@ -90,7 +90,7 @@
       margin-bottom: 20px;
       padding-right: 10px;
       display: flex;
-      flex-direction: column;
+      flex-direction: column-reverse; /* ÖNEMLİ: Son mesaj altta olacak */
     }
     .message {
       padding: 10px;
@@ -180,7 +180,6 @@ import {
   collection, query, orderBy, limit, startAfter, addDoc, getDocs, onSnapshot, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Firebase config ve başlangıç ayarları burada
 const firebaseConfig = {
   apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
   authDomain: "tunetra-2579b.firebaseapp.com",
@@ -214,15 +213,26 @@ const t = {
   }
 };
 
-function setLang(l) {
-  lang = l;
-  localStorage.setItem("lang", lang);
+function updateLanguageTexts() {
   document.getElementById("pageTitle").innerText = t[lang].pageTitle;
   document.getElementById("messageInput").placeholder = t[lang].placeholder;
   document.querySelector(".send-btn").innerText = t[lang].send;
   document.getElementById("homeBtn").innerText = "🏠 " + t[lang].home;
   document.getElementById("btnTr").innerText = t[lang].turkish;
   document.getElementById("btnEn").innerText = t[lang].english;
+
+  document.querySelectorAll(".message").forEach(msg => {
+    const sender = msg.classList.contains("you") ? t[lang].you : msg.dataset.senderName;
+    msg.querySelector(".sender-label").innerText = sender;
+    const ts = msg.dataset.timestamp;
+    msg.querySelector(".timestamp").innerText = `${t[lang].sentAt}: ${formatTimestamp(ts)}`;
+  });
+}
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem("lang", lang);
+  updateLanguageTexts();
 }
 
 function getConversationId(uid1, uid2) {
@@ -230,7 +240,7 @@ function getConversationId(uid1, uid2) {
 }
 
 function formatTimestamp(ts) {
-  const d = new Date(ts);
+  const d = new Date(Number(ts));
   return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
@@ -283,10 +293,8 @@ async function openChat(fid, el) {
   const messagesCol = collection(db, "conversations", convoId, "messages");
 
   const snap = await getDocs(query(messagesCol, orderBy("timestamp", "desc"), limit(20)));
-  let messages = [];
-  snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
-  messages.reverse(); // eski → yeni sıralama
-  for (const msg of messages) {
+  for (const doc of snap.docs) {
+    const msg = { id: doc.id, ...doc.data() };
     const div = await buildMessageDiv(msg);
     area.appendChild(div);
     loadedMessageIds.add(msg.id);
@@ -294,7 +302,7 @@ async function openChat(fid, el) {
   if (!snap.empty) lastVisible = snap.docs[snap.docs.length - 1];
 
   setTimeout(() => {
-    area.scrollTop = area.scrollHeight;
+    area.scrollTop = 0; // column-reverse nedeniyle en altta başlamak için 0
   }, 100);
 
   attachScrollLoader(messagesCol);
@@ -312,9 +320,6 @@ async function openChat(fid, el) {
         }
         const div = await buildMessageDiv(msg);
         area.appendChild(div);
-        setTimeout(() => {
-          area.scrollTop = area.scrollHeight;
-        }, 100);
       }
 
       if (docSnap.type === "modified") {
@@ -330,51 +335,51 @@ async function openChat(fid, el) {
       }
     }
   });
+
+  updateLanguageTexts();
 }
 
 function attachScrollLoader(messagesCol) {
   const area = document.getElementById("messageArea");
   area.onscroll = async () => {
-    if (area.scrollTop < 100 && !isLoading && lastVisible) {
-      isLoading = true;
-      const previousHeight = area.scrollHeight;
+    if (area.scrollTop > area.scrollHeight - area.clientHeight - 100 || isLoading || !lastVisible) return;
 
-      const snap = await getDocs(query(
-        messagesCol,
-        orderBy("timestamp", "desc"),
-        startAfter(lastVisible),
-        limit(20)
-      ));
+    isLoading = true;
+    const prevHeight = area.scrollHeight;
 
-      let messages = [];
-      snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
-      messages.reverse();
+    const snap = await getDocs(query(
+      messagesCol,
+      orderBy("timestamp", "desc"),
+      startAfter(lastVisible),
+      limit(20)
+    ));
 
-      for (const msg of messages) {
-        if (loadedMessageIds.has(msg.id)) continue;
-        const div = await buildMessageDiv(msg);
-        area.insertBefore(div, area.firstChild);
-        loadedMessageIds.add(msg.id);
-      }
-
-      const newHeight = area.scrollHeight;
-      area.scrollTop = newHeight - previousHeight;
-
-      if (!snap.empty) lastVisible = snap.docs[snap.docs.length - 1];
-      isLoading = false;
+    for (const doc of snap.docs) {
+      const msg = { id: doc.id, ...doc.data() };
+      if (loadedMessageIds.has(msg.id)) continue;
+      const div = await buildMessageDiv(msg);
+      area.insertBefore(div, area.firstChild);
+      loadedMessageIds.add(msg.id);
     }
+
+    if (!snap.empty) lastVisible = snap.docs[snap.docs.length - 1];
+
+    const newHeight = area.scrollHeight;
+    area.scrollTop = newHeight - prevHeight;
+
+    isLoading = false;
   };
 }
 
 async function buildMessageDiv(msg) {
   const div = document.createElement("div");
-  div.setAttribute("data-id", msg.id);
-
-  const senderName = msg.sender === currentUser.uid
-    ? t[lang].you
-    : (await getDoc(doc(db, "users", msg.sender))).data()?.username || "Bilinmeyen";
-
   div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
+  div.setAttribute("data-id", msg.id);
+  div.setAttribute("data-timestamp", msg.timestamp);
+  div.setAttribute("data-sender-name", (await getDoc(doc(db, "users", msg.sender))).data()?.username || "Bilinmeyen");
+
+  const senderName = msg.sender === currentUser.uid ? t[lang].you : div.dataset.senderName;
+
   div.innerHTML = `
     <div class="sender-label">${senderName}</div>
     <div class="msg-text">${msg.text}</div>
@@ -438,11 +443,6 @@ window.sendMessage = async () => {
   }
 
   input.value = "";
-
-  setTimeout(() => {
-    const area = document.getElementById("messageArea");
-    area.scrollTop = area.scrollHeight;
-  }, 100);
 };
 
 window.setLang = setLang;
@@ -451,7 +451,7 @@ window.goHome = () => location.href = "anasayfa.html";
 onAuthStateChanged(auth, user => {
   if (!user) return location.href = "index.html";
   currentUser = user;
-  setLang(lang);
+  updateLanguageTexts();
   loadChatList(user.uid);
 });
 </script>
