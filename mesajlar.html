@@ -327,11 +327,13 @@ async function openChat(fid, el) {
 
   setupLoadMoreButton(messagesCol);
 
-  unsubMessages = onSnapshot(
+unsubMessages = onSnapshot(
   query(messagesCol, orderBy("timestamp", "asc")),
   async (snapshot) => {
     for (const change of snapshot.docChanges()) {
       const msg = { id: change.doc.id, ...change.doc.data() };
+
+      const area = document.getElementById("messageArea");
 
       if (change.type === "removed") {
         const el = document.querySelector(`.message[data-id="${msg.id}"]`);
@@ -340,21 +342,19 @@ async function openChat(fid, el) {
         continue;
       }
 
-      const existing = document.querySelector(`.message[data-id="${msg.id}"]`);
       const newDiv = await buildMessageDiv(msg);
+      const existing = document.querySelector(`.message[data-id="${msg.id}"]`);
 
       if (existing) {
-        existing.replaceWith(newDiv); // güncelleme varsa değiştir
+        existing.replaceWith(newDiv); // güncelle
       } else if (!loadedMessageIds.has(msg.id)) {
         loadedMessageIds.add(msg.id);
-        const area = document.getElementById("messageArea");
-        area.appendChild(newDiv);
+        area.appendChild(newDiv); // yeni mesaj
         setTimeout(() => {
           area.scrollTop = area.scrollHeight;
         }, 100);
       }
 
-      // Görüldü güncellemesi
       if (!msg.seenBy?.includes(currentUser.uid)) {
         await updateDoc(doc(db, "conversations", convoId, "messages", msg.id), {
           seenBy: arrayUnion(currentUser.uid)
