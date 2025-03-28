@@ -432,7 +432,9 @@ window.sendMessage = async () => {
     const msg = {
       sender: currentUser.uid,
       text,
-      timestamp: Date.now(),
+import { Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+// sonra:
+timestamp: Timestamp.now()
       seenBy: []
     };
     await addDoc(msgCol, msg);
