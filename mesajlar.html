@@ -331,22 +331,39 @@ async function openChat(fid, el) {
 
   unsubMessages = onSnapshot(
   query(messagesCol, orderBy("timestamp", "asc"), limitToLast(1)),
-  async snap => {
-    for (const docSnap of snap.docChanges()) {
-      const msg = { id: docSnap.doc.id, ...docSnap.doc.data() };
-      if (docSnap.type === "added" && !loadedMessageIds.has(msg.id)) {
+  async (snapshot) => {
+    for (const docChange of snapshot.docChanges()) {
+      const msg = { id: docChange.doc.id, ...docChange.doc.data() };
+
+      // Yeni mesajsa ekle
+      if (docChange.type === "added" && !loadedMessageIds.has(msg.id)) {
         loadedMessageIds.add(msg.id);
         const div = await buildMessageDiv(msg);
-        document.getElementById("messageArea").appendChild(div);
+        const area = document.getElementById("messageArea");
+        area.appendChild(div);
+
+        // Otomatik en alta kaydır
         setTimeout(() => {
-          div.scrollIntoView({ behavior: "smooth" });
-        }, 50);
+          area.scrollTop = area.scrollHeight;
+        }, 100);
+
+        // Mesajı görüldü olarak işaretle
+        if (!msg.seenBy?.includes(currentUser.uid)) {
+          const convoId = getConversationId(currentUser.uid, selectedFriendId);
+          await updateDoc(doc(db, "conversations", convoId, "messages", msg.id), {
+            seenBy: arrayUnion(currentUser.uid),
+          });
+        }
       }
-      if (docSnap.type === "modified") {
+
+      // Mesaj düzenlenmişse güncelle
+      if (docChange.type === "modified") {
         const el = document.querySelector(`.message[data-id="${msg.id}"]`);
         if (el) el.querySelector(".msg-text").innerText = msg.text;
       }
-      if (docSnap.type === "removed") {
+
+      // Mesaj silinmişse kaldır
+      if (docChange.type === "removed") {
         const el = document.querySelector(`.message[data-id="${msg.id}"]`);
         if (el) el.remove();
       }
