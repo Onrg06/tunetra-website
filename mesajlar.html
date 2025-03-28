@@ -178,7 +178,7 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
   collection, query, orderBy, limitToLast, endBefore,
-  addDoc, getDocs, onSnapshot, arrayUnion, limit
+  addDoc, getDocs, onSnapshot, arrayUnion, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -240,8 +240,9 @@ function setLang(l) {
 window.setLang = setLang;
 
 function formatTimestamp(ts) {
-  const d = new Date(Number(ts));
-  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+  if (!ts) return "";
+  const date = ts.toDate ? ts.toDate() : new Date(ts);
+  return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
 function getConversationId(uid1, uid2) {
@@ -267,7 +268,7 @@ async function loadChatList(uid) {
     const name = fdoc.data().username;
     const convoId = getConversationId(uid, fid);
     const messagesCol = collection(db, "conversations", convoId, "messages");
-    const lastMsgSnap = await getDocs(query(messagesCol, orderBy("timestamp", "desc"), limit(1)));
+    const lastMsgSnap = await getDocs(query(messagesCol, orderBy("timestamp", "desc"), limitToLast(1)));
     let lastMsg = "", hasNew = false;
 
     if (!lastMsgSnap.empty) {
@@ -327,12 +328,11 @@ async function openChat(fid, el) {
   attachScrollLoader(messagesCol);
   updateTexts();
 
-  // --- Otomatik olarak en alta scroll yap ---
+  // Otomatik scroll en alta
   requestAnimationFrame(() => {
     area.scrollTop = area.scrollHeight;
   });
 
-  // --- Canlı mesaj dinleme ---
   unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "asc")), async snapshot => {
     for (const change of snapshot.docChanges()) {
       const msg = { id: change.doc.id, ...change.doc.data() };
@@ -341,8 +341,6 @@ async function openChat(fid, el) {
         loadedMessageIds.add(msg.id);
         const div = await buildMessageDiv(msg);
         area.appendChild(div);
-
-        // Yeni mesaj gelince en alta scroll yap
         requestAnimationFrame(() => {
           area.scrollTop = area.scrollHeight;
         });
@@ -456,7 +454,7 @@ window.sendMessage = async () => {
     const msg = {
       sender: currentUser.uid,
       text,
-      timestamp: Date.now(),
+      timestamp: serverTimestamp(),
       seenBy: []
     };
     await addDoc(msgCol, msg);
