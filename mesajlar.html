@@ -343,17 +343,22 @@ unsubMessages = onSnapshot(
       }
 
       const newDiv = await buildMessageDiv(msg);
-      const existing = document.querySelector(`.message[data-id="${msg.id}"]`);
+const existing = document.querySelector(`.message[data-id="${msg.id}"]`);
 
-      if (existing) {
-        existing.replaceWith(newDiv); // güncelle
-      } else if (!loadedMessageIds.has(msg.id)) {
-        loadedMessageIds.add(msg.id);
-        area.appendChild(newDiv); // yeni mesaj
-        setTimeout(() => {
-          area.scrollTop = area.scrollHeight;
-        }, 100);
-      }
+if (change.type === "removed") {
+  if (existing) existing.remove();
+  loadedMessageIds.delete(msg.id);
+} else if (change.type === "modified") {
+  if (existing) {
+    existing.replaceWith(newDiv);
+  }
+} else if (change.type === "added" && !loadedMessageIds.has(msg.id)) {
+  loadedMessageIds.add(msg.id);
+  area.appendChild(newDiv);
+  setTimeout(() => {
+    area.scrollTop = area.scrollHeight;
+  }, 100);
+}
 
       if (!msg.seenBy?.includes(currentUser.uid)) {
         await updateDoc(doc(db, "conversations", convoId, "messages", msg.id), {
