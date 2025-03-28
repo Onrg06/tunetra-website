@@ -15,13 +15,11 @@
       display: flex;
       flex-direction: column;
     }
-
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-
     header {
       display: flex;
       justify-content: space-between;
@@ -29,7 +27,6 @@
       padding: 15px 20px;
       flex-wrap: wrap;
     }
-
     .lang-btn {
       padding: 6px 10px;
       border: none;
@@ -40,13 +37,11 @@
       cursor: pointer;
       margin-left: 10px;
     }
-
     .container {
       display: flex;
       flex: 1;
       overflow: hidden;
     }
-
     .chat-list {
       width: 30%;
       max-width: 250px;
@@ -54,7 +49,6 @@
       padding: 20px;
       overflow-y: auto;
     }
-
     .chat-item {
       padding: 10px;
       background: rgba(255, 255, 255, 0.1);
@@ -64,12 +58,10 @@
       text-align: left;
       position: relative;
     }
-
     .chat-item.active {
       background: #007bff;
       font-weight: bold;
     }
-
     .notification {
       position: absolute;
       top: 10px;
@@ -79,13 +71,11 @@
       background-color: red;
       border-radius: 50%;
     }
-
     .last-message {
       font-size: 0.85em;
       color: #ccc;
       margin-top: 5px;
     }
-
     .chat-window {
       flex: 1;
       padding: 20px;
@@ -94,16 +84,14 @@
       justify-content: space-between;
       background: rgba(0, 0, 0, 0.2);
     }
-
     .messages {
       flex: 1;
       overflow-y: auto;
       margin-bottom: 20px;
       padding-right: 10px;
       display: flex;
-      flex-direction: column-reverse;
+      flex-direction: column; /* ÖNEMLİ: Yukarıdan aşağı sıralamak için */
     }
-
     .message {
       padding: 10px;
       margin-bottom: 10px;
@@ -112,35 +100,29 @@
       max-width: 80%;
       position: relative;
     }
-
     .message.you {
       background: rgba(0, 255, 127, 0.3);
       align-self: flex-end;
     }
-
     .sender-label {
       font-weight: bold;
       margin-bottom: 5px;
     }
-
     .timestamp {
       font-size: 0.75rem;
       opacity: 0.7;
       margin-top: 5px;
     }
-
     .send-box {
       display: flex;
       gap: 10px;
     }
-
     input[type="text"] {
       flex: 1;
       padding: 10px;
       border: none;
       border-radius: 6px;
     }
-
     button.send-btn {
       padding: 10px 20px;
       border: none;
@@ -150,12 +132,8 @@
       font-weight: bold;
       cursor: pointer;
     }
-
     @media (max-width: 768px) {
-      .container {
-        flex-direction: column;
-      }
-
+      .container { flex-direction: column; }
       .chat-list {
         width: 100%;
         max-width: none;
@@ -166,7 +144,6 @@
         gap: 10px;
         scroll-snap-type: x mandatory;
       }
-
       .chat-item {
         flex: 0 0 auto;
         min-width: 140px;
@@ -200,8 +177,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
-  collection, query, orderBy, limit, startAfter, addDoc,
-  getDocs, onSnapshot, arrayUnion
+  collection, query, orderBy, limit, startAfter, addDoc, getDocs, onSnapshot, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // Firebase config
@@ -249,10 +225,17 @@ function setLang(l) {
   document.getElementById("btnTr").innerText = t[lang].turkish;
   document.getElementById("btnEn").innerText = t[lang].english;
 
-  // Dil değişince aktif sohbet varsa yenile
   if (selectedFriendId) {
     const selected = [...document.querySelectorAll(".chat-item")].find(el => el.classList.contains("active"));
     if (selected) openChat(selectedFriendId, selected);
+  }
+}
+
+function scrollToBottom(force = false) {
+  const area = document.getElementById("messageArea");
+  const isAtBottom = area.scrollHeight - area.scrollTop - area.clientHeight < 100;
+  if (force || isAtBottom) {
+    setTimeout(() => area.scrollTop = area.scrollHeight, 100);
   }
 }
 
@@ -265,15 +248,6 @@ function formatTimestamp(ts) {
   return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
-function scrollToBottom(force = false) {
-  const area = document.getElementById("messageArea");
-  const isAtBottom = area.scrollHeight - area.scrollTop - area.clientHeight < 100;
-  if (force || isAtBottom) {
-    setTimeout(() => {
-      area.scrollTop = area.scrollHeight;
-    }, 100);
-  }
-}
 async function loadChatList(uid) {
   const friendsSnap = await getDoc(doc(db, "friends", uid));
   const list = document.getElementById("chatList");
@@ -324,16 +298,16 @@ async function openChat(fid, el) {
   const convoId = getConversationId(currentUser.uid, fid);
   const messagesCol = collection(db, "conversations", convoId, "messages");
 
-  const snap = await getDocs(query(messagesCol, orderBy("timestamp", "desc"), limit(20)));
+  const snap = await getDocs(query(messagesCol, orderBy("timestamp", "asc"), limit(20)));
   let messages = [];
   snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
-  messages.reverse().forEach(async msg => {
+  for (const msg of messages) {
     const div = await buildMessageDiv(msg);
-    area.prepend(div);
-  });
+    area.appendChild(div);
+    loadedMessageIds.add(msg.id);
+  }
 
   if (!snap.empty) lastVisible = snap.docs[snap.docs.length - 1];
-
   scrollToBottom(true);
   attachScrollLoader(messagesCol);
 
@@ -343,14 +317,11 @@ async function openChat(fid, el) {
         const msg = { id: docSnap.doc.id, ...docSnap.doc.data() };
         if (!loadedMessageIds.has(msg.id)) {
           loadedMessageIds.add(msg.id);
-
-          // Mesaj okundu olarak işaretle
           if (!msg.seenBy?.includes(currentUser.uid)) {
             updateDoc(doc(db, "conversations", convoId, "messages", msg.id), {
               seenBy: arrayUnion(currentUser.uid)
             });
           }
-
           const div = await buildMessageDiv(msg);
           area.appendChild(div);
           scrollToBottom();
@@ -365,18 +336,16 @@ function attachScrollLoader(messagesCol) {
   area.onscroll = async () => {
     if (area.scrollTop === 0 && !isLoading && lastVisible) {
       isLoading = true;
-      const snap = await getDocs(query(messagesCol, orderBy("timestamp", "desc"), startAfter(lastVisible), limit(20)));
+      const snap = await getDocs(query(messagesCol, orderBy("timestamp", "asc"), startAfter(lastVisible), limit(20)));
       let messages = [];
       snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
-      messages.reverse();
-
       const scrollBefore = area.scrollHeight;
       for (const msg of messages) {
         const div = await buildMessageDiv(msg);
-        area.prepend(div);
+        area.insertBefore(div, area.firstChild);
+        loadedMessageIds.add(msg.id);
       }
       area.scrollTop = area.scrollHeight - scrollBefore;
-
       if (!snap.empty) lastVisible = snap.docs[snap.docs.length - 1];
       isLoading = false;
     }
@@ -463,8 +432,6 @@ onAuthStateChanged(auth, user => {
   currentUser = user;
   setLang(lang);
   loadChatList(user.uid);
-  setInterval(() => loadChatList(user.uid), 10000); // her 10 sn'de bir güncelle
+  setInterval(() => loadChatList(user.uid), 10000);
 });
 </script>
-</body>
-</html>
