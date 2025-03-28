@@ -34,6 +34,13 @@
       text-align: center;
       margin-bottom: 20px;
     }
+    .lang-switch {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
     .btn {
       padding: 14px 18px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
@@ -42,7 +49,6 @@
       color: white;
       font-weight: bold;
       text-decoration: none;
-      margin: 8px;
       cursor: pointer;
       transition: all 0.3s ease;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -60,6 +66,13 @@
     textarea {
       height: 140px;
       resize: none;
+    }
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
     }
     .shared-lyrics {
       width: 100%;
@@ -93,25 +106,32 @@
       font-style: italic;
     }
     @media (max-width: 600px) {
+      .lang-switch {
+        flex-direction: column;
+      }
       .btn {
         width: 100%;
-        margin: 6px 0;
       }
     }
   </style>
 </head>
 <body>
   <header>
-    <button class="btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
-    <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
+    <div class="lang-switch">
+      <button class="btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
+      <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
+    </div>
     <h1 id="page-title">Şarkı Sözlerini Paylaş</h1>
     <p id="info-text">Söz / Şiirlerinizi yazın ve paylaşın! (Telif hakkınız saklıdır)</p>
   </header>
 
   <input type="text" id="song-title" class="song-title-input" placeholder="Şarkı başlığını yazın..." />
   <textarea id="song-lyrics" placeholder="Şarkı sözlerinizi yazın..."></textarea>
-  <button class="btn" id="share-button">Paylaş</button>
-  <button class="btn" id="home" onclick="window.location.href='anasayfa.html'">Anasayfa</button>
+
+  <div class="action-buttons">
+    <button class="btn" id="share-button">Paylaş</button>
+    <button class="btn" id="home" onclick="window.location.href='anasayfa.html'">Anasayfa</button>
+  </div>
 
   <div class="shared-lyrics">
     <h2 id="shared-title">Paylaşılan Sözler</h2>
@@ -137,6 +157,7 @@
     const auth = getAuth();
 
     let currentUsername = "";
+    let currentLang = "tr";
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -194,8 +215,6 @@
         lyricsList.appendChild(lyricElement);
       });
     });
-
-    let currentLang = "tr";
 
     window.setLang = function(lang) {
       currentLang = lang;
