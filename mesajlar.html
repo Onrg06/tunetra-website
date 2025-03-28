@@ -172,6 +172,107 @@
       </div>
     </div>
   </div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
+  collection, query, orderBy, limitToLast, endBefore, startAfter,
+  addDoc, getDocs, onSnapshot, arrayUnion, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+  authDomain: "tunetra-2579b.firebaseapp.com",
+  projectId: "tunetra-2579b",
+  storageBucket: "tunetra-2579b.appspot.com",
+  messagingSenderId: "576238823779",
+  appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let selectedFriendId = null;
+let firstVisible = null;
+let unsubMessages = null;
+const loadedMessageIds = new Set();
+let lang = localStorage.getItem("lang") || "tr";
+
+const messageArea = document.getElementById("messageArea");
+
+function getConversationId(uid1, uid2) {
+  return [uid1, uid2].sort().join("_");
+}
+
+function formatTimestamp(ts) {
+  if (!ts) return "";
+  const date = ts.toDate ? ts.toDate() : new Date(ts);
+  return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
+onAuthStateChanged(auth, user => {
+  if (!user) return location.href = "index.html";
+  currentUser = user;
+  loadChatList(user.uid);
+});
+
+async function openChat(friendId) {
+  selectedFriendId = friendId;
+  messageArea.innerHTML = "";
+  loadedMessageIds.clear();
+  firstVisible = null;
+
+  if (unsubMessages) unsubMessages();
+
+  const convoId = getConversationId(currentUser.uid, friendId);
+  const messagesCol = collection(db, "conversations", convoId, "messages");
+
+  const snap = await getDocs(query(messagesCol, orderBy("timestamp", "asc"), limitToLast(20)));
+  const messages = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  firstVisible = snap.docs[0];
+
+  for (const msg of messages) {
+    const div = await buildMessageDiv(msg);
+    messageArea.appendChild(div);
+    loadedMessageIds.add(msg.id);
+  }
+
+  // Otomatik scroll en alta
+  requestAnimationFrame(() => {
+    messageArea.scrollTop = messageArea.scrollHeight;
+  });
+
+  // Sonsuz scroll yukarı
+  attachScrollLoader(messagesCol);
+
+  unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "asc")), async snapshot => {
+    for (const change of snapshot.docChanges()) {
+      const msg = { id: change.doc.id, ...change.doc.data() };
+
+      if (change.type === "added" && !loadedMessageIds.has(msg.id)) {
+        loadedMessageIds.add(msg.id);
+        const div = await buildMessageDiv(msg);
+        messageArea.appendChild(div);
+        requestAnimationFrame(() => {
+          messageArea.scrollTop = messageArea.scrollHeight;
+        });
+      }
+
+      if (change.type === "modified") {
+        const el = document.querySelector(`.message[data-id="${msg.id}"]`);
+        if (el) el.querySelector(".msg-text").innerText = msg.text;
+      }
+
+      if (change.type === "removed") {
+        const el = document.querySelector(`.message[data-id="${msg.id}"]`);
+        if (el) el.remove();
+      }
+    }
+  });
+}
 function attachScrollLoader(messagesCol) {
   messageArea.onscroll = async () => {
     if (messageArea.scrollTop < 100 && firstVisible) {
