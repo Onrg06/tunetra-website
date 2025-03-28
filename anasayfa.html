@@ -255,19 +255,18 @@
     const convoId = convo.id;
     const messagesRef = collection(db, "conversations", convoId, "messages");
 
-    const snap = await getDocs(query(messagesRef, orderBy("timestamp", "desc")));
+    const snap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(10)));
 
-    let hasUnread = false;
-    snap.forEach(doc => {
+    for (const doc of snap.docs) {
       const msg = doc.data();
       if (msg.sender !== userId && (!msg.seenBy || !msg.seenBy.includes(userId))) {
-        hasUnread = true;
+        msgCount++;
+        break;
       }
-    });
-
-    if (hasUnread) msgCount++;
+    }
   }
 
+  // HER DİL DEĞİŞİMİNDE doğru metni çeker
   const messagesBase = translations[currentLang].messages;
   document.getElementById("btnMessages").innerText = `📨 ${messagesBase} (${msgCount})`;
 });
