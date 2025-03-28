@@ -253,7 +253,6 @@
     const convoId = convo.id;
     const messagesRef = collection(db, "conversations", convoId, "messages");
 
-    // En son 10 mesajı al (performans için limit koyduk)
     const messageSnap = await getDocs(
       query(messagesRef, orderBy("timestamp", "desc"), limit(10))
     );
@@ -261,7 +260,10 @@
     messageSnap.forEach(doc => {
       const msg = doc.data();
       const isUnread = msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid));
-      if (isUnread) msgCount++;
+      if (isUnread) {
+        msgCount++;
+        return; // bu konvo için 1 kere saysın yeter
+      }
     });
   }
 
