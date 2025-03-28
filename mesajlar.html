@@ -327,23 +327,42 @@ async function openChat(fid, el) {
 
   setupLoadMoreButton(messagesCol);
 
-  unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "asc"), limitToLast(1)), async (snapshot) => {
-    for (const docChange of snapshot.docChanges()) {
-      const msg = { id: docChange.doc.id, ...docChange.doc.data() };
-      if (loadedMessageIds.has(msg.id)) continue;
-      loadedMessageIds.add(msg.id);
-      const div = await buildMessageDiv(msg);
-      area.appendChild(div);
-      setTimeout(() => area.scrollTop = area.scrollHeight, 100);
+  unsubMessages = onSnapshot(
+  query(messagesCol, orderBy("timestamp", "asc")),
+  async (snapshot) => {
+    for (const change of snapshot.docChanges()) {
+      const msg = { id: change.doc.id, ...change.doc.data() };
 
+      if (change.type === "removed") {
+        const el = document.querySelector(`.message[data-id="${msg.id}"]`);
+        if (el) el.remove();
+        loadedMessageIds.delete(msg.id);
+        continue;
+      }
+
+      const existing = document.querySelector(`.message[data-id="${msg.id}"]`);
+      const newDiv = await buildMessageDiv(msg);
+
+      if (existing) {
+        existing.replaceWith(newDiv); // güncelleme varsa değiştir
+      } else if (!loadedMessageIds.has(msg.id)) {
+        loadedMessageIds.add(msg.id);
+        const area = document.getElementById("messageArea");
+        area.appendChild(newDiv);
+        setTimeout(() => {
+          area.scrollTop = area.scrollHeight;
+        }, 100);
+      }
+
+      // Görüldü güncellemesi
       if (!msg.seenBy?.includes(currentUser.uid)) {
         await updateDoc(doc(db, "conversations", convoId, "messages", msg.id), {
           seenBy: arrayUnion(currentUser.uid)
         });
       }
     }
-  });
-}
+  }
+);
 
 function setupLoadMoreButton(messagesCol) {
   const loadBtn = document.getElementById("loadMoreBtn");
