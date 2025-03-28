@@ -254,15 +254,18 @@
   for (const convo of snapshot.docs) {
     const convoId = convo.id;
     const messagesRef = collection(db, "conversations", convoId, "messages");
-    const snap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(10)));
 
-    for (const doc of snap.docs) {
+    const snap = await getDocs(query(messagesRef, orderBy("timestamp", "desc")));
+
+    let hasUnread = false;
+    snap.forEach(doc => {
       const msg = doc.data();
       if (msg.sender !== userId && (!msg.seenBy || !msg.seenBy.includes(userId))) {
-        msgCount++;
-        break;
+        hasUnread = true;
       }
-    }
+    });
+
+    if (hasUnread) msgCount++;
   }
 
   const messagesBase = translations[currentLang].messages;
