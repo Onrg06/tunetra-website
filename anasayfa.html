@@ -156,7 +156,7 @@
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
   import {
     getFirestore, doc, getDoc, collection, query, where,
-    getDocs, orderBy, limit
+    getDocs, orderBy, limit, onSnapshot
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -230,43 +230,6 @@
       document.getElementById("btnSongs").innerText = translations[currentLang].songs;
       document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
     }
-
-    // --- Arkadaş İstekleri ---
-    const friendsBtn = document.getElementById("btnFriends");
-    const requestRef = doc(db, "friendRequests", user.uid);
-    const requestSnap = await getDoc(requestRef);
-    let friendCount = 0;
-    if (requestSnap.exists()) {
-      const data = requestSnap.data();
-      friendCount = data.requests?.length || 0;
-    }
-
-    const friendsBase = translations[currentLang].friends;
-    friendsBtn.innerText = friendCount > 0 ? `${friendsBase} (${friendCount})` : friendsBase;
-
-    // --- Mesajlar ---
-    const messagesBtn = document.getElementById("btnMessages");
-    const convoQuery = query(collection(db, "conversations"), where("users", "array-contains", user.uid));
-    const snapshot = await getDocs(convoQuery);
-
-    let msgCount = 0;
-    for (const convo of snapshot.docs) {
-      const convoId = convo.id;
-      const messagesRef = collection(db, "conversations", convoId, "messages");
-
-      const msgSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(10)));
-
-      for (const doc of msgSnap.docs) {
-        const msg = doc.data();
-        if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
-          msgCount++;
-          break;
-        }
-      }
-    }
-
-    const messagesBase = translations[currentLang].messages;
-    messagesBtn.innerText = msgCount > 0 ? `📨 ${messagesBase} (${msgCount})` : `📨 ${messagesBase}`;
   }
 
   onAuthStateChanged(auth, (user) => {
@@ -274,6 +237,49 @@
       window.location.href = "index.html";
     } else {
       updateUI();
+
+      // Gerçek zamanlı arkadaşlık isteği bildirimi
+      onSnapshot(doc(db, "friendRequests", user.uid), (docSnap) => {
+        const count = docSnap.exists() ? (docSnap.data().requests?.length || 0) : 0;
+        const base = translations[currentLang].friends;
+        document.getElementById("btnFriends").innerText = count > 0 ? `${base} (${count})` : base;
+      });
+
+      // Gerçek zamanlı mesaj bildirimi
+      onSnapshot(
+        query(collection(db, "conversations"), where("users", "array-contains", user.uid)),
+        (convoSnap) => {
+          let msgCount = 0;
+          const base = translations[currentLang].messages;
+
+          convoSnap.docs.forEach(convo => {
+            const convoId = convo.id;
+            const messagesRef = collection(db, "conversations", convoId, "messages");
+
+            // Her konuşmanın son mesajını dinle
+            onSnapshot(
+              query(messagesRef, orderBy("timestamp", "desc"), limit(1)),
+              (msgSnap) => {
+                let unseenFound = false;
+
+                msgSnap.forEach(doc => {
+                  const msg = doc.data();
+                  if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
+                    unseenFound = true;
+                  }
+                });
+
+                if (unseenFound) {
+                  msgCount++;
+                }
+
+                document.getElementById("btnMessages").innerText =
+                  msgCount > 0 ? `📨 ${base} (${msgCount})` : `📨 ${base}`;
+              }
+            );
+          });
+        }
+      );
     }
   });
 
