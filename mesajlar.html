@@ -327,12 +327,11 @@ async function openChat(fid, el) {
 
   setupLoadMoreButton(messagesCol);
 
-unsubMessages = onSnapshot(
+  unsubMessages = onSnapshot(
   query(messagesCol, orderBy("timestamp", "asc")),
   async (snapshot) => {
     for (const change of snapshot.docChanges()) {
       const msg = { id: change.doc.id, ...change.doc.data() };
-
       const area = document.getElementById("messageArea");
 
       if (change.type === "removed") {
@@ -343,26 +342,21 @@ unsubMessages = onSnapshot(
       }
 
       const newDiv = await buildMessageDiv(msg);
-const existing = document.querySelector(`.message[data-id="${msg.id}"]`);
+      const existing = document.querySelector(`.message[data-id="${msg.id}"]`);
 
-if (change.type === "removed") {
-  if (existing) existing.remove();
-  loadedMessageIds.delete(msg.id);
-} else if (change.type === "modified") {
-  if (existing) {
-    existing.replaceWith(newDiv);
-  }
-} else if (change.type === "added" && !loadedMessageIds.has(msg.id)) {
-  loadedMessageIds.add(msg.id);
-  area.appendChild(newDiv);
-  setTimeout(() => {
-    area.scrollTop = area.scrollHeight;
-  }, 100);
-}
+      if (change.type === "modified" && existing) {
+        existing.replaceWith(newDiv);
+      } else if (change.type === "added" && !loadedMessageIds.has(msg.id)) {
+        loadedMessageIds.add(msg.id);
+        area.appendChild(newDiv);
+        setTimeout(() => {
+          area.scrollTop = area.scrollHeight;
+        }, 100);
+      }
 
       if (!msg.seenBy?.includes(currentUser.uid)) {
         await updateDoc(doc(db, "conversations", convoId, "messages", msg.id), {
-          seenBy: arrayUnion(currentUser.uid)
+          seenBy: arrayUnion(currentUser.uid),
         });
       }
     }
