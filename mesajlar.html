@@ -432,6 +432,5 @@ onAuthStateChanged(auth, user => {
   currentUser = user;
   setLang(lang);
   loadChatList(user.uid);
-  setInterval(() => loadChatList(user.uid), 10000);
 });
 </script>
