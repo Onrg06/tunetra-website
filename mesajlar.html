@@ -355,16 +355,49 @@ async function openChat(fid, el) {
 function attachScrollLoader(messagesCol) {
   const area = document.getElementById("messageArea");
   area.onscroll = async () => {
-    if (area.scrollTop < 100 && !isLoading && firstVisible) {
+    console.log("scrollTop:", area.scrollTop);
+
+    if (area.scrollTop < 300 && !isLoading && firstVisible) {
+      console.log("Yukarı scroll loader tetiklendi");
+
       isLoading = true;
       const prevHeight = area.scrollHeight;
 
       const snap = await getDocs(query(
-      messagesCol,
-      orderBy("timestamp", "asc"),
-      endBefore(firstVisible),
-      limitToLast(20)
-    ));
+        messagesCol,
+        orderBy("timestamp", "asc"),
+        endBefore(firstVisible),
+        limitToLast(20)
+      ));
+
+      console.log("Firestore'dan gelen mesaj sayısı:", snap.docs.length);
+
+      if (snap.empty) {
+        console.log("Daha eski mesaj kalmadı.");
+        isLoading = false;
+        return;
+      }
+
+      firstVisible = snap.docs[snap.docs.length - 1];
+
+      const messages = [];
+      snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
+
+      for (const msg of messages.reverse()) {
+        if (!loadedMessageIds.has(msg.id)) {
+          const div = await buildMessageDiv(msg);
+          area.insertBefore(div, area.firstChild);
+          loadedMessageIds.add(msg.id);
+        }
+      }
+
+      const newHeight = area.scrollHeight;
+      area.scrollTop += newHeight - prevHeight;
+
+      isLoading = false;
+    }
+  };
+}
 
 if (snap.empty) return; // BONUS: yükleyecek mesaj kalmadıysa dur
 
