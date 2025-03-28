@@ -294,7 +294,7 @@ async function openChat(fid, el) {
   const area = document.getElementById("messageArea");
   area.innerHTML = "";
   loadedMessageIds.clear();
-  firstVisible = null;
+  firstVisible = snap.docs[0] || null;
 
   if (unsubMessages) unsubMessages();
   document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
