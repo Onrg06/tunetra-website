@@ -266,7 +266,9 @@ async function loadChatList(uid) {
     const name = fdoc.data().username;
     const convoId = getConversationId(uid, fid);
     const messagesCol = collection(db, "conversations", convoId, "messages");
-    const lastMsgSnap = await getDocs(query(messagesCol, orderBy("timestamp", "desc"), limit(1)));
+    const lastMsgSnap = await getDocs(
+  query(messagesCol, orderBy("timestamp", "asc"), limitToLast(1))
+);
     let lastMsg = "", hasNew = false;
 
     if (!lastMsgSnap.empty) {
