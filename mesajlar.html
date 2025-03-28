@@ -90,7 +90,7 @@
       margin-bottom: 20px;
       padding-right: 10px;
       display: flex;
-      flex-direction: column-reverse; /* ÖNEMLİ: Yukarıdan aşağı sıralamak için */
+      flex-direction: column;
     }
     .message {
       padding: 10px;
@@ -180,7 +180,6 @@ import {
   collection, query, orderBy, limit, startAfter, addDoc, getDocs, onSnapshot, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
   authDomain: "tunetra-2579b.firebaseapp.com",
@@ -277,49 +276,56 @@ async function loadChatList(uid) {
 
 async function openChat(fid, el) {
   selectedFriendId = fid;
-
-  const notifDot = el.querySelector(".notification");
-  if (notifDot) notifDot.remove();
-
-  document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
-  el.classList.add("active");
-
   const area = document.getElementById("messageArea");
   area.innerHTML = "";
   lastVisible = null;
   loadedMessageIds.clear();
 
   if (unsubMessages) unsubMessages();
+  document.querySelectorAll(".chat-item").forEach(i => i.classList.remove("active"));
+  el.classList.add("active");
 
   const convoId = getConversationId(currentUser.uid, fid);
   const messagesCol = collection(db, "conversations", convoId, "messages");
 
-  const snap = await getDocs(query(messagesCol, orderBy("timestamp", "desc"), limit(20)));
+  const snap = await getDocs(query(messagesCol, orderBy("timestamp", "asc"), limit(20)));
   let messages = [];
   snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
-
   for (const msg of messages) {
     const div = await buildMessageDiv(msg);
     area.appendChild(div);
     loadedMessageIds.add(msg.id);
   }
-
   if (!snap.empty) lastVisible = snap.docs[snap.docs.length - 1];
+
+  setTimeout(() => {
+    area.scrollTop = area.scrollHeight;
+  }, 100);
+
   attachScrollLoader(messagesCol);
 
   unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "desc"), limit(1)), async snap => {
     for (const docSnap of snap.docChanges()) {
-      if (docSnap.type === "added") {
-        const msg = { id: docSnap.doc.id, ...docSnap.doc.data() };
-        if (!loadedMessageIds.has(msg.id)) {
-          loadedMessageIds.add(msg.id);
-          if (!msg.seenBy?.includes(currentUser.uid)) {
-            updateDoc(doc(db, "conversations", convoId, "messages", msg.id), {
-              seenBy: arrayUnion(currentUser.uid)
-            });
-          }
-          const div = await buildMessageDiv(msg);
-          area.appendChild(div);
+      const msg = { id: docSnap.doc.id, ...docSnap.doc.data() };
+
+      if (docSnap.type === "added" && !loadedMessageIds.has(msg.id)) {
+        loadedMessageIds.add(msg.id);
+        if (!msg.seenBy?.includes(currentUser.uid)) {
+          updateDoc(doc(db, "conversations", convoId, "messages", msg.id), {
+            seenBy: arrayUnion(currentUser.uid)
+          });
+        }
+        const div = await buildMessageDiv(msg);
+        area.appendChild(div);
+        setTimeout(() => {
+          area.scrollTop = area.scrollHeight;
+        }, 100);
+      }
+
+      if (docSnap.type === "modified") {
+        const existing = document.querySelector(`.message[data-id="${msg.id}"]`);
+        if (existing) {
+          existing.querySelector(".msg-text").innerText = msg.text;
         }
       }
     }
@@ -329,16 +335,30 @@ async function openChat(fid, el) {
 function attachScrollLoader(messagesCol) {
   const area = document.getElementById("messageArea");
   area.onscroll = async () => {
-    if (area.scrollTop >= area.scrollHeight - area.clientHeight - 50 && !isLoading && lastVisible) {
+    if (area.scrollTop < 100 && !isLoading && lastVisible) {
       isLoading = true;
-      const snap = await getDocs(query(messagesCol, orderBy("timestamp", "asc"), startAfter(lastVisible), limit(20)));
+      const previousHeight = area.scrollHeight;
+
+      const snap = await getDocs(query(
+        messagesCol,
+        orderBy("timestamp", "asc"),
+        startAfter(lastVisible),
+        limit(20)
+      ));
+
       let messages = [];
       snap.forEach(doc => messages.push({ id: doc.id, ...doc.data() }));
+
       for (const msg of messages) {
+        if (loadedMessageIds.has(msg.id)) continue;
         const div = await buildMessageDiv(msg);
-        area.appendChild(div);
+        area.insertBefore(div, area.firstChild);
         loadedMessageIds.add(msg.id);
       }
+
+      const newHeight = area.scrollHeight;
+      area.scrollTop = newHeight - previousHeight;
+
       if (!snap.empty) lastVisible = snap.docs[snap.docs.length - 1];
       isLoading = false;
     }
@@ -347,6 +367,8 @@ function attachScrollLoader(messagesCol) {
 
 async function buildMessageDiv(msg) {
   const div = document.createElement("div");
+  div.setAttribute("data-id", msg.id);
+
   const senderName = msg.sender === currentUser.uid
     ? t[lang].you
     : (await getDoc(doc(db, "users", msg.sender))).data()?.username || "Bilinmeyen";
@@ -427,3 +449,5 @@ onAuthStateChanged(auth, user => {
   loadChatList(user.uid);
 });
 </script>
+</body>
+</html>
