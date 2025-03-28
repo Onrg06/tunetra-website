@@ -203,21 +203,64 @@ let unsubMessages = null;
 const loadedMessageIds = new Set();
 let lang = localStorage.getItem("lang") || "tr";
 
+const t = {
+  tr: {
+    pageTitle: "Mesajlar", placeholder: "Mesaj yaz...", send: "Gönder",
+    home: "Ana Sayfa", turkish: "🇹🇷 Türkçe", english: "🇬🇧 English",
+    sentAt: "Gönderildi", you: "Sen"
+  },
+  en: {
+    pageTitle: "Messages", placeholder: "Type a message...", send: "Send",
+    home: "Home Page", turkish: "🇹🇷 Turkish", english: "🇬🇧 English",
+    sentAt: "Sent at", you: "You"
+  }
+};
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem("lang", l);
+  updateTexts();
+}
+
+function updateTexts() {
+  document.getElementById("pageTitle").innerText = t[lang].pageTitle;
+  document.getElementById("messageInput").placeholder = t[lang].placeholder;
+  document.querySelector(".send-btn").innerText = t[lang].send;
+  document.getElementById("homeBtn").innerText = "🏠 " + t[lang].home;
+  document.getElementById("btnTr").innerText = t[lang].turkish;
+  document.getElementById("btnEn").innerText = t[lang].english;
+
+  document.querySelectorAll(".message").forEach(msg => {
+    const isYou = msg.classList.contains("you");
+    const ts = msg.dataset.timestamp;
+    const sender = isYou ? t[lang].you : msg.dataset.senderName || "";
+    msg.querySelector(".sender-label").innerText = sender;
+    msg.querySelector(".timestamp").innerText = `${t[lang].sentAt}: ${formatTimestamp(ts)}`;
+  });
+}
+
+function formatTimestamp(ts) {
+  try {
+    const d = ts.toDate();
+    return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+  } catch {
+    return "";
+  }
+}
+
 function getConversationId(uid1, uid2) {
   return [uid1, uid2].sort().join("_");
 }
 
+window.setLang = setLang;
+window.goHome = () => location.href = "anasayfa.html";
+
 onAuthStateChanged(auth, user => {
   if (!user) return location.href = "index.html";
   currentUser = user;
+  setLang(lang);
   loadChatList(user.uid);
 });
-
-function formatTimestamp(ts) {
-  const d = ts.toDate();
-  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
-
 async function loadChatList(uid) {
   const friendsSnap = await getDoc(doc(db, "friends", uid));
   const list = document.getElementById("chatList");
@@ -277,7 +320,7 @@ async function openChat(fid, el) {
 
   for (const msg of messages) {
     const div = await buildMessageDiv(msg);
-    document.getElementById("messageArea").appendChild(div);
+    area.appendChild(div);
     loadedMessageIds.add(msg.id);
 
     if (!msg.seenBy?.includes(currentUser.uid)) {
@@ -290,6 +333,7 @@ async function openChat(fid, el) {
   area.lastElementChild?.scrollIntoView({ behavior: "auto" });
 
   attachScrollLoader(messagesCol);
+  updateTexts();
 
   unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "desc"), limit(1)), async snap => {
     for (const docSnap of snap.docChanges()) {
@@ -297,7 +341,7 @@ async function openChat(fid, el) {
       if (docSnap.type === "added" && !loadedMessageIds.has(msg.id)) {
         loadedMessageIds.add(msg.id);
         const div = await buildMessageDiv(msg);
-        document.getElementById("messageArea").appendChild(div);
+        area.appendChild(div);
         setTimeout(() => {
           div.scrollIntoView({ behavior: "smooth" });
         }, 50);
@@ -352,33 +396,35 @@ function attachScrollLoader(messagesCol) {
     }
   };
 }
-
 async function buildMessageDiv(msg) {
   const div = document.createElement("div");
   div.className = "message" + (msg.sender === currentUser.uid ? " you" : "");
   div.setAttribute("data-id", msg.id);
+  div.setAttribute("data-timestamp", msg.timestamp);
 
-  let senderName = msg.sender === currentUser.uid ? "Sen" : "Kullanıcı";
+  let senderName = t[lang].you;
   if (msg.sender !== currentUser.uid) {
     const senderDoc = await getDoc(doc(db, "users", msg.sender));
     senderName = senderDoc.exists() ? senderDoc.data().username : "Bilinmeyen";
   }
 
+  div.setAttribute("data-sender-name", senderName);
+
   div.innerHTML = `
     <div class="sender-label">${senderName}</div>
     <div class="msg-text">${msg.text}</div>
-    <div class="timestamp">Gönderildi: ${formatTimestamp(msg.timestamp)}</div>
+    <div class="timestamp">${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}</div>
   `;
 
   if (msg.sender === currentUser.uid) {
-    const input = document.getElementById("messageInput");
-
     const editBtn = document.createElement("button");
     editBtn.textContent = "✏️";
+    editBtn.style.marginLeft = "6px";
     editBtn.onclick = () => {
+      const input = document.getElementById("messageInput");
       input.value = msg.text;
-      input.dataset.editing = msg.id;
       input.focus();
+      input.dataset.editing = msg.id;
     };
 
     const deleteBtn = document.createElement("button");
@@ -427,5 +473,6 @@ window.sendMessage = async () => {
   input.value = "";
 };
 
+window.setLang = setLang;
 window.goHome = () => location.href = "anasayfa.html";
 </script>
