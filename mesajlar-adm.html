@@ -1,0 +1,189 @@
+<!DOCTYPE html><html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Yönetici Mesaj Paneli</title>
+  <link rel="icon" type="image/png" href="image.png" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #0d0d0d;
+      color: white;
+      padding: 20px;
+    }h1 {
+  color: #ffcc70;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.subtext {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #aaa;
+}
+
+.user-search {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.user-search input {
+  width: 80%;
+  max-width: 400px;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+}
+
+.user-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #444;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  background-color: #1c1c1c;
+}
+
+.user-item {
+  padding: 8px;
+  cursor: pointer;
+  border-bottom: 1px solid #333;
+}
+
+.user-item:hover {
+  background-color: #292929;
+}
+
+.selected-user {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+textarea {
+  width: 100%;
+  height: 150px;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+button {
+  padding: 10px 20px;
+  background: linear-gradient(to right, #ff66c4, #ffcc70);
+  border: none;
+  border-radius: 6px;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background: linear-gradient(to right, #ffcc70, #ff66c4);
+}
+
+  </style>
+</head>
+<body>
+  <h1>Yönetici Mesaj Paneli</h1>
+  <div class="subtext">Bir kullanıcı seçin ve mesaj gönderin</div>  <div class="user-search">
+    <input type="text" placeholder="Kullanıcı ara..." oninput="filterUsers(this.value)" />
+  </div>  <div class="user-list" id="userList">Yükleniyor...</div>  <div class="selected-user" id="selectedUser"></div>  <textarea id="messageText" placeholder="Mesajınız..." disabled></textarea><button onclick="sendMessage()" disabled id="sendBtn">Mesaj Gönder</button>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import {
+      getFirestore, collection, query, orderBy, addDoc,
+      doc, getDocs, getDoc, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+    let selectedUserId = null;
+    let selectedUsername = "";
+
+    const userListDiv = document.getElementById("userList");
+    const selectedUserDiv = document.getElementById("selectedUser");
+    const textarea = document.getElementById("messageText");
+    const sendBtn = document.getElementById("sendBtn");
+
+    function filterUsers(query) {
+      document.querySelectorAll('.user-item').forEach(item => {
+        const name = item.dataset.username.toLowerCase();
+        item.style.display = name.includes(query.toLowerCase()) ? "block" : "none";
+      });
+    }
+
+    async function loadUsers() {
+      const usersSnap = await getDocs(collection(db, "users"));
+      userListDiv.innerHTML = "";
+
+      usersSnap.forEach(doc => {
+        if (doc.id !== currentUser.uid) {
+          const div = document.createElement("div");
+          div.className = "user-item";
+          div.dataset.uid = doc.id;
+          div.dataset.username = doc.data().username || "Anonim";
+          div.innerText = div.dataset.username;
+          div.onclick = () => selectUser(div.dataset.uid, div.dataset.username);
+          userListDiv.appendChild(div);
+        }
+      });
+    }
+
+    function selectUser(uid, username) {
+      selectedUserId = uid;
+      selectedUsername = username;
+      selectedUserDiv.innerText = `Seçilen Kullanıcı: ${username}`;
+      textarea.disabled = false;
+      sendBtn.disabled = false;
+    }
+
+    async function sendMessage() {
+      const text = textarea.value.trim();
+      if (!text || !selectedUserId) return alert("Mesaj boş olamaz.");
+
+      const convoId = [currentUser.uid, selectedUserId].sort().join("_");
+      const msgRef = collection(db, "conversations", convoId, "messages");
+
+      await addDoc(msgRef, {
+        sender: currentUser.uid,
+        text,
+        timestamp: Date.now(),
+        seenBy: [currentUser.uid]
+      });
+
+      textarea.value = "";
+      alert(`Mesaj ${selectedUsername} kullanıcısına gönderildi.`);
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return window.location.href = "index.html";
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (!userDoc.exists() || userDoc.data().role !== "admin") {
+        return window.location.href = "anasayfa.html";
+      }
+      currentUser = user;
+      loadUsers();
+    });
+
+    window.filterUsers = filterUsers;
+    window.sendMessage = sendMessage;
+  </script></body>
+</html>
