@@ -47,32 +47,53 @@
 });
 
     window.uploadMelody = async function () {
-      const file = document.getElementById("melodyInput").files[0];
-      if (!file) return alert(getText("selectFile"));
+  const file = document.getElementById("melodyInput").files[0];
+  if (!file) return alert(getText("selectFile"));
 
-      const fileName = `${Date.now()}_${file.name}`;
-      const { error } = await supabase.storage.from(bucket).upload(fileName, file);
-      if (error) {
-        console.error("Yükleme hatası:", error.message);
-        return alert(getText("uploadError") + " " + error.message);
-      }
+  console.log("Seçilen dosya:", file);
 
-const publicUrl = supabase.storage.from(bucket).getPublicUrl(fileName).data.publicUrl;
+  // Ses dosyası kontrolü
+  if (!file.type.startsWith("audio/")) {
+    return alert("Lütfen yalnızca ses dosyası yükleyin.");
+  }
 
-      try {
-        await db.collection("melodies").add({
-          uploader: currentUser,
-          audioUrl: publicUrl,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert(getText("uploadSuccess"));
-        document.getElementById("melodyInput").value = "";
-      } catch (err) {
-        console.error("Firestore hatası:", err.message);
-        alert("Firestore’a yazılamadı: " + err.message);
-      }
-    };
+  // Dosya adını temizle (Türkçe karakterleri kaldır, boşlukları alt çizgi yap)
+  const cleanName = file.name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // aksanlı harfleri düzleştir
+    .replace(/[çğıöşüÇĞİÖŞÜ]/g, c => ({
+      ç: 'c', ğ: 'g', ı: 'i', ö: 'o', ş: 's', ü: 'u',
+      Ç: 'C', Ğ: 'G', İ: 'I', Ö: 'O', Ş: 'S', Ü: 'U'
+    }[c]))
+    .replace(/\s+/g, "_") // boşlukları alt çizgiye çevir
+    .replace(/[^a-zA-Z0-9._-]/g, ""); // özel karakterleri temizle
 
+  const fileName = `${Date.now()}_${cleanName}`;
+  console.log("Temiz dosya adı:", fileName);
+
+  // Supabase’a yükle
+  const { error } = await supabase.storage.from(bucket).upload(fileName, file);
+  if (error) {
+    console.error("Yükleme hatası:", error.message);
+    return alert(getText("uploadError") + " " + error.message);
+  }
+
+  const publicUrl = supabase.storage.from(bucket).getPublicUrl(fileName).data.publicUrl;
+
+  // Firestore’a kaydet
+  try {
+    await db.collection("melodies").add({
+      uploader: currentUser,
+      audioUrl: publicUrl,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    alert(getText("uploadSuccess"));
+    document.getElementById("melodyInput").value = "";
+  } catch (err) {
+    console.error("Firestore hatası:", err.message);
+    alert("Firestore’a yazılamadı: " + err.message);
+  }
+};
     // Listeleme
     window.addEventListener("DOMContentLoaded", () => {
       const list = document.getElementById("melodyList");
