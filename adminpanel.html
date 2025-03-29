@@ -8,7 +8,7 @@
     * {
       box-sizing: border-box;
       margin: 0;
-      padding: 0;
+      padding:  0;
       font-family: 'Segoe UI', sans-serif;
     }body {
   background: #000000;
@@ -98,7 +98,7 @@ h1 {
     <a href="lyrics-adm.html" class="btn">Sözler / Şiirler</a>
     <a href="melody-adm.html" class="btn">Melodiler</a>
     <a href="hazir-adm.html" class="btn">Hazır Şarkılar</a>
-    <a href="mesajlar-adm.html" class="btn" id="msgBtn">Tüm Kullanıcılara Mesaj</a>
+    <a href="mesajlar-adm.html" class="btn" id="msgBtn" onclick="clearNotification()">Tüm Kullanıcılara Mesaj</a>
     <a href="hakkimizda-duzenle.html" class="btn">Hakkımızda Düzenle</a>
     <a href="duyuru-ekle.html" class="btn">Duyuru Yayınla</a>
   </div>  <div class="footer-buttons">
@@ -124,10 +124,19 @@ h1 {
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    let currentUid = null;
+    let hasNotification = false;
+
     window.logout = function () {
       signOut(auth).then(() => {
         window.location.href = "index.html";
       });
+    };
+
+    window.clearNotification = function () {
+      const dot = document.querySelector("#msgBtn .notification-dot");
+      if (dot) dot.remove();
+      hasNotification = false;
     };
 
     onAuthStateChanged(auth, async (user) => {
@@ -139,8 +148,8 @@ h1 {
       } else {
         const name = userDoc.data().username || "Admin";
         document.getElementById("adminName").innerText = `Yönetici: ${name}`;
+        currentUid = user.uid;
 
-        // Bildirim kontrolü
         const convoQuery = query(collection(db, "conversations"), where("users", "array-contains", user.uid));
         onSnapshot(convoQuery, (snapshot) => {
           snapshot.forEach((convo) => {
@@ -148,18 +157,19 @@ h1 {
             const messagesRef = collection(db, "conversations", convoId, "messages");
             const lastMsgQuery = query(messagesRef, orderBy("timestamp", "desc"), limit(1));
 
-            onSnapshot(lastMsgQuery, (msgSnap) => {
-              msgSnap.forEach(doc => {
-                const msg = doc.data();
+            onSnapshot(lastMsgQuery, async (msgSnap) => {
+              for (const docMsg of msgSnap.docs) {
+                const msg = docMsg.data();
                 if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
                   const btn = document.getElementById("msgBtn");
-                  if (btn && !btn.querySelector(".notification-dot")) {
+                  if (btn && !hasNotification) {
                     const dot = document.createElement("div");
                     dot.className = "notification-dot";
                     btn.appendChild(dot);
+                    hasNotification = true;
                   }
                 }
-              });
+              }
             });
           });
         });
