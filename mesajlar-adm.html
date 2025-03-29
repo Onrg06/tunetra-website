@@ -174,7 +174,23 @@
       selectedUserDiv.innerText = `Seçilen Kullanıcı: ${username}`;
       textarea.disabled = false;
       sendBtn.disabled = false;
+      markMessagesAsSeen();
       loadMessages();
+    }
+
+    async function markMessagesAsSeen() {
+      const convoId = [currentUser.uid, selectedUserId].sort().join("_");
+      const msgRef = collection(db, "conversations", convoId, "messages");
+      const q = query(msgRef, orderBy("timestamp", "desc"), limit(10));
+      const snap = await getDocs(q);
+      for (const docSnap of snap.docs) {
+        const data = docSnap.data();
+        if (!data.seenBy?.includes(currentUser.uid)) {
+          await updateDoc(doc(msgRef, docSnap.id), {
+            seenBy: [...(data.seenBy || []), currentUser.uid]
+          });
+        }
+      }
     }
 
     async function loadMessages() {
@@ -260,7 +276,7 @@
           div.dataset.username = user.username;
           div.innerText = user.username;
 
-          if (user.hasUnread) {
+          if (user.hasUnread && user.uid !== selectedUserId) {
             const dot = document.createElement("div");
             dot.className = "notification-dot";
             div.appendChild(dot);
