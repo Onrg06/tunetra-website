@@ -343,14 +343,25 @@ if (chatItem) {
   for (const docChange of snapshot.docChanges()) {
     const msg = { id: docChange.doc.id, ...docChange.doc.data() };
 
+    // SİLİNEN MESAJ
     if (docChange.type === "removed") {
-      // DOM’dan sil
       const div = document.querySelector(`.message[data-id="${msg.id}"]`);
       if (div) div.remove();
       loadedMessageIds.delete(msg.id);
       continue;
     }
 
+    // DÜZENLENEN MESAJ
+    if (docChange.type === "modified") {
+      const div = document.querySelector(`.message[data-id="${msg.id}"]`);
+      if (div) {
+        div.querySelector(".msg-text").innerText = msg.text;
+        div.querySelector(".timestamp").innerText = `${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}`;
+      }
+      continue;
+    }
+
+    // YENİ EKLENEN MESAJ
     if (loadedMessageIds.has(msg.id)) continue;
 
     loadedMessageIds.add(msg.id);
