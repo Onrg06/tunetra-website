@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Melodi Yükle</title>
   <link rel="icon" type="image/png" href="image.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     * {
       margin: 0;
@@ -30,7 +31,7 @@
     .container {
       max-width: 800px;
       margin: 0 auto;
-      padding: 30px;
+      padding: 30px 20px;
       background-color: rgba(255, 255, 255, 0.05);
       border-radius: 16px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
@@ -53,15 +54,16 @@
     input, select, textarea {
       margin: 10px 0;
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       border-radius: 8px;
       border: none;
       max-width: 600px;
+      font-size: 16px;
     }
 
     textarea {
       height: 120px;
-      resize: none;
+      resize: vertical;
     }
 
     .melody-item {
@@ -81,6 +83,15 @@
     #file-name {
       display: block;
       margin-top: 5px;
+      font-style: italic;
+      color: #eee;
+    }
+
+    @media (max-width: 600px) {
+      .btn {
+        width: 100%;
+        margin: 8px 0;
+      }
     }
   </style>
 </head>
