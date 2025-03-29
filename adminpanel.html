@@ -1,8 +1,7 @@
-<!DOCTYPE html>
-<html lang="tr">
+<!DOCTYPE html><html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TuneTRa | Admin Panel</title>
   <link rel="icon" type="image/png" href="image.png" />
   <style>
@@ -11,100 +10,106 @@
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', sans-serif;
-    }
+    }body {
+  background: #000000;
+  color: white;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 20px;
+}
 
-    body {
-      background: #000000;
-      color: white;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 30px 20px;
-    }
+h1 {
+  font-size: 2.8rem;
+  color: #ffcc70;
+  margin-bottom: 10px;
+  text-align: center;
+}
 
-    h1 {
-      font-size: 2.8rem;
-      color: #ffcc70;
-      margin-bottom: 10px;
-      text-align: center;
-    }
+.admin-subtext {
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+  text-align: center;
+  color: #e0e0e0;
+}
 
-    .admin-subtext {
-      font-size: 1.2rem;
-      margin-bottom: 30px;
-      text-align: center;
-      color: #e0e0e0;
-    }
+.admin-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  width: 100%;
+  max-width: 1000px;
+}
 
-    .admin-buttons {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-      width: 100%;
-      max-width: 1000px;
-    }
+.btn {
+  background: linear-gradient(to right, #ff66c4, #ffcc70);
+  padding: 15px;
+  border-radius: 12px;
+  border: none;
+  color: #000;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.3s;
+  text-align: center;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
 
-    .btn {
-      background: linear-gradient(to right, #ff66c4, #ffcc70);
-      padding: 15px;
-      border-radius: 12px;
-      border: none;
-      color: #000;
-      font-size: 1.1rem;
-      font-weight: bold;
-      cursor: pointer;
-      transition: transform 0.2s, background 0.3s;
-      text-align: center;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+.btn:hover {
+  transform: scale(1.05);
+  background: linear-gradient(to right, #ffcc70, #ff66c4);
+}
 
-    .btn:hover {
-      transform: scale(1.05);
-      background: linear-gradient(to right, #ffcc70, #ff66c4);
-    }
+.notification-dot {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  border-radius: 50%;
+}
 
-    .footer-buttons {
-      margin-top: 40px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 15px;
-    }
+.footer-buttons {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
 
-    @media (max-width: 600px) {
-      h1 { font-size: 2rem; }
-      .admin-subtext { font-size: 1rem; }
-    }
+@media (max-width: 600px) {
+  h1 { font-size: 2rem; }
+  .admin-subtext { font-size: 1rem; }
+}
+
   </style>
 </head>
 <body>
   <h1>Yönetici Paneli</h1>
-  <div class="admin-subtext" id="adminName">Yönetici hesabıyla giriş yapıldı.</div>
-
-  <div class="admin-buttons">
+  <div class="admin-subtext" id="adminName">Yönetici hesabıyla giriş yapıldı.</div>  <div class="admin-buttons">
     <a href="kullanicilar-adm.html" class="btn">Kullanıcıları Yönet</a>
     <a href="dilekler-adm.html" class="btn">Şikayet & Dilekler</a>
     <a href="lyrics-adm.html" class="btn">Sözler / Şiirler</a>
     <a href="melody-adm.html" class="btn">Melodiler</a>
     <a href="hazir-adm.html" class="btn">Hazır Şarkılar</a>
-    <a href="mesajlar-adm.html" class="btn">Tüm Kullanıcılara Mesaj</a>
+    <a href="mesajlar-adm.html" class="btn" id="msgBtn">Tüm Kullanıcılara Mesaj</a>
     <a href="hakkimizda-duzenle.html" class="btn">Hakkımızda Düzenle</a>
     <a href="duyuru-ekle.html" class="btn">Duyuru Yayınla</a>
-  </div>
-
-  <div class="footer-buttons">
+  </div>  <div class="footer-buttons">
     <a href="anasayfa.html" class="btn">Ana Sayfa</a>
     <button class="btn" onclick="logout()">Çıkış Yap</button>
-  </div>
-
-  <script type="module">
+  </div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import {
+      getFirestore, doc, getDoc, collection, query, where, onSnapshot, orderBy, limit
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -134,8 +139,31 @@
       } else {
         const name = userDoc.data().username || "Admin";
         document.getElementById("adminName").innerText = `Yönetici: ${name}`;
+
+        // Bildirim kontrolü
+        const convoQuery = query(collection(db, "conversations"), where("users", "array-contains", user.uid));
+        onSnapshot(convoQuery, (snapshot) => {
+          snapshot.forEach((convo) => {
+            const convoId = convo.id;
+            const messagesRef = collection(db, "conversations", convoId, "messages");
+            const lastMsgQuery = query(messagesRef, orderBy("timestamp", "desc"), limit(1));
+
+            onSnapshot(lastMsgQuery, (msgSnap) => {
+              msgSnap.forEach(doc => {
+                const msg = doc.data();
+                if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
+                  const btn = document.getElementById("msgBtn");
+                  if (btn && !btn.querySelector(".notification-dot")) {
+                    const dot = document.createElement("div");
+                    dot.className = "notification-dot";
+                    btn.appendChild(dot);
+                  }
+                }
+              });
+            });
+          });
+        });
       }
     });
-  </script>
-</body>
+  </script></body>
 </html>
