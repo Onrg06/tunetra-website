@@ -340,31 +340,17 @@ if (chatItem) {
   setupLoadMoreButton(messagesCol);
 
   unsubMessages = onSnapshot(
-  query(messagesCol, orderBy("timestamp", "asc")),
+  query(messagesCol, orderBy("timestamp", "asc"), limitToLast(1)),
   async (snapshot) => {
-    const area = document.getElementById("messageArea");
-
     snapshot.docChanges().forEach(async (change) => {
       const docData = change.doc.data();
       const msgId = change.doc.id;
 
-      if (change.type === "removed") {
-        const msgDiv = document.querySelector(`.message[data-id="${msgId}"]`);
-        if (msgDiv) msgDiv.remove();
-      }
-
-      if (change.type === "modified") {
-        const msgDiv = document.querySelector(`.message[data-id="${msgId}"]`);
-        if (msgDiv) {
-          msgDiv.querySelector(".msg-text").innerText = docData.text;
-        }
-      }
-
       if (change.type === "added" && !loadedMessageIds.has(msgId)) {
         loadedMessageIds.add(msgId);
         const div = await buildMessageDiv({ id: msgId, ...docData });
-        area.appendChild(div);
-        setTimeout(() => area.scrollTop = area.scrollHeight, 100);
+        document.getElementById("messageArea").appendChild(div);
+        setTimeout(() => document.getElementById("messageArea").scrollTop = document.getElementById("messageArea").scrollHeight, 100);
 
         if (!docData.seenBy?.includes(currentUser.uid)) {
           await updateDoc(doc(db, "conversations", convoId, "messages", msgId), {
