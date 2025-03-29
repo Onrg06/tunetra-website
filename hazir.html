@@ -230,7 +230,19 @@ window.uploadMelodyFull = async function () {
   if (!lyrics) return alert(getText("uploadLyricsEmpty"));
   if (!selectedFriend) return alert(getText("friendInvalid"));
 
-  const fileName = `${Date.now()}_${file.name}`;
+  // Dosya adını güvenli hale getir (Türkçe karakter temizleme)
+  const cleanName = file.name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[çğıöşüÇĞİÖŞÜ]/g, c => ({
+      ç: 'c', ğ: 'g', ı: 'i', ö: 'o', ş: 's', ü: 'u',
+      Ç: 'C', Ğ: 'G', İ: 'I', Ö: 'O', Ş: 'S', Ü: 'U'
+    }[c]))
+    .replace(/\s+/g, "_")
+    .replace(/[^a-zA-Z0-9._-]/g, "");
+
+  const fileName = `${Date.now()}_${cleanName}`;
+
   const { error } = await supabase.storage.from(bucket).upload(fileName, file);
   if (error) return alert(getText("uploadError") + " " + error.message);
 
