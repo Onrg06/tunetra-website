@@ -244,49 +244,77 @@
     }
 
     function loadUsersRealtime() {
-      onSnapshot(collection(db, "users"), async (usersSnap) => {
-        const tempUsers = [];
-        for (const docSnap of usersSnap.docs) {
-          const uid = docSnap.id;
-          const username = docSnap.data().username || "Anonim";
-          if (uid === currentUser.uid) continue;
+  const unsubscribes = new Map();
 
-          const convoId = [currentUser.uid, uid].sort().join("_");
-          const messagesRef = collection(db, "conversations", convoId, "messages");
-          const lastMsgSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(1)));
+  onSnapshot(collection(db, "users"), (usersSnap) => {
+    const allUsers = [];
+    usersSnap.forEach(docSnap => {
+      if (docSnap.id !== currentUser.uid) {
+        allUsers.push({
+          uid: docSnap.id,
+          username: docSnap.data().username || "Anonim"
+        });
+      }
+    });
 
-          let lastTimestamp = 0;
-          let hasUnread = false;
-          if (!lastMsgSnap.empty) {
-            const lastMsg = lastMsgSnap.docs[0].data();
-            lastTimestamp = lastMsg.timestamp || 0;
-            hasUnread = !lastMsg.seenBy?.includes(currentUser.uid);
-          }
+    userListDiv.innerHTML = "";
 
-          tempUsers.push({ uid, username, lastTimestamp, hasUnread });
+    allUsers.forEach(user => {
+      const convoId = [currentUser.uid, user.uid].sort().join("_");
+      const messagesRef = collection(db, "conversations", convoId, "messages");
+
+      // Her kullanıcı için yalnızca son mesajı dinle
+      const q = query(messagesRef, orderBy("timestamp", "desc"), limit(1));
+
+      const unsubscribe = onSnapshot(q, async (snapshot) => {
+        // Güncelleme olduğunda, önce eski öğeyi kaldır
+        const existing = document.querySelector(`.user-item[data-uid="${user.uid}"]`);
+        if (existing) existing.remove();
+
+        let lastTimestamp = 0;
+        let hasUnread = false;
+
+        if (!snapshot.empty) {
+          const msg = snapshot.docs[0].data();
+          lastTimestamp = msg.timestamp || 0;
+          hasUnread = !msg.seenBy?.includes(currentUser.uid);
         }
 
-        tempUsers.sort((a, b) => b.lastTimestamp - a.lastTimestamp);
+        const div = document.createElement("div");
+        div.className = "user-item";
+        div.dataset.uid = user.uid;
+        div.dataset.username = user.username;
+        div.innerText = user.username;
 
-        userListDiv.innerHTML = "";
-        tempUsers.forEach(user => {
-          const div = document.createElement("div");
-          div.className = "user-item";
-          div.dataset.uid = user.uid;
-          div.dataset.username = user.username;
-          div.innerText = user.username;
+        if (hasUnread && user.uid !== selectedUserId) {
+          const dot = document.createElement("div");
+          dot.className = "notification-dot";
+          div.appendChild(dot);
+        }
 
-          if (user.hasUnread && user.uid !== selectedUserId) {
-            const dot = document.createElement("div");
-            dot.className = "notification-dot";
-            div.appendChild(dot);
+        div.onclick = () => selectUser(user.uid, user.username);
+
+        // Sıralı şekilde eklemek istersen:
+        const items = Array.from(userListDiv.children);
+        let inserted = false;
+        for (let i = 0; i < items.length; i++) {
+          const itemTime = items[i].dataset.timestamp || 0;
+          if (lastTimestamp > itemTime) {
+            userListDiv.insertBefore(div, items[i]);
+            inserted = true;
+            break;
           }
+        }
+        if (!inserted) userListDiv.appendChild(div);
 
-          div.onclick = () => selectUser(user.uid, user.username);
-          userListDiv.appendChild(div);
-        });
+        div.dataset.timestamp = lastTimestamp;
       });
-    }
+
+      // Her kullanıcıya ait listener'ı kaydet (gerekirse sonra iptal etmek için)
+      unsubscribes.set(user.uid, unsubscribe);
+    });
+  });
+}
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) return window.location.href = "index.html";
