@@ -20,6 +20,7 @@
       color: white;
       min-height: 100vh;
       padding: 20px;
+      text-align: center;
     }
 
     @keyframes gradientShift {
@@ -45,20 +46,32 @@
       border-radius: 10px;
       color: white;
       font-weight: bold;
-      margin: 10px;
+      margin: 0 auto;
       cursor: pointer;
       transition: 0.3s;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      display: block;
+      width: fit-content;
+    }
+
+    .button-group {
+      margin-top: 20px;
+      margin-bottom: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
     }
 
     input, select, textarea {
-      margin: 10px 0;
+      margin: 10px auto;
       width: 100%;
+      max-width: 600px;
       padding: 12px;
       border-radius: 8px;
       border: none;
-      max-width: 600px;
       font-size: 16px;
+      display: block;
     }
 
     textarea {
@@ -87,10 +100,13 @@
       color: #eee;
     }
 
+    #melody-title {
+      margin-top: 40px;
+    }
+
     @media (max-width: 600px) {
       .btn {
         width: 100%;
-        margin: 8px 0;
       }
     }
   </style>
@@ -115,14 +131,17 @@
       <option value="">-- Arkadaş seç --</option>
     </select>
 
-    <button class="btn" onclick="uploadMelodyFull()" id="upload-btn">Yükle</button>
-    <a href="/anasayfa.html" class="btn" id="home-btn">Anasayfaya Dön</a>
+    <div class="button-group">
+      <button class="btn" onclick="uploadMelodyFull()" id="upload-btn">Yükle</button>
+      <a href="/anasayfa.html" class="btn" id="home-btn">Anasayfaya Dön</a>
+    </div>
 
     <h2 id="melody-title">Yüklenen Şarkılar</h2>
     <div id="melodyList"></div>
   </div>
 
   <script type="module">
+    // senin scriptin burada başlıyor (değişmedi)
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
 import {
