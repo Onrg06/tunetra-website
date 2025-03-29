@@ -339,28 +339,44 @@ if (chatItem) {
 
   setupLoadMoreButton(messagesCol);
 
-  unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "asc"), limitToLast(1)), async (snapshot) => {
-  for (const docChange of snapshot.docChanges()) {
-    const msg = { id: docChange.doc.id, ...docChange.doc.data() };
-    if (loadedMessageIds.has(msg.id)) continue;
+  unsubMessages = onSnapshot(
+  query(messagesCol, orderBy("timestamp", "asc")),
+  async (snapshot) => {
+    const area = document.getElementById("messageArea");
 
-    loadedMessageIds.add(msg.id);
-    const div = await buildMessageDiv(msg);
-    area.appendChild(div);
-    setTimeout(() => area.scrollTop = area.scrollHeight, 100);
+    snapshot.docChanges().forEach(async (change) => {
+      const docData = change.doc.data();
+      const msgId = change.doc.id;
 
-    // Önce seenBy güncelle
-    if (!msg.seenBy?.includes(currentUser.uid)) {
-      await updateDoc(doc(db, "conversations", convoId, "messages", msg.id), {
-        seenBy: arrayUnion(currentUser.uid)
-      });
-    }
+      if (change.type === "removed") {
+        const msgDiv = document.querySelector(`.message[data-id="${msgId}"]`);
+        if (msgDiv) msgDiv.remove();
+      }
 
-    // Sonra listeyi güncelle (bildirim işareti artık görünmemeli)
-    await updateChatListItem(selectedFriendId);
+      if (change.type === "modified") {
+        const msgDiv = document.querySelector(`.message[data-id="${msgId}"]`);
+        if (msgDiv) {
+          msgDiv.querySelector(".msg-text").innerText = docData.text;
+        }
+      }
+
+      if (change.type === "added" && !loadedMessageIds.has(msgId)) {
+        loadedMessageIds.add(msgId);
+        const div = await buildMessageDiv({ id: msgId, ...docData });
+        area.appendChild(div);
+        setTimeout(() => area.scrollTop = area.scrollHeight, 100);
+
+        if (!docData.seenBy?.includes(currentUser.uid)) {
+          await updateDoc(doc(db, "conversations", convoId, "messages", msgId), {
+            seenBy: arrayUnion(currentUser.uid)
+          });
+        }
+
+        await updateChatListItem(selectedFriendId);
+      }
+    });
   }
-});
-}
+);
 
 function setupLoadMoreButton(messagesCol) {
   const loadBtn = document.getElementById("loadMoreBtn");
