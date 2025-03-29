@@ -187,6 +187,8 @@
       lyrics: "✍️ Sözler / Şiirler",
       melody: "🎵 Melodi",
       songs: "🎶 Hazır Şarkılar"
+      friends: "🧑‍🤝‍🧑 Arkadaşlarım",
+      messages: "📨 Mesajlarım",
     },
     en: {
       welcome: "🎶 Welcome, ",
@@ -201,6 +203,8 @@
       lyrics: "✍️ Lyrics",
       melody: "🎵 Melody",
       songs: "🎶 Ready Songs"
+      friends: "🧑‍🤝‍🧑 My Friends",
+      messages: "📨 My Messages",
     }
   };
 
@@ -230,6 +234,10 @@
       document.getElementById("btnMelody").innerText = translations[currentLang].melody;
       document.getElementById("btnSongs").innerText = translations[currentLang].songs;
       document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
+
+document.getElementById("btnFriends").innerText = translations[currentLang].friends;
+
+document.getElementById("btnMessages").innerText = translations[currentLang].messages;
     }
   }
 
