@@ -53,8 +53,9 @@
     }
     .notification-dot {
       position: absolute;
-      top: 10px;
       right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
       width: 10px;
       height: 10px;
       background-color: red;
@@ -133,9 +134,8 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import {
-      getFirestore, collection, query, orderBy, addDoc,
-      doc, getDocs, getDoc, serverTimestamp,
-      onSnapshot, updateDoc, deleteDoc, where
+      getFirestore, collection, query, orderBy, addDoc, doc, getDocs, getDoc, serverTimestamp,
+      onSnapshot, updateDoc, deleteDoc, limit
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -154,7 +154,6 @@
     let currentUser = null;
     let selectedUserId = null;
     let selectedUsername = "";
-    const unreadConversations = new Set();
 
     const userListDiv = document.getElementById("userList");
     const selectedUserDiv = document.getElementById("selectedUser");
@@ -162,45 +161,10 @@
     const textarea = document.getElementById("messageText");
     const sendBtn = document.getElementById("sendBtn");
 
-    function filterUsers(query) {
+    window.filterUsers = function(query) {
       document.querySelectorAll('.user-item').forEach(item => {
         const name = item.dataset.username.toLowerCase();
         item.style.display = name.includes(query.toLowerCase()) ? "block" : "none";
-      });
-    }
-
-    async function loadUsers() {
-      const usersSnap = await getDocs(collection(db, "users"));
-      userListDiv.innerHTML = "";
-
-      usersSnap.forEach(docSnap => {
-        if (docSnap.id !== currentUser.uid) {
-          const convoId = [currentUser.uid, docSnap.id].sort().join("_");
-          const div = document.createElement("div");
-          div.className = "user-item";
-          div.dataset.uid = docSnap.id;
-          div.dataset.username = docSnap.data().username || "Anonim";
-          div.innerText = div.dataset.username;
-          userListDiv.appendChild(div);
-
-          const msgRef = collection(db, "conversations", convoId, "messages");
-          const q = query(msgRef, orderBy("timestamp", "desc"), limit(1));
-          onSnapshot(q, snapshot => {
-            snapshot.forEach(msgDoc => {
-              const data = msgDoc.data();
-              const isUnread = data.sender !== currentUser.uid && (!data.seenBy || !data.seenBy.includes(currentUser.uid));
-
-              const existingDot = div.querySelector('.notification-dot');
-              if (isUnread && !existingDot) {
-                const dot = document.createElement("div");
-                dot.className = "notification-dot";
-                div.appendChild(dot);
-              }
-            });
-          });
-
-          div.onclick = () => selectUser(docSnap.id, div.dataset.username);
-        }
       });
     }
 
@@ -210,11 +174,6 @@
       selectedUserDiv.innerText = `Seçilen Kullanıcı: ${username}`;
       textarea.disabled = false;
       sendBtn.disabled = false;
-
-      // Bildirimi sil
-      const activeItem = document.querySelector(`.user-item[data-uid='${uid}'] .notification-dot`);
-      if (activeItem) activeItem.remove();
-
       loadMessages();
     }
 
@@ -222,7 +181,6 @@
       const convoId = [currentUser.uid, selectedUserId].sort().join("_");
       const msgRef = collection(db, "conversations", convoId, "messages");
       const q = query(msgRef, orderBy("timestamp", "asc"));
-
       onSnapshot(q, async (snapshot) => {
         chatBox.innerHTML = "";
         for (const doc of snapshot.docs) {
@@ -237,13 +195,6 @@
           }
           div.innerHTML += `</div>`;
           chatBox.appendChild(div);
-
-          // Mesajı okundu olarak işaretle
-          if (!data.seenBy?.includes(currentUser.uid)) {
-            await updateDoc(doc.ref, {
-              seenBy: [...(data.seenBy || []), currentUser.uid]
-            });
-          }
         }
         chatBox.scrollTop = chatBox.scrollHeight;
       });
@@ -276,6 +227,51 @@
       await deleteDoc(doc(db, "conversations", convoId, "messages", id));
     }
 
+    function loadUsersRealtime() {
+      onSnapshot(collection(db, "users"), async (usersSnap) => {
+        const tempUsers = [];
+        for (const docSnap of usersSnap.docs) {
+          const uid = docSnap.id;
+          const username = docSnap.data().username || "Anonim";
+          if (uid === currentUser.uid) continue;
+
+          const convoId = [currentUser.uid, uid].sort().join("_");
+          const messagesRef = collection(db, "conversations", convoId, "messages");
+          const lastMsgSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(1)));
+
+          let lastTimestamp = 0;
+          let hasUnread = false;
+          if (!lastMsgSnap.empty) {
+            const lastMsg = lastMsgSnap.docs[0].data();
+            lastTimestamp = lastMsg.timestamp || 0;
+            hasUnread = !lastMsg.seenBy?.includes(currentUser.uid);
+          }
+
+          tempUsers.push({ uid, username, lastTimestamp, hasUnread });
+        }
+
+        tempUsers.sort((a, b) => b.lastTimestamp - a.lastTimestamp);
+
+        userListDiv.innerHTML = "";
+        tempUsers.forEach(user => {
+          const div = document.createElement("div");
+          div.className = "user-item";
+          div.dataset.uid = user.uid;
+          div.dataset.username = user.username;
+          div.innerText = user.username;
+
+          if (user.hasUnread) {
+            const dot = document.createElement("div");
+            dot.className = "notification-dot";
+            div.appendChild(dot);
+          }
+
+          div.onclick = () => selectUser(user.uid, user.username);
+          userListDiv.appendChild(div);
+        });
+      });
+    }
+
     onAuthStateChanged(auth, async (user) => {
       if (!user) return window.location.href = "index.html";
       const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -283,10 +279,9 @@
         return window.location.href = "anasayfa.html";
       }
       currentUser = user;
-      loadUsers();
+      loadUsersRealtime();
     });
 
-    window.filterUsers = filterUsers;
     window.sendMessage = sendMessage;
     window.editMessage = editMessage;
     window.deleteMessage = deleteMessage;
