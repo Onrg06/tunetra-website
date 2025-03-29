@@ -342,6 +342,15 @@ if (chatItem) {
   unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "asc"), limitToLast(1)), async (snapshot) => {
   for (const docChange of snapshot.docChanges()) {
     const msg = { id: docChange.doc.id, ...docChange.doc.data() };
+
+    if (docChange.type === "removed") {
+      // DOM’dan sil
+      const div = document.querySelector(`.message[data-id="${msg.id}"]`);
+      if (div) div.remove();
+      loadedMessageIds.delete(msg.id);
+      continue;
+    }
+
     if (loadedMessageIds.has(msg.id)) continue;
 
     loadedMessageIds.add(msg.id);
@@ -349,14 +358,12 @@ if (chatItem) {
     area.appendChild(div);
     setTimeout(() => area.scrollTop = area.scrollHeight, 100);
 
-    // Önce seenBy güncelle
     if (!msg.seenBy?.includes(currentUser.uid)) {
       await updateDoc(doc(db, "conversations", convoId, "messages", msg.id), {
         seenBy: arrayUnion(currentUser.uid)
       });
     }
 
-    // Sonra listeyi güncelle (bildirim işareti artık görünmemeli)
     await updateChatListItem(selectedFriendId);
   }
 });
@@ -441,13 +448,16 @@ if (msg.sender === currentUser.uid) {
   deleteBtn.style.marginLeft = "6px";
   deleteBtn.onclick = async () => {
     if (confirm("Mesaj silinsin mi?")) {
-      const convoId = getConversationId(currentUser.uid, selectedFriendId);
-      await deleteDoc(doc(db, "conversations", convoId, "messages", msg.id));
+  const convoId = getConversationId(currentUser.uid, selectedFriendId);
+  await deleteDoc(doc(db, "conversations", convoId, "messages", msg.id));
 
-      // DOM'dan mesajı kaldır
-      const divToRemove = document.querySelector(`.message[data-id="${msg.id}"]`);
-      if (divToRemove) divToRemove.remove();
-    }
+  // DOM'dan mesajı kaldır
+  const divToRemove = document.querySelector(`.message[data-id="${msg.id}"]`);
+  if (divToRemove) divToRemove.remove();
+
+  // loadedMessageIds'den de sil
+  loadedMessageIds.delete(msg.id);
+}
   };
 
   div.appendChild(editBtn);
