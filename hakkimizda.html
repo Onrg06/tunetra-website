@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hakkımızda | TuneTRa</title>
-<link rel="icon" type="image/png" href="image.png" />
+  <link rel="icon" type="image/png" href="image.png" />
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -49,15 +49,37 @@
       background: linear-gradient(to right, #2575fc, #6a11cb);
     }
 
+    h1 {
+      font-size: 2.8rem;
+      margin-bottom: 25px;
+      padding: 10px 25px;
+      background-color: rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      color: #fff;
+    }
+
+    p {
+      max-width: 800px;
+      font-size: 1.3rem;
+      line-height: 1.8;
+      color: #f0f0f0;
+      background-color: rgba(0, 0, 0, 0.25);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
     .home-btn {
-      margin-top: 30px;
-      padding: 10px 20px;
+      margin-top: 40px;
+      padding: 12px 24px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
       color: white;
       font-weight: bold;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       text-decoration: none;
+      font-size: 1rem;
       transition: background 0.3s;
     }
 
@@ -65,10 +87,18 @@
       background: linear-gradient(to right, #2575fc, #6a11cb);
     }
 
-    p {
-      max-width: 700px;
-      font-size: 1.1rem;
-      line-height: 1.6;
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 2rem;
+      }
+
+      p {
+        font-size: 1.1rem;
+      }
+
+      .home-btn {
+        font-size: 0.95rem;
+      }
     }
   </style>
 </head>
@@ -108,10 +138,7 @@ Additionally, the friend system allows users to chat and collaborate with their 
       }
     };
 
-    let currentLang = "tr";
-
     function setLang(lang) {
-      currentLang = lang;
       document.getElementById("title").innerText = translations[lang].title;
       document.getElementById("aboutText").innerText = translations[lang].text;
       document.getElementById("homeBtn").innerText = translations[lang].home;
