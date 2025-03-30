@@ -6,15 +6,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
 body {
-  background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
-  background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite;
-  font-family: Arial, sans-serif;
-  color: white;
+  background: #0a0a0a;
+  font-family: 'Segoe UI', sans-serif;
+  color: #fff;
+  padding: 30px 20px;
   min-height: 100vh;
-  padding: 20px;
   text-align: center;
+  background-image: radial-gradient(circle at top left, #6a11cb33 0%, transparent 70%),
+                    radial-gradient(circle at bottom right, #2575fc33 0%, transparent 70%);
 }
+
 
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
