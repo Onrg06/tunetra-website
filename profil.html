@@ -339,24 +339,45 @@
       showMessage(translations[currentLang].updateSuccess);
     }
 
-    window.updatePassword = async () => {
-      const t = translations[currentLang];
-      const newPassword = document.getElementById("newPassword").value;
-      const confirmPassword = document.getElementById("confirmPassword").value;
+window.updatePassword = async () => {
+  const newPassword = document.getElementById("newPassword").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
 
-      if (!newPassword || !confirmPassword) return showMessage(t.passwordEmpty);
-      if (newPassword !== confirmPassword) return showMessage(t.passwordMismatch);
+  // Alan boş mu?
+  if (!newPassword || !confirmPassword) {
+    return showMessage("Lütfen her iki şifreyi de girin.", "error");
+  }
 
-      try {
-        await firebaseUpdatePassword(currentUser, newPassword);
-        showMessage(t.passwordSuccess);
-        document.getElementById("newPassword").value = "";
-        document.getElementById("confirmPassword").value = "";
-      } catch (error) {
-        console.error(error);
-        showMessage(t.passwordFail);
-      }
+  // Aynı mı kontrolü
+  if (newPassword !== confirmPassword) {
+    return showMessage("Şifreler uyuşmuyor!", "error");
+  }
+
+  // Minimum uzunluk kontrolü
+  if (newPassword.length < 6) {
+    return showMessage("Şifre en az 6 karakter olmalı.", "error");
+  }
+
+  try {
+    await firebaseUpdatePassword(currentUser, newPassword);
+    showMessage("Şifre başarıyla güncellendi.", "success");
+  } catch (err) {
+    console.error(err.code, err.message);
+
+    let msg = "Şifre güncellenemedi.";
+
+    if (err.code === "auth/requires-recent-login") {
+      msg = "Bu işlemi yapmak için hesabınıza tekrar giriş yapmanız gerekiyor.";
+    } else if (err.code === "auth/weak-password") {
+      msg = "Şifre çok zayıf. Daha güçlü bir şifre deneyin.";
+    } else if (err.code === "auth/too-many-requests") {
+      msg = "Çok fazla deneme yaptınız. Lütfen biraz sonra tekrar deneyin.";
     }
+
+    showMessage(msg, "error");
+  }
+};
+
 
     window.deleteAccount = async () => {
       if (confirm("Silmek istediğine emin misin?")) {
