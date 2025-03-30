@@ -220,7 +220,7 @@
     const user = auth.currentUser;
     if (!user) return;
 
-  if (userDoc.exist()) {
+  if (userDoc.exists()) {
     const docRef = doc(db, "users", user.uid);
     const userDoc = await getDoc(docRef);
 
