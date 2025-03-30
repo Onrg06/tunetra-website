@@ -102,12 +102,13 @@
       if (error) return alert("Supabase silinemedi: " + error.message);
 
       try {
-        await db.collection("melodies").doc(docId).delete();
-        alert(getText("deleted"));
-      } catch (err) {
-        alert("Firestore silinemedi: " + err.message);
-      }
-    };
+        await db.collection("melodies").add({
+  uploader: currentUser,
+  uploaderUID: currentUID,
+  audioUrl: publicUrl,
+  fileName: fileName,
+  timestamp: firebase.firestore.FieldValue.serverTimestamp())
+});
 
     window.setLang = function (lang) {
       document.documentElement.lang = lang;
