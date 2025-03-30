@@ -158,52 +158,86 @@
     await loadSongs();
   }
 
-  async function loadItems(col, container) {
-    const q = query(collection(db, col), where("uploaderUID", "==", currentUID));
-    const snap = await getDocs(q);
-    container.innerHTML = "";
-    if (snap.empty) return container.innerHTML = `<p class="no-data">${texts[currentLang].noData}</p>`;
-    snap.forEach(docSnap => {
-      const d = docSnap.data();
-      const div = document.createElement("div");
-      const textField = d.text || d.lyrics || "-";
-      div.className = "item";
-      div.innerHTML = `
-        <h3>${d.title || "(Başlıksız)"}</h3>
-        <p>${textField.replace(/\\n/g, "<br>")}</p>
-        <button onclick="deleteItem('${col}', '${docSnap.id}')">${texts[currentLang].delete}</button>
-        <button onclick="editItem('${col}', '${docSnap.id}', '${d.title || ""}', \`${textField}\`)">${texts[currentLang].edit}</button>`;
-      container.appendChild(div);
-    });
+async function loadItems(colName, container) {
+  const q = query(collection(db, colName), where("uploaderUID", "==", currentUID));
+  const snap = await getDocs(q);
+  container.innerHTML = "";
+
+  if (snap.empty) {
+    container.innerHTML = `<p class="no-data">${texts[currentLang].noData}</p>`;
+    return;
   }
 
-  async function loadSongs() {
-    const q1 = query(collection(db, "songs"), where("uploaderUID", "==", currentUID));
-    const q2 = query(collection(db, "songs"), where("collaboratorUID", "==", currentUID));
-    const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
-    const combined = [...snap1.docs, ...snap2.docs];
-    const seen = new Set();
-    songsList.innerHTML = "";
-    if (combined.length === 0) return songsList.innerHTML = `<p class="no-data">${texts[currentLang].noData}</p>`;
-    combined.forEach(docSnap => {
-      if (seen.has(docSnap.id)) return;
-      seen.add(docSnap.id);
-      const d = docSnap.data();
-      const docId = docSnap.id;
-      const showActions = currentUID === d.uploaderUID || currentUID === d.collaboratorUID;
-      const div = document.createElement("div");
-      div.className = "item";
-      div.innerHTML = `
-        <h3>${d.title}</h3>
-        <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong></p>
-        <audio controls src="${d.audioUrl}"></audio>
-        <p>${d.lyrics.replace(/\\n/g, "<br>")}</p>
-        ${showActions ? `
-          <button onclick="deleteItem('songs', '${docId}', '${d.audioUrl}')">${texts[currentLang].delete}</button>
-          <button onclick="editItem('songs', '${docId}', '${d.title}', \`${d.lyrics}\`)">${texts[currentLang].edit}</button>` : ""}`;
-      songsList.appendChild(div);
-    });
+  snap.forEach(docSnap => {
+    const d = docSnap.data();
+    const div = document.createElement("div");
+    div.className = "item";
+
+    // 🎵 Melodi dosyasıysa başlık dosya adından gelsin
+    let title;
+    if (colName === "melodies") {
+      title = d.fileName || d.audioUrl?.split("/").pop()?.split("?")[0] || "(Başlıksız)";
+    } else {
+      title = d.title || "(Başlıksız)";
+    }
+
+    // 🎶 İçerik (yazılı içerik varsa)
+    const content = d.text || d.lyrics || "-";
+
+    // 🔊 Melodiler için ses çalar ekle
+    const audioPlayer = colName === "melodies" && d.audioUrl
+      ? `<audio controls src="${d.audioUrl}"></audio>`
+      : "";
+
+    div.innerHTML = `
+      <h3>${title}</h3>
+      ${colName === "melodies" ? "" : `<p>${content.replace(/\n/g, "<br>")}</p>`}
+      ${audioPlayer}
+      <button onclick="deleteItem('${colName}', '${docSnap.id}', '${d.audioUrl || ""}')">${texts[currentLang].delete}</button>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+async function loadSongs() {
+  const q1 = query(collection(db, "songs"), where("uploaderUID", "==", currentUID));
+  const q2 = query(collection(db, "songs"), where("collaboratorUID", "==", currentUID));
+  const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+  const combined = [...snap1.docs, ...snap2.docs];
+  const seen = new Set();
+
+  songsList.innerHTML = "";
+  if (combined.length === 0) {
+    songsList.innerHTML = `<p class="no-data">${texts[currentLang].noData}</p>`;
+    return;
   }
+
+  combined.forEach(docSnap => {
+    if (seen.has(docSnap.id)) return;
+    seen.add(docSnap.id);
+    const d = docSnap.data();
+    const div = document.createElement("div");
+    div.className = "item";
+
+    const showDelete = currentUID === d.uploaderUID || currentUID === d.collaboratorUID;
+    const title = d.title || "(Başlıksız)";
+    const lyrics = d.lyrics?.replace(/\n/g, "<br>") || "";
+    const audio = d.audioUrl
+      ? `<audio controls src="${d.audioUrl}"></audio>`
+      : "";
+
+    div.innerHTML = `
+      <h3>${title}</h3>
+      <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong></p>
+      ${audio}
+      <p>${lyrics}</p>
+      ${showDelete ? `<button onclick="deleteItem('songs', '${docSnap.id}', '${d.audioUrl}')">${texts[currentLang].delete}</button>` : ""}
+    `;
+
+    songsList.appendChild(div);
+  });
+}
 
   window.deleteItem = async function (col, id, audioUrl = null) {
     if (!confirm("Silmek istediğinizden emin misiniz?")) return;
