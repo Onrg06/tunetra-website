@@ -291,11 +291,30 @@ onSnapshot(q, (snapshot) => {
   });
 });
 window.deleteSong = async function (id) {
-  if (!confirm("Bu şarkıyı silmek istiyor musun?")) return;
-  await deleteDoc(doc(db, "songs", id));
-  document.getElementById(`song-${id}`)?.remove();
-};
+  if (!confirm(getText("confirmDelete") || "Bu şarkıyı silmek istiyor musun?")) return;
 
+  try {
+    const docRef = doc(db, "songs", id);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) return alert("Şarkı bulunamadı");
+
+    const data = docSnap.data();
+    const fileUrl = data.audioUrl;
+    const fileName = fileUrl.split("/").pop().split("?")[0];
+
+    // Supabase'ten sil
+    const { error } = await supabase.storage.from(bucket).remove([fileName]);
+    if (error) console.warn("Supabase silme hatası:", error.message);
+
+    // Firestore'dan sil
+    await deleteDoc(docRef);
+    document.getElementById(`song-${id}`)?.remove();
+    alert(getText("deleted") || "Silme başarılı");
+  } catch (err) {
+    console.error("Silme hatası:", err);
+    alert(getText("deleteError") || "Silinirken hata oluştu");
+  }
+};
 
 document.getElementById("melodyInput").addEventListener("change", function() {
   const file = this.files[0];
