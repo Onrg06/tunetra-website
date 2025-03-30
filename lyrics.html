@@ -115,7 +115,7 @@
   transition: background-color 0.3s ease;
 }
 .delete-btn:hover {
-  background-color: #e60000;
+  background-color: #cc0000;
 }
     @media (max-width: 600px) {
       .lang-switch { flex-direction: column; }
@@ -217,9 +217,9 @@
     const isOwn = auth.currentUser?.uid === data.uploaderUID 
                || (!data.uploaderUID && data.username === currentUsername);
 
-    const deleteBtnHTML = isOwn
-      ? `<button class="delete-btn" onclick="deleteLyric('${docId}')">&times;</button>`
-      : "";
+    const deleteBtnHTML = data.username === currentUsername
+  ? `<button class="delete-btn" onclick="deleteLyric('${docId}')">&times;</button>`
+  : "";
 
     lyricElement.innerHTML = `
       <p class="username">${data.username}</p>
