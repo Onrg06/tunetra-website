@@ -223,6 +223,8 @@
 
     <button style="background: red;" onclick="deleteAccount()" id="btnDelete">Hesabı Sil</button>
     <div id="messageBox"></div>
+    <button onclick="goToMyCreations()" id="btnMyCreations">📁 Yaptıklarım</button></div>
+
   </div>
 
   <script type="module">
@@ -261,6 +263,7 @@
         passwordSuccess: "Şifre güncellendi!",
         deleted: "Hesap silindi.",
         home: "Ana Sayfa"
+        btnMyCreations: "📁 Yaptıklarım"
       },
       en: {
         profileTitle: "My Profile",
@@ -276,6 +279,7 @@
         passwordSuccess: "Password updated!",
         deleted: "Account deleted.",
         home: "Home"
+        btnMyCreations: "📁 My Creations"
       }
     };
 
@@ -286,7 +290,9 @@
         if (el) el.innerText = t[key];
       }
       updateHomeButtonText();
+      if (document.getElementById("btnMyCreations")) document.getElementById("btnMyCreations").innerText = t.btnMyCreations;
     }
+  
 
     window.changeLang = function(lang) {
       currentLang = lang;
