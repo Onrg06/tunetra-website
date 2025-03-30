@@ -28,7 +28,7 @@
     }
 
     .lang-btn {
-      background: black;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
       color: white;
       padding: 8px 14px;
       margin-left: 8px;
@@ -36,6 +36,7 @@
       border-radius: 8px;
       cursor: pointer;
       font-weight: bold;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.3);
     }
 
     h1 {
@@ -55,6 +56,7 @@
       margin-left: auto;
       margin-right: auto;
       text-align: left;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
     }
 
     .item h3 { margin-bottom: 5px; }
@@ -67,6 +69,7 @@
       color: white;
       border-radius: 6px;
       cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
 
     .item button:hover {
@@ -108,11 +111,10 @@
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import {
       getFirestore, collection, query, where, getDocs,
-      deleteDoc, doc, getDoc
+      deleteDoc, doc
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
       authDomain: "tunetra-2579b.firebaseapp.com",
@@ -125,8 +127,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth();
-
-    // Supabase config
     const supabase = createClient(
       "https://kqgbdfnqckcgrfizjdgt.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -204,7 +204,7 @@
         div.className = "item";
         div.innerHTML = `
           <h3>${d.title || "(Başlıksız)"}</h3>
-          <p>${d.text?.replace(/\n/g, "<br>") || d.lyrics?.replace(/\n/g, "<br>") || "-"}</p>
+          <p>${(d.text || d.lyrics || "").replace(/\n/g, "<br>")}</p>
           <button onclick="deleteDocFrom('${type}', '${docSnap.id}')">${getText("delete")}</button>
         `;
         container.appendChild(div);
@@ -216,7 +216,6 @@
       const q2 = query(collection(db, "songs"), where("collaboratorUID", "==", currentUID));
       const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
       const combined = [...snap1.docs, ...snap2.docs];
-
       const seen = new Set();
       const container = document.getElementById("songsList");
       container.innerHTML = "";
@@ -245,14 +244,11 @@
 
     window.deleteDocFrom = async function (collectionName, docId, fileUrl = "") {
       if (!confirm(getText("confirmDelete"))) return;
-
-      // Supabase dosyası silinecekse
       if (collectionName === "songs" && fileUrl) {
         const fileName = fileUrl.split("/").pop().split("?")[0];
         const { error } = await supabase.storage.from("songs").remove([fileName]);
-        if (error) console.error("Supabase dosyası silinemedi:", error.message);
+        if (error) console.error("Supabase silme hatası:", error.message);
       }
-
       await deleteDoc(doc(db, collectionName, docId));
       loadContent();
     }
