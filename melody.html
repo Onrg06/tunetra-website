@@ -35,13 +35,15 @@
     auth.onAuthStateChanged(async (user) => {
   if (user) {
     currentUID = user.uid;
+
     const userDoc = await db.collection("users").doc(user.uid).get();
     if (userDoc.exists) {
       currentUser = userDoc.data().username || "Anonim";
     }
 
-    // Kullanıcı tanımlandıktan sonra listeleme başlasın
+    // Listelemeyi burada başlat
     const list = document.getElementById("melodyList");
+
     db.collection("melodies").orderBy("timestamp", "desc").onSnapshot(snapshot => {
       list.innerHTML = "";
       snapshot.forEach(doc => {
@@ -49,7 +51,8 @@
         const id = doc.id;
         const time = d.timestamp?.toDate().toLocaleString() || "";
 
-        const isOwn = user.uid === d.uploaderUID || (!d.uploaderUID && d.uploader === currentUser);
+        // Sahip kontrolü: UID varsa onunla, yoksa username ile
+     const isOwn = currentUID === d.uploaderUID || (!d.uploaderUID && d.uploader === currentUser);
 
         const deleteBtn = isOwn && d.fileName
           ? `<button class="delete-btn" onclick="deleteMelody('${id}', '${d.fileName}')">&times;</button>`
@@ -63,6 +66,11 @@
           </div>
         `;
       });
+    });
+  } else {
+    auth.signInAnonymously();
+  }
+});
     });
   } else {
     auth.signInAnonymously();
