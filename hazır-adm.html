@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hazır Şarkılar | Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      font-family: Arial, sans-serif;
+      color: white;
+      min-height: 100vh;
+      padding: 20px;
+      text-align: center;
+    }
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .melody-item {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      margin: 15px auto;
+      border-radius: 8px;
+      max-width: 600px;
+      text-align: left;
+    }
+    audio {
+      width: 100%;
+      margin-top: 10px;
+    }
+    .btn {
+      padding: 10px 18px;
+      background: #ff4e4e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .btn:hover {
+      background: #ff2e2e;
+    }
+    #uploaderCount {
+      margin: 20px 0;
+      font-weight: bold;
+      color: #c0fffc;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎶 Yüklenen Şarkılar (Admin)</h1>
+  <div id="uploaderCount">Yükleniyor...</div>
+  <div id="melodyList"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
+    import {
+      getFirestore, collection, query, orderBy, onSnapshot,
+      deleteDoc, doc, getDoc
+    } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
+
+    const list = document.getElementById("melodyList");
+    const countBox = document.getElementById("uploaderCount");
+
+    let currentUID = "";
+    let isAdmin = false;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return window.location.href = "index.html";
+      currentUID = user.uid;
+      const docSnap = await getDoc(doc(db, "users", user.uid));
+      if (docSnap.exists()) {
+        isAdmin = docSnap.data().role === "admin";
+      }
+      loadSongs();
+    });
+
+    function loadSongs() {
+      const q = query(collection(db, "songs"), orderBy("timestamp", "desc"));
+      onSnapshot(q, (snapshot) => {
+        list.innerHTML = "";
+        const uniqueUploaders = new Set();
+
+        snapshot.forEach(docSnap => {
+          const d = docSnap.data();
+          const docId = docSnap.id;
+          const time = d.timestamp?.toDate().toLocaleString() || "";
+          uniqueUploaders.add(d.uploaderUID);
+
+          const canDelete = isAdmin || d.uploaderUID === currentUID;
+
+          list.innerHTML += `
+            <div class="melody-item" id="song-${docId}">
+              <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong> (${time})</p>
+              <audio controls src="${d.audioUrl}"></audio>
+              <h3>${d.title}</h3>
+              <p>${d.lyrics.replace(/\\n/g, "<br>")}</p>
+              ${canDelete ? `<button class="btn" onclick="deleteSong('${docId}')">❌ Sil</button>` : ""}
+            </div>
+          `;
+        });
+
+        countBox.innerText = `Toplam ${uniqueUploaders.size} farklı kullanıcı şarkı yükledi.`;
+      });
+    }
+
+    window.deleteSong = async function (id) {
+      if (!confirm("Bu şarkıyı silmek istediğine emin misin?")) return;
+      await deleteDoc(doc(db, "songs", id));
+      document.getElementById(`song-${id}`)?.remove();
+    };
+  </script>
+</body>
+</html>
