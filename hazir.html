@@ -271,15 +271,19 @@ const list = document.getElementById("melodyList");
 const q = query(collection(db, "songs"), orderBy("timestamp", "desc"));
 onSnapshot(q, (snapshot) => {
   list.innerHTML = "";
-  snapshot.forEach(doc => {
-    const d = doc.data();
+  snapshot.forEach(docSnap => {
+    const d = docSnap.data();
+    const docId = docSnap.id;
     const time = d.timestamp?.toDate().toLocaleString() || "";
+    const showDelete = currentUID === d.uploaderUID;
+
     list.innerHTML += `
-      <div class="melody-item">
+      <div class="melody-item" id="song-${docId}">
         <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong> (${time})</p>
         <audio controls src="${d.audioUrl}"></audio>
         <h3>${d.title}</h3>
         <p>${d.lyrics.replace(/\\n/g, "<br>")}</p>
+        ${showDelete ? `<button class="btn" onclick="deleteSong('${docId}')">❌ Sil</button>` : ""}
       </div>
     `;
   });
