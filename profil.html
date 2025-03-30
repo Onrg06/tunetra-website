@@ -306,11 +306,17 @@
       if (homeBtn) homeBtn.innerText = translations[currentLang].home;
     }
 
-    function showMessage(msg) {
-      const box = document.getElementById("messageBox");
-      box.innerText = msg;
-      setTimeout(() => box.innerText = "", 4000);
-    }
+function showMessage(msg, type = "success") {
+  const box = document.getElementById("messageBox");
+  box.innerText = msg;
+  box.style.color = type === "success" ? "lime" : "tomato";
+  box.style.fontWeight = "bold";
+
+  setTimeout(() => {
+    box.innerText = "";
+  }, 4000);
+}
+
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) return location.href = "index.html";
