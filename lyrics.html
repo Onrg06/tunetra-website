@@ -2,14 +2,9 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Şarkı Sözleri Paylaş</title>
   <link rel="icon" type="image/png" href="image.png" />
-
-  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js"></script>
-
   <style>
     * {
       margin: 0;
@@ -105,6 +100,18 @@
       color: #ffffffcc;
       font-style: italic;
     }
+    .delete-btn {
+      margin-top: 10px;
+      padding: 6px 12px;
+      background: red;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+    }
+    .delete-btn:hover {
+      background: darkred;
+    }
     @media (max-width: 600px) {
       .lang-switch {
         flex-direction: column;
@@ -140,7 +147,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -157,18 +164,15 @@
     const auth = getAuth();
 
     let currentUsername = "";
+    let currentUID = "";
     let currentLang = "tr";
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        try {
-          const userRef = doc(db, "users", user.uid);
-          const userSnap = await getDoc(userRef);
-          if (userSnap.exists()) {
-            currentUsername = userSnap.data().username || "Anonim";
-          }
-        } catch (error) {
-          console.error("Username alınırken hata:", error);
+        currentUID = user.uid;
+        const userSnap = await getDoc(doc(db, "users", currentUID));
+        if (userSnap.exists()) {
+          currentUsername = userSnap.data().username || "Anonim";
         }
       }
     });
@@ -177,7 +181,7 @@
       const title = document.getElementById("song-title").value.trim();
       const lyrics = document.getElementById("song-lyrics").value.trim();
 
-      if (title === "" || lyrics === "") {
+      if (!title || !lyrics) {
         alert(currentLang === "tr" ? "Lütfen başlık ve sözleri yazın." : "Please enter both title and lyrics.");
         return;
       }
@@ -187,12 +191,13 @@
           title,
           lyrics,
           username: currentUsername,
+          uploaderUID: currentUID,
           timestamp: serverTimestamp()
         });
         alert(currentLang === "tr" ? "Paylaşım başarılı!" : "Shared successfully!");
         document.getElementById("song-title").value = "";
         document.getElementById("song-lyrics").value = "";
-      } catch (error) {
+      } catch (err) {
         alert(currentLang === "tr" ? "Hata oluştu." : "An error occurred.");
       }
     });
@@ -202,8 +207,11 @@
 
     onSnapshot(q, (snapshot) => {
       lyricsList.innerHTML = "";
-      snapshot.forEach(doc => {
-        const data = doc.data();
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const docId = docSnap.id;
+        const showDelete = data.uploaderUID === currentUID;
+
         const lyricElement = document.createElement("div");
         lyricElement.classList.add("lyric-item");
         lyricElement.innerHTML = `
@@ -211,10 +219,17 @@
           <p class="song-title">${data.title || "(Başlıksız)"}</p>
           <p>${data.lyrics}</p>
           <p class="timestamp">${data.timestamp?.toDate().toLocaleString()}</p>
+          ${showDelete ? `<button class="delete-btn" onclick="deleteLyric('${docId}')">❌ Sil</button>` : ""}
         `;
         lyricsList.appendChild(lyricElement);
       });
     });
+
+    window.deleteLyric = async function (id) {
+      if (confirm(currentLang === "tr" ? "Bu sözü silmek istediğinize emin misiniz?" : "Are you sure you want to delete this lyric?")) {
+        await deleteDoc(doc(db, "lyrics", id));
+      }
+    };
 
     window.setLang = function(lang) {
       currentLang = lang;
