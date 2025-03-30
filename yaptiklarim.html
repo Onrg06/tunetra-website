@@ -189,12 +189,17 @@ async function loadItems(colName, container) {
       ? `<audio controls src="${d.audioUrl}"></audio>`
       : "";
 
-    div.innerHTML = `
-      <h3>${title}</h3>
-      ${colName === "melodies" ? "" : `<p>${content.replace(/\n/g, "<br>")}</p>`}
-      ${audioPlayer}
-      <button onclick="deleteItem('${colName}', '${docSnap.id}', '${d.audioUrl || ""}')">${texts[currentLang].delete}</button>
-    `;
+   div.innerHTML = `
+  <h3>${title}</h3>
+  <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong></p>
+  ${audio}
+  <p>${lyrics}</p>
+  ${showDelete ? `
+    <button onclick="deleteItem('songs', '${docSnap.id}', '${d.audioUrl}')">${texts[currentLang].delete}</button>
+    <button onclick="editItem('songs', '${docSnap.id}', \`${title}\`, \`${d.lyrics || ""}\`)">${texts[currentLang].edit}</button>
+  ` : ""}
+`;
+
 
     container.appendChild(div);
   });
@@ -274,6 +279,29 @@ async function loadSongs() {
       div.style.display = content.includes(keyword) ? "block" : "none";
     });
   });
+ window.editItem = async function (col, id, currentTitle, currentText) {
+  const newTitle = prompt(currentLang === "tr" ? "Yeni başlık:" : "New title:", currentTitle);
+  if (newTitle === null) return;
+
+  let newText = currentText;
+  if (col !== "melodies") {
+    newText = prompt(currentLang === "tr" ? "Yeni içerik:" : "New content:", currentText);
+    if (newText === null) return;
+  }
+
+  try {
+    const updateObj = col === "melodies"
+      ? { fileName: newTitle }
+      : { title: newTitle, lyrics: newText };
+
+    await updateDoc(doc(db, col, id), updateObj);
+    alert(currentLang === "tr" ? "Güncellendi!" : "Updated!");
+    loadContent(); // yeniden yükle
+  } catch (e) {
+    alert(currentLang === "tr" ? "Hata oluştu." : "An error occurred.");
+    console.error(e);
+  }
+};
 
   setLang("tr");
 </script>
