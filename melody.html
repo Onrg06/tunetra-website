@@ -33,14 +33,41 @@
     let currentUID = null;
 
     auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        currentUID = user.uid;
-        const userDoc = await db.collection("users").doc(user.uid).get();
-        if (userDoc.exists) currentUser = userDoc.data().username || "Anonim";
-      } else {
-        auth.signInAnonymously();
-      }
+  if (user) {
+    currentUID = user.uid;
+    const userDoc = await db.collection("users").doc(user.uid).get();
+    if (userDoc.exists) {
+      currentUser = userDoc.data().username || "Anonim";
+    }
+
+    // Kullanıcı tanımlandıktan sonra listeleme başlasın
+    const list = document.getElementById("melodyList");
+    db.collection("melodies").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+      list.innerHTML = "";
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        const id = doc.id;
+        const time = d.timestamp?.toDate().toLocaleString() || "";
+
+        const isOwn = user.uid === d.uploaderUID || (!d.uploaderUID && d.uploader === currentUser);
+
+        const deleteBtn = isOwn && d.fileName
+          ? `<button class="delete-btn" onclick="deleteMelody('${id}', '${d.fileName}')">&times;</button>`
+          : "";
+
+        list.innerHTML += `
+          <div class="melody-item">
+            <p><strong>${d.uploader}</strong> (${time})</p>
+            <audio controls src="${d.audioUrl}"></audio>
+            ${deleteBtn}
+          </div>
+        `;
+      });
     });
+  } else {
+    auth.signInAnonymously();
+  }
+});
 
     window.uploadMelody = async function () {
       const file = document.getElementById("melodyInput").files[0];
