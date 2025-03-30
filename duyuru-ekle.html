@@ -62,10 +62,53 @@
     .back-btn:hover {
       background: linear-gradient(to right, #ffcc70, #6a11cb);
     }
+
+    h2 {
+      margin-top: 40px;
+      font-size: 1.5rem;
+    }
+
+    .announcement-card {
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 15px;
+      margin: 15px auto;
+      max-width: 600px;
+      text-align: left;
+    }
+
+    .announcement-card h3 {
+      margin: 0 0 5px;
+      color: #ffcc70;
+    }
+
+    .announcement-card h4 {
+      margin: 10px 0 5px;
+      color: #88f8ff;
+    }
+
+    .announcement-card p {
+      margin: 0 0 10px;
+    }
+
+    .announcement-card button {
+      background-color: #ff4e4e;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .announcement-card button:hover {
+      background-color: #e00000;
+    }
   </style>
 </head>
 <body>
   <h1>📢 Duyuru Ekle</h1>
+
   <form id="announcementForm">
     <input type="text" id="titleTR" placeholder="Duyuru Başlığı (Türkçe)" required>
     <textarea id="textTR" rows="4" placeholder="Duyuru İçeriği (Türkçe)" required></textarea>
@@ -76,11 +119,17 @@
     <button type="submit">Duyuruyu Kaydet</button>
   </form>
 
+  <h2>🗂 Eski Duyurular</h2>
+  <div id="announcementList">Yükleniyor...</div>
+
   <a href="adminpanel.html" class="back-btn">⬅️ Yönetim Paneline Dön</a>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import {
+      getFirestore, collection, addDoc, serverTimestamp,
+      query, orderBy, onSnapshot, deleteDoc, doc
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -94,6 +143,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // DUYURU EKLEME
     document.getElementById("announcementForm").addEventListener("submit", async (e) => {
       e.preventDefault();
 
@@ -118,6 +168,41 @@
         alert("Duyuru eklenemedi.");
       }
     });
+
+    // DUYURULARI GÖRÜNTÜLE
+    const listDiv = document.getElementById("announcementList");
+
+    function renderAnnouncements() {
+      const q = query(collection(db, "announcements"), orderBy("timestamp", "desc"));
+      onSnapshot(q, (snapshot) => {
+        listDiv.innerHTML = "";
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const id = docSnap.id;
+
+          const card = document.createElement("div");
+          card.className = "announcement-card";
+          card.innerHTML = `
+            <h3>${data.tr?.title || "Başlık Yok"}</h3>
+            <p>${data.tr?.text || "İçerik Yok"}</p>
+            <h4>${data.en?.title || "No Title"}</h4>
+            <p>${data.en?.text || "No Content"}</p>
+            <button onclick="deleteAnnouncement('${id}')">❌ Sil</button>
+          `;
+          listDiv.appendChild(card);
+        });
+      });
+    }
+
+    // DUYURU SİLME
+    window.deleteAnnouncement = async function (id) {
+      if (confirm("Bu duyuruyu silmek istiyor musun?")) {
+        await deleteDoc(doc(db, "announcements", id));
+        alert("Duyuru silindi.");
+      }
+    };
+
+    renderAnnouncements();
   </script>
 </body>
 </html>
