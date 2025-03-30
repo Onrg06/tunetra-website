@@ -105,7 +105,10 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, collection, query, where, getDocs, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import {
+    getFirestore, collection, query, where, getDocs,
+    deleteDoc, doc, updateDoc
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
   const firebaseConfig = {
@@ -117,7 +120,10 @@
     appId: "1:576238823779:web:b1796f089427e3b6fecb56"
   };
 
-  const supabase = createClient("https://kqgbdfnqckcgrfizjdgt.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ey..."); // 🔒 Tam anahtarını sen doldurabilirsin
+  const supabase = createClient(
+    "https://kqgbdfnqckcgrfizjdgt.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzIi..."
+  );
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
@@ -132,8 +138,24 @@
   let currentLang = "tr";
 
   const texts = {
-    tr: { pageTitle: "🎵 Yaptıklarım", lyricsTitle: "Sözlerim / Şiirlerim", melodiesTitle: "Melodilerim", songsTitle: "Hazır Şarkılar", noData: "Hiç içerik bulunamadı.", delete: "Sil", edit: "Düzenle", save: "Kaydet" },
-    en: { pageTitle: "🎵 My Creations", lyricsTitle: "My Lyrics / Poems", melodiesTitle: "My Melodies", songsTitle: "Ready Songs", noData: "No content found.", delete: "Delete", edit: "Edit", save: "Save" }
+    tr: {
+      pageTitle: "🎵 Yaptıklarım",
+      lyricsTitle: "Sözlerim / Şiirlerim",
+      melodiesTitle: "Melodilerim",
+      songsTitle: "Hazır Şarkılar",
+      noData: "Hiç içerik bulunamadı.",
+      delete: "Sil",
+      edit: "Düzenle"
+    },
+    en: {
+      pageTitle: "🎵 My Creations",
+      lyricsTitle: "My Lyrics / Poems",
+      melodiesTitle: "My Melodies",
+      songsTitle: "Ready Songs",
+      noData: "No content found.",
+      delete: "Delete",
+      edit: "Edit"
+    }
   };
 
   function setLang(lang) {
@@ -144,7 +166,6 @@
     document.getElementById("songsTitle").innerText = texts[lang].songsTitle;
     loadContent();
   }
-  window.setLang = setLang;
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) return location.href = "index.html";
@@ -158,118 +179,118 @@
     await loadSongs();
   }
 
-async function loadItems(colName, container) {
-  const q = query(collection(db, colName), where("uploaderUID", "==", currentUID));
-  const snap = await getDocs(q);
-  container.innerHTML = "";
+  async function loadItems(colName, container) {
+    const q = query(collection(db, colName), where("uploaderUID", "==", currentUID));
+    const snap = await getDocs(q);
+    container.innerHTML = "";
 
-  if (snap.empty) {
-    container.innerHTML = `<p class="no-data">${texts[currentLang].noData}</p>`;
-    return;
-  }
-
-  snap.forEach(docSnap => {
-    const d = docSnap.data();
-    const div = document.createElement("div");
-    div.className = "item";
-
-    // 🎵 Melodi dosyasıysa başlık dosya adından gelsin
-    let title;
-    if (colName === "melodies") {
-      title = d.fileName || d.audioUrl?.split("/").pop()?.split("?")[0] || "(Başlıksız)";
-    } else {
-      title = d.title || "(Başlıksız)";
+    if (snap.empty) {
+      container.innerHTML = `<p class="no-data">${texts[currentLang].noData}</p>`;
+      return;
     }
 
-    // 🎶 İçerik (yazılı içerik varsa)
-    const content = d.text || d.lyrics || "-";
+    snap.forEach(docSnap => {
+      const d = docSnap.data();
+      const div = document.createElement("div");
+      div.className = "item";
 
-    // 🔊 Melodiler için ses çalar ekle
-    const audioPlayer = colName === "melodies" && d.audioUrl
-      ? `<audio controls src="${d.audioUrl}"></audio>`
-      : "";
+      const title = colName === "melodies"
+        ? (d.fileName || d.audioUrl?.split("/").pop()?.split("?")[0] || "Melodi")
+        : (d.title || "(Başlıksız)");
 
-   div.innerHTML = `
-  <h3>${title}</h3>
-  <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong></p>
-  ${audio}
-  <p>${lyrics}</p>
-  ${showDelete ? `
-    <button onclick="deleteItem('songs', '${docSnap.id}', '${d.audioUrl}')">${texts[currentLang].delete}</button>
-    <button onclick="editItem('songs', '${docSnap.id}', \`${title}\`, \`${d.lyrics || ""}\`)">${texts[currentLang].edit}</button>
-  ` : ""}
-`;
+      const content = d.text || d.lyrics || "-";
 
+      const audioPlayer = colName === "melodies" && d.audioUrl
+        ? `<audio controls src="${d.audioUrl}"></audio>`
+        : "";
 
-    container.appendChild(div);
-  });
-}
+      div.innerHTML = `
+        <h3>${title}</h3>
+        ${colName === "melodies" ? "" : `<p>${content.replace(/\n/g, "<br>")}</p>`}
+        ${audioPlayer}
+        <button onclick="deleteItem('${colName}', '${docSnap.id}', '${d.audioUrl || ""}')">${texts[currentLang].delete}</button>
+        <button onclick="editItem('${colName}', '${docSnap.id}', \`${title}\`, \`${content}\`)">${texts[currentLang].edit}</button>
+      `;
 
-async function loadSongs() {
-  const q1 = query(collection(db, "songs"), where("uploaderUID", "==", currentUID));
-  const q2 = query(collection(db, "songs"), where("collaboratorUID", "==", currentUID));
-  const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
-  const combined = [...snap1.docs, ...snap2.docs];
-  const seen = new Set();
-
-  songsList.innerHTML = "";
-  if (combined.length === 0) {
-    songsList.innerHTML = `<p class="no-data">${texts[currentLang].noData}</p>`;
-    return;
+      container.appendChild(div);
+    });
   }
 
-  combined.forEach(docSnap => {
-    if (seen.has(docSnap.id)) return;
-    seen.add(docSnap.id);
-    const d = docSnap.data();
-    const div = document.createElement("div");
-    div.className = "item";
+  async function loadSongs() {
+    const q1 = query(collection(db, "songs"), where("uploaderUID", "==", currentUID));
+    const q2 = query(collection(db, "songs"), where("collaboratorUID", "==", currentUID));
+    const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+    const combined = [...snap1.docs, ...snap2.docs];
+    const seen = new Set();
 
-    const showDelete = currentUID === d.uploaderUID || currentUID === d.collaboratorUID;
-    const title = d.title || "(Başlıksız)";
-    const lyrics = d.lyrics?.replace(/\n/g, "<br>") || "";
-    const audio = d.audioUrl
-      ? `<audio controls src="${d.audioUrl}"></audio>`
-      : "";
+    songsList.innerHTML = "";
+    if (combined.length === 0) {
+      songsList.innerHTML = `<p class="no-data">${texts[currentLang].noData}</p>`;
+      return;
+    }
 
-    div.innerHTML = `
-      <h3>${title}</h3>
-      <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong></p>
-      ${audio}
-      <p>${lyrics}</p>
-      ${showDelete ? `<button onclick="deleteItem('songs', '${docSnap.id}', '${d.audioUrl}')">${texts[currentLang].delete}</button>` : ""}
-    `;
+    combined.forEach(docSnap => {
+      if (seen.has(docSnap.id)) return;
+      seen.add(docSnap.id);
+      const d = docSnap.data();
+      const div = document.createElement("div");
+      div.className = "item";
 
-    songsList.appendChild(div);
-  });
-}
+      const showDelete = currentUID === d.uploaderUID || currentUID === d.collaboratorUID;
+      const title = d.title || "(Başlıksız)";
+      const lyrics = d.lyrics?.replace(/\n/g, "<br>") || "";
+      const audio = d.audioUrl ? `<audio controls src="${d.audioUrl}"></audio>` : "";
+
+      div.innerHTML = `
+        <h3>${title}</h3>
+        <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong></p>
+        ${audio}
+        <p>${lyrics}</p>
+        ${showDelete ? `
+          <button onclick="deleteItem('songs', '${docSnap.id}', '${d.audioUrl}')">${texts[currentLang].delete}</button>
+          <button onclick="editItem('songs', '${docSnap.id}', \`${title}\`, \`${d.lyrics || ""}\`)">${texts[currentLang].edit}</button>
+        ` : ""}
+      `;
+
+      songsList.appendChild(div);
+    });
+  }
 
   window.deleteItem = async function (col, id, audioUrl = null) {
     if (!confirm("Silmek istediğinizden emin misiniz?")) return;
     await deleteDoc(doc(db, col, id));
     if (audioUrl) {
       const fileName = audioUrl.split("/").pop().split("?")[0];
-      await supabase.storage.from("songs").remove([fileName]);
+      const bucket = col === "songs" ? "songs" : col === "melodies" ? "melodies" : null;
+      if (bucket) {
+        await supabase.storage.from(bucket).remove([fileName]);
+      }
     }
     loadContent();
   };
 
-  window.editItem = function (col, id, oldTitle, oldText) {
-    const parent = document.querySelector(`button[onclick*="'${id}'"]`).parentElement;
-    parent.innerHTML = `
-      <div class="edit-box">
-        <input type="text" id="edit-title-${id}" value="${oldTitle}" />
-        <textarea id="edit-text-${id}">${oldText}</textarea>
-        <button onclick="saveEdit('${col}', '${id}')">${texts[currentLang].save}</button>
-      </div>`;
-  };
+  window.editItem = async function (col, id, currentTitle, currentText) {
+    const newTitle = prompt(currentLang === "tr" ? "Yeni başlık:" : "New title:", currentTitle);
+    if (newTitle === null) return;
 
-  window.saveEdit = async function (col, id) {
-    const title = document.getElementById(`edit-title-${id}`).value;
-    const text = document.getElementById(`edit-text-${id}`).value;
-    const updateData = col === "songs" ? { title, lyrics: text } : (col === "lyrics" ? { title, lyrics: text } : { title, text });
-    await updateDoc(doc(db, col, id), updateData);
-    loadContent();
+    let newText = currentText;
+    if (col !== "melodies") {
+      newText = prompt(currentLang === "tr" ? "Yeni içerik:" : "New content:", currentText);
+      if (newText === null) return;
+    }
+
+    try {
+      const updateObj = col === "melodies"
+        ? { fileName: newTitle }
+        : { title: newTitle, lyrics: newText };
+
+      await updateDoc(doc(db, col, id), updateObj);
+      alert(currentLang === "tr" ? "Güncellendi!" : "Updated!");
+      loadContent();
+    } catch (e) {
+      alert(currentLang === "tr" ? "Hata oluştu." : "An error occurred.");
+      console.error(e);
+    }
   };
 
   searchInput.addEventListener("input", () => {
@@ -279,30 +300,8 @@ async function loadSongs() {
       div.style.display = content.includes(keyword) ? "block" : "none";
     });
   });
- window.editItem = async function (col, id, currentTitle, currentText) {
-  const newTitle = prompt(currentLang === "tr" ? "Yeni başlık:" : "New title:", currentTitle);
-  if (newTitle === null) return;
 
-  let newText = currentText;
-  if (col !== "melodies") {
-    newText = prompt(currentLang === "tr" ? "Yeni içerik:" : "New content:", currentText);
-    if (newText === null) return;
-  }
-
-  try {
-    const updateObj = col === "melodies"
-      ? { fileName: newTitle }
-      : { title: newTitle, lyrics: newText };
-
-    await updateDoc(doc(db, col, id), updateObj);
-    alert(currentLang === "tr" ? "Güncellendi!" : "Updated!");
-    loadContent(); // yeniden yükle
-  } catch (e) {
-    alert(currentLang === "tr" ? "Hata oluştu." : "An error occurred.");
-    console.error(e);
-  }
-};
-
+  window.setLang = setLang;
   setLang("tr");
 </script>
 </body>
