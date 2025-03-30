@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hakkımızda Düzenle | TuneTRa Admin</title>
+  <style>
+    body {
+      background-color: #000;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      color: #ffcc70;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .subtext {
+      font-size: 1rem;
+      color: #ccc;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    textarea {
+      width: 100%;
+      max-width: 800px;
+      height: 300px;
+      padding: 15px;
+      font-size: 1rem;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      resize: vertical;
+      background-color: #1a1a1a;
+      color: white;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      background: linear-gradient(to right, #ff66c4, #ffcc70);
+      color: #000;
+      font-weight: bold;
+      font-size: 1.1rem;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.3s;
+    }
+
+    .btn:hover {
+      transform: scale(1.05);
+      background: linear-gradient(to right, #ffcc70, #ff66c4);
+    }
+
+    #status {
+      margin-top: 15px;
+      font-size: 1rem;
+      color: lightgreen;
+    }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 2rem; }
+      textarea { height: 200px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Hakkımızda Düzenle</h1>
+  <div class="subtext">Buradaki metin kullanıcıların göreceği "Hakkımızda" sayfasında yer alır.</div>
+  <textarea id="aboutText" placeholder="Buraya metni girin..."></textarea>
+  <button class="btn" onclick="saveAbout()">Kaydet</button>
+  <div id="status"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import {
+      getFirestore, doc, getDoc, setDoc
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const aboutRef = doc(db, "siteSettings", "aboutPage");
+
+    const textarea = document.getElementById("aboutText");
+    const status = document.getElementById("status");
+
+    async function loadAbout() {
+      const docSnap = await getDoc(aboutRef);
+      if (docSnap.exists()) {
+        textarea.value = docSnap.data().text || "";
+      } else {
+        textarea.value = "";
+      }
+    }
+
+    async function saveAbout() {
+      const content = textarea.value.trim();
+      if (content === "") {
+        status.innerText = "Metin boş olamaz.";
+        status.style.color = "orange";
+        return;
+      }
+
+      await setDoc(aboutRef, { text: content });
+      status.innerText = "Hakkımızda metni başarıyla güncellendi!";
+      status.style.color = "lightgreen";
+    }
+
+    loadAbout();
+    window.saveAbout = saveAbout;
+  </script>
+</body>
+</html>
