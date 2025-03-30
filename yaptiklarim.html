@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yaptıklarım | TuneTRa</title>
   <style>
@@ -21,42 +21,40 @@
       100% { background-position: 0% 50%; }
     }
 
+    .lang-switch {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+
+    .lang-btn {
+      background: black;
+      color: white;
+      padding: 8px 14px;
+      margin-left: 8px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
     h1 {
       margin-bottom: 20px;
     }
 
     .section {
       margin-top: 40px;
-      padding: 20px;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 12px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-    }
-
-    .section h2 {
-      margin-bottom: 15px;
-    }
-
-    .search-box {
-      margin-bottom: 20px;
-    }
-
-    .search-box input {
-      padding: 8px;
-      border-radius: 6px;
-      border: none;
-      width: 250px;
-      max-width: 90%;
     }
 
     .item {
       background: rgba(0, 0, 0, 0.5);
       padding: 15px;
       border-radius: 10px;
-      margin: 10px auto;
+      margin-bottom: 20px;
       max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
       text-align: left;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
     }
 
     .item h3 { margin-bottom: 5px; }
@@ -64,43 +62,44 @@
     .item button {
       padding: 6px 12px;
       margin-top: 10px;
-      margin-right: 8px;
       border: none;
-      background: #ff4e4e;
+      background: red;
       color: white;
       border-radius: 6px;
       cursor: pointer;
     }
 
     .item button:hover {
-      background: #c80000;
+      background: #d40000;
     }
 
-    .no-content {
+    .empty-message {
       font-style: italic;
-      color: #f0f0f0cc;
+      color: #ffe;
       margin-top: 10px;
     }
   </style>
 </head>
 <body>
+  <div class="lang-switch">
+    <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
+    <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
+  </div>
+
   <h1 id="pageTitle">🎵 Yaptıklarım</h1>
 
   <div class="section">
     <h2 id="lyricsTitle">Sözlerim / Şiirlerim</h2>
-    <div class="search-box"><input type="text" placeholder="Ara..." oninput="filterItems('lyricsList', this.value)"></div>
     <div id="lyricsList"></div>
   </div>
 
   <div class="section">
     <h2 id="melodyTitle">Melodilerim</h2>
-    <div class="search-box"><input type="text" placeholder="Ara..." oninput="filterItems('melodyList', this.value)"></div>
     <div id="melodyList"></div>
   </div>
 
   <div class="section">
     <h2 id="songsTitle">Hazır Şarkılar</h2>
-    <div class="search-box"><input type="text" placeholder="Ara..." oninput="filterItems('songsList', this.value)"></div>
     <div id="songsList"></div>
   </div>
 
@@ -109,9 +108,11 @@
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import {
       getFirestore, collection, query, where, getDocs,
-      deleteDoc, doc
+      deleteDoc, doc, getDoc
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
       authDomain: "tunetra-2579b.firebaseapp.com",
@@ -125,53 +126,88 @@
     const db = getFirestore(app);
     const auth = getAuth();
 
-    let currentUID = "";
+    // Supabase config
+    const supabase = createClient(
+      "https://kqgbdfnqckcgrfizjdgt.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    );
 
-    const t = {
+    let currentUID = "";
+    let currentLang = localStorage.getItem("lang") || "tr";
+
+    const texts = {
       tr: {
-        lyrics: "Henüz bir söz ya da şiir yüklemediniz.",
-        melodies: "Henüz bir melodi yüklemediniz.",
-        songs: "Henüz bir hazır şarkınız yok.",
-        edit: "Düzenle",
-        del: "Sil"
+        pageTitle: "🎵 Yaptıklarım",
+        lyricsTitle: "Sözlerim / Şiirlerim",
+        melodyTitle: "Melodilerim",
+        songsTitle: "Hazır Şarkılar",
+        emptyLyrics: "Henüz söz/şiir yüklemediniz.",
+        emptyMelody: "Henüz melodi yüklemediniz.",
+        emptySong: "Henüz hazır şarkı yok.",
+        confirmDelete: "Silmek istediğinizden emin misiniz?",
+        delete: "Sil"
       },
       en: {
-        lyrics: "You haven't uploaded any lyrics or poems yet.",
-        melodies: "You haven't uploaded any melodies yet.",
-        songs: "You don't have any finished songs yet.",
-        edit: "Edit",
-        del: "Delete"
+        pageTitle: "🎵 My Creations",
+        lyricsTitle: "My Lyrics / Poems",
+        melodyTitle: "My Melodies",
+        songsTitle: "Ready Songs",
+        emptyLyrics: "You haven't uploaded any lyrics or poems yet.",
+        emptyMelody: "You haven't uploaded any melodies yet.",
+        emptySong: "No ready songs found.",
+        confirmDelete: "Are you sure you want to delete this?",
+        delete: "Delete"
       }
     };
 
-    const lang = document.documentElement.lang || "tr";
+    function setLang(lang) {
+      currentLang = lang;
+      localStorage.setItem("lang", lang);
+      const t = texts[lang];
+      document.getElementById("pageTitle").innerText = t.pageTitle;
+      document.getElementById("lyricsTitle").innerText = t.lyricsTitle;
+      document.getElementById("melodyTitle").innerText = t.melodyTitle;
+      document.getElementById("songsTitle").innerText = t.songsTitle;
+      loadContent();
+    }
+
+    function getText(key) {
+      return texts[currentLang][key] || "";
+    }
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) return location.href = "index.html";
       currentUID = user.uid;
-      await loadItems("lyrics", "lyricsList", t[lang].lyrics);
-      await loadItems("melodies", "melodyList", t[lang].melodies);
-      await loadSongs();
+      setLang(currentLang);
     });
 
-    async function loadItems(type, targetId, emptyMsg) {
+    async function loadContent() {
+      await loadList("lyrics", "lyricsList", getText("emptyLyrics"));
+      await loadList("melodies", "melodyList", getText("emptyMelody"));
+      await loadSongs();
+    }
+
+    async function loadList(type, elementId, emptyMsg) {
       const q = query(collection(db, type), where("uploaderUID", "==", currentUID));
       const snap = await getDocs(q);
-      const list = document.getElementById(targetId);
-      list.innerHTML = "";
+      const container = document.getElementById(elementId);
+      container.innerHTML = "";
 
-      if (snap.empty) return list.innerHTML = `<div class='no-content'>${emptyMsg}</div>`;
+      if (snap.empty) {
+        container.innerHTML = `<p class="empty-message">${emptyMsg}</p>`;
+        return;
+      }
 
       snap.forEach(docSnap => {
         const d = docSnap.data();
-        const html = `
-          <div class="item" data-search="${d.title || ""} ${d.text || d.lyrics || ""}">
-            <h3>${d.title || "(Başlıksız)"}</h3>
-            <p>${(d.text || d.lyrics || "-").replace(/\n/g, "<br>")}</p>
-            <button onclick="editItem('${type}', '${docSnap.id}')">${t[lang].edit}</button>
-            <button onclick="deleteItem('${type}', '${docSnap.id}')">${t[lang].del}</button>
-          </div>`;
-        list.innerHTML += html;
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <h3>${d.title || "(Başlıksız)"}</h3>
+          <p>${d.text?.replace(/\n/g, "<br>") || d.lyrics?.replace(/\n/g, "<br>") || "-"}</p>
+          <button onclick="deleteDocFrom('${type}', '${docSnap.id}')">${getText("delete")}</button>
+        `;
+        container.appendChild(div);
       });
     }
 
@@ -179,47 +215,46 @@
       const q1 = query(collection(db, "songs"), where("uploaderUID", "==", currentUID));
       const q2 = query(collection(db, "songs"), where("collaboratorUID", "==", currentUID));
       const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
-      const all = [...snap1.docs, ...snap2.docs];
+      const combined = [...snap1.docs, ...snap2.docs];
+
       const seen = new Set();
-      const list = document.getElementById("songsList");
-      list.innerHTML = "";
+      const container = document.getElementById("songsList");
+      container.innerHTML = "";
 
-      if (all.length === 0) return list.innerHTML = `<div class='no-content'>${t[lang].songs}</div>`;
+      if (combined.length === 0) {
+        container.innerHTML = `<p class="empty-message">${getText("emptySong")}</p>`;
+        return;
+      }
 
-      all.forEach(docSnap => {
+      combined.forEach(docSnap => {
         if (seen.has(docSnap.id)) return;
         seen.add(docSnap.id);
         const d = docSnap.data();
-        const html = `
-          <div class="item" data-search="${d.title} ${d.lyrics}">
-            <h3>${d.title}</h3>
-            <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong></p>
-            <audio controls src="${d.audioUrl}"></audio>
-            <p>${d.lyrics.replace(/\n/g, "<br>")}</p>
-            <button onclick="editItem('songs', '${docSnap.id}')">${t[lang].edit}</button>
-            <button onclick="deleteItem('songs', '${docSnap.id}')">${t[lang].del}</button>
-          </div>`;
-        list.innerHTML += html;
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <h3>${d.title}</h3>
+          <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong></p>
+          <audio controls src="${d.audioUrl}"></audio>
+          <p>${d.lyrics.replace(/\n/g, "<br>")}</p>
+          <button onclick="deleteDocFrom('songs', '${docSnap.id}', '${d.audioUrl}')">${getText("delete")}</button>
+        `;
+        container.appendChild(div);
       });
     }
 
-    window.deleteItem = async (collectionName, id) => {
-      if (!confirm("Silmek istediğinize emin misiniz?")) return;
-      await deleteDoc(doc(db, collectionName, id));
-      location.reload();
-    }
+    window.deleteDocFrom = async function (collectionName, docId, fileUrl = "") {
+      if (!confirm(getText("confirmDelete"))) return;
 
-    window.editItem = function (collectionName, id) {
-      alert(`'${collectionName}' koleksiyonundaki '${id}' belgesi düzenleme moduna geçmeli.`);
-      // Bu kısma modal veya yeni sayfa yönlendirmesi eklenebilir
-    };
+      // Supabase dosyası silinecekse
+      if (collectionName === "songs" && fileUrl) {
+        const fileName = fileUrl.split("/").pop().split("?")[0];
+        const { error } = await supabase.storage.from("songs").remove([fileName]);
+        if (error) console.error("Supabase dosyası silinemedi:", error.message);
+      }
 
-    window.filterItems = function (listId, value) {
-      const val = value.toLowerCase();
-      document.querySelectorAll(`#${listId} .item`).forEach(item => {
-        const content = item.getAttribute("data-search").toLowerCase();
-        item.style.display = content.includes(val) ? "block" : "none";
-      });
+      await deleteDoc(doc(db, collectionName, docId));
+      loadContent();
     }
   </script>
 </body>
