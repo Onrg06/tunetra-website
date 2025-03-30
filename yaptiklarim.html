@@ -30,9 +30,7 @@
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
-    .search-box {
-      margin: 20px auto 30px;
-      max-width: 400px;
+    <div style="margin-bottom: 30px;">
     }
     .search-box input {
       width: 100%;
@@ -85,6 +83,9 @@
   <div class="lang-buttons">
     <button class="lang-btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
     <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
+  </div>
+  <div style="margin-bottom: 30px;">
+    <a href="anasayfa.html" class="lang-btn" style="text-decoration:none;">🏠 Anasayfa</a>
   </div>
   <div class="search-box">
     <input type="text" id="searchInput" placeholder="Ara... / Search...">
@@ -146,6 +147,7 @@
       noData: "Hiç içerik bulunamadı.",
       delete: "Sil",
       edit: "Düzenle"
+      home: "🏠 Anasayfa"
     },
     en: {
       pageTitle: "🎵 My Creations",
@@ -155,6 +157,7 @@
       noData: "No content found.",
       delete: "Delete",
       edit: "Edit"
+      home: "🏠 Back to Homepage"
     }
   };
 
@@ -164,6 +167,7 @@
     document.getElementById("lyricsTitle").innerText = texts[lang].lyricsTitle;
     document.getElementById("melodiesTitle").innerText = texts[lang].melodiesTitle;
     document.getElementById("songsTitle").innerText = texts[lang].songsTitle;
+    document.getElementById("homeButton").innerText = texts[lang].home;
     loadContent();
   }
 
