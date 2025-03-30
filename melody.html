@@ -6,12 +6,10 @@
   <title>Melodi Yükle</title>
   <link rel="icon" type="image/png" href="image.png" />
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore-compat.js"></script>
 
-  <!-- Supabase ve script -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
@@ -25,7 +23,7 @@
     const db = firebase.firestore();
 
     const supabaseUrl = "https://kqgbdfnqckcgrfizjdgt.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZ2JkZm5xY2tjZ3JmaXpqZGd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5Nzk2NDQsImV4cCI6MjA1ODU1NTY0NH0.oxyfinrgv7AscolwMv6CuTMHBLeNokdERCKH00d1kfo";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
     const supabase = createClient(supabaseUrl, supabaseKey);
     const bucket = "melodies";
 
@@ -33,49 +31,37 @@
     let currentUID = null;
 
     auth.onAuthStateChanged(async (user) => {
-  if (user) {
-    currentUID = user.uid;
+      if (user) {
+        currentUID = user.uid;
+        const userDoc = await db.collection("users").doc(user.uid).get();
+        if (userDoc.exists) currentUser = userDoc.data().username || "Anonim";
 
-    const userDoc = await db.collection("users").doc(user.uid).get();
-    if (userDoc.exists) {
-      currentUser = userDoc.data().username || "Anonim";
-    }
+        const list = document.getElementById("melodyList");
+        db.collection("melodies").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+          list.innerHTML = "";
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            const id = doc.id;
+            const time = d.timestamp?.toDate().toLocaleString() || "";
 
-    // Listelemeyi burada başlat
-    const list = document.getElementById("melodyList");
+            const isOwn = currentUID === d.uploaderUID || (!d.uploaderUID && d.uploader === currentUser);
+            const deleteBtn = isOwn && d.fileName
+              ? `<button class="delete-icon" onclick="deleteMelody('${id}', '${d.fileName}')">&times;</button>` 
+              : "";
 
-    db.collection("melodies").orderBy("timestamp", "desc").onSnapshot(snapshot => {
-      list.innerHTML = "";
-      snapshot.forEach(doc => {
-        const d = doc.data();
-        const id = doc.id;
-        const time = d.timestamp?.toDate().toLocaleString() || "";
-
-        // Sahip kontrolü: UID varsa onunla, yoksa username ile
-     const isOwn = currentUID === d.uploaderUID || (!d.uploaderUID && d.uploader === currentUser);
-
-        const deleteBtn = isOwn && d.fileName
-          ? `<button class="delete-btn" onclick="deleteMelody('${id}', '${d.fileName}')">&times;</button>`
-          : "";
-
-        list.innerHTML += `
-          <div class="melody-item">
-            <p><strong>${d.uploader}</strong> (${time})</p>
-            <audio controls src="${d.audioUrl}"></audio>
-            ${deleteBtn}
-          </div>
-        `;
-      });
+            list.innerHTML += `
+              <div class="melody-item">
+                ${deleteBtn}
+                <p><strong>${d.uploader}</strong> (${time})</p>
+                <audio controls src="${d.audioUrl}"></audio>
+              </div>
+            `;
+          });
+        });
+      } else {
+        auth.signInAnonymously();
+      }
     });
-  } else {
-    auth.signInAnonymously();
-  }
-});
-    });
-  } else {
-    auth.signInAnonymously();
-  }
-});
 
     window.uploadMelody = async function () {
       const file = document.getElementById("melodyInput").files[0];
@@ -122,28 +108,6 @@
         alert("Firestore silinemedi: " + err.message);
       }
     };
-
-    window.addEventListener("DOMContentLoaded", () => {
-      const list = document.getElementById("melodyList");
-      db.collection("melodies").orderBy("timestamp", "desc").onSnapshot(snapshot => {
-        list.innerHTML = "";
-        snapshot.forEach(doc => {
-          const d = doc.data();
-          const id = doc.id;
-          const time = d.timestamp?.toDate().toLocaleString() || "";
-          const deleteBtn = auth.currentUser?.uid === d.uploaderUID
-            ? `<button class="delete-icon" onclick="deleteMelody('${id}', '${d.fileName}')">&times;</button>` : "";
-
-          list.innerHTML += `
-            <div class="melody-item">
-              ${deleteBtn}
-              <p><strong>${d.uploader}</strong> (${time})</p>
-              <audio controls src="${d.audioUrl}"></audio>
-            </div>
-          `;
-        });
-      });
-    });
 
     window.setLang = function (lang) {
       document.documentElement.lang = lang;
