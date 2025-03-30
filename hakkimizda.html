@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Hakkımızda | TuneTRa</title>
   <link rel="icon" type="image/png" href="image.png" />
   <style>
@@ -49,15 +49,15 @@
       background: linear-gradient(to right, #2575fc, #6a11cb);
     }
 
-   h1 {
-  font-size: 2.8rem;
-  margin-bottom: 25px;
-  padding: 10px 25px;
-  background-color: rgba(255, 255, 255, 0.15);
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  color: #baff29;
-  }
+    h1 {
+      font-size: 2.8rem;
+      margin-bottom: 25px;
+      padding: 10px 25px;
+      background-color: rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      color: #baff29;
+    }
 
     p {
       max-width: 800px;
@@ -88,17 +88,9 @@
     }
 
     @media (max-width: 600px) {
-      h1 {
-        font-size: 2rem;
-      }
-
-      p {
-        font-size: 1.1rem;
-      }
-
-      .home-btn {
-        font-size: 0.95rem;
-      }
+      h1 { font-size: 2rem; }
+      p { font-size: 1.1rem; }
+      .home-btn { font-size: 0.95rem; }
     }
   </style>
 </head>
@@ -109,20 +101,29 @@
   </div>
 
   <h1 id="title">Hakkımızda</h1>
-  <p id="aboutText">
-    TuneTRa, müzik tutkunlarını bir araya getiren yaratıcı bir platformdur. 
-    Kullanıcılar şiirlerini ve melodilerini paylaşarak birlikte şarkı oluşturabilir.
-    TuneTRa, genç yeteneklerin fikirlerini hayata geçirmeleri için güvenli ve eğlenceli bir ortam sunar. 
-    Ayrıca, arkadaşlık sistemi sayesinde kullanıcılar arkadaşlarıyla mesajlaşabilir ve iş birliği yapabilir.
-  </p>
-
+  <p id="aboutText">Yükleniyor...</p>
   <a href="anasayfa.html" class="home-btn" id="homeBtn">🏠 Anasayfaya Dön</a>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
     const translations = {
       tr: {
         title: "Hakkımızda",
-        text: `TuneTRa, müzik tutkunlarını bir araya getiren yaratıcı bir platformdur. 
+        defaultText: `TuneTRa, müzik tutkunlarını bir araya getiren yaratıcı bir platformdur. 
 Kullanıcılar şiirlerini ve melodilerini paylaşarak birlikte şarkı oluşturabilir.
 TuneTRa, genç yeteneklerin fikirlerini hayata geçirmeleri için güvenli ve eğlenceli bir ortam sunar. 
 Ayrıca, arkadaşlık sistemi sayesinde kullanıcılar arkadaşlarıyla mesajlaşabilir ve iş birliği yapabilir.`,
@@ -130,7 +131,7 @@ Ayrıca, arkadaşlık sistemi sayesinde kullanıcılar arkadaşlarıyla mesajla�
       },
       en: {
         title: "About Us",
-        text: `TuneTRa is a creative platform that brings music lovers together.
+        defaultText: `TuneTRa is a creative platform that brings music lovers together.
 Users can share their lyrics and melodies to collaboratively create songs.
 TuneTRa provides a safe and fun space for young talents to bring their ideas to life.
 Additionally, the friend system allows users to chat and collaborate with their friends.`,
@@ -138,14 +139,28 @@ Additionally, the friend system allows users to chat and collaborate with their 
       }
     };
 
-    function setLang(lang) {
-      document.getElementById("title").innerText = translations[lang].title;
-      document.getElementById("aboutText").innerText = translations[lang].text;
-      document.getElementById("homeBtn").innerText = translations[lang].home;
+    let currentLang = "tr";
+
+    async function loadAbout() {
+      const docRef = doc(db, "siteSettings", "aboutPage");
+      const docSnap = await getDoc(docRef);
+      const data = docSnap.exists() ? docSnap.data() : {};
+
+      const aboutText = currentLang === "tr" ? data.textTR || translations.tr.defaultText
+                                             : data.textEN || translations.en.defaultText;
+
+      document.getElementById("title").innerText = translations[currentLang].title;
+      document.getElementById("aboutText").innerText = aboutText;
+      document.getElementById("homeBtn").innerText = translations[currentLang].home;
     }
 
+    window.setLang = (lang) => {
+      currentLang = lang;
+      loadAbout();
+    };
+
     window.addEventListener("DOMContentLoaded", () => {
-      setLang("tr");
+      loadAbout();
     });
   </script>
 </body>
