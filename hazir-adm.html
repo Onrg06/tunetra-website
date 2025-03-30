@@ -72,7 +72,7 @@ body {
   <h1>🎶 Yüklenen Şarkılar (Admin)</h1>
   <div id="uploaderCount">Yükleniyor...</div>
   <div id="melodyList"></div>
-
+  <a href="adminpanel.html" class="admin-back-btn">⬅️ Yönetim Paneline Dön</a>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
     import {
@@ -146,7 +146,6 @@ body {
       await deleteDoc(doc(db, "songs", id));
       document.getElementById(`song-${id}`)?.remove();
     };
-    <a href="adminpanel.html" class="admin-back-btn">⬅️ Yönetim Paneline Dön</a>
 
   </script>
 </body>
