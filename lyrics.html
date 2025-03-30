@@ -168,15 +168,42 @@
     let currentLang = "tr";
 
     onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const userRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-          currentUsername = userSnap.data().username || "Anonim";
-        }
-      }
-    });
+  if (user) {
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      currentUsername = userSnap.data().username || "Anonim";
 
+      // Kullanıcı belirlendikten sonra listeleme başlasın
+      const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
+      onSnapshot(q, (snapshot) => {
+        lyricsList.innerHTML = "";
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const docId = docSnap.id;
+
+          const isOwn = auth.currentUser?.uid === data.uploaderUID 
+                     || (!data.uploaderUID && data.username === currentUsername);
+
+          const deleteBtnHTML = isOwn
+            ? `<button class="delete-btn" onclick="deleteLyric('${docId}')">&times;</button>`
+            : "";
+
+          const lyricElement = document.createElement("div");
+          lyricElement.classList.add("lyric-item");
+          lyricElement.innerHTML = `
+            <p class="username">${data.username}</p>
+            <p class="song-title">${data.title || "(Başlıksız)"}</p>
+            <p>${data.lyrics}</p>
+            <p class="timestamp">${data.timestamp?.toDate().toLocaleString()}</p>
+            ${deleteBtnHTML}
+          `;
+          lyricsList.appendChild(lyricElement);
+        });
+      });
+    }
+  }
+});
     document.getElementById("share-button").addEventListener("click", async () => {
       const title = document.getElementById("song-title").value.trim();
       const lyrics = document.getElementById("song-lyrics").value.trim();
