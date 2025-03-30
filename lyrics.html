@@ -2,15 +2,12 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Şarkı Sözleri Paylaş</title>
   <link rel="icon" type="image/png" href="image.png" />
+
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
       background-size: 400% 400%;
@@ -18,137 +15,96 @@
       color: white;
       min-height: 100vh;
       padding: 20px;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
     }
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-    header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .lang-switch {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
     .btn {
-      padding: 14px 18px;
+      padding: 12px 20px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
       border: none;
       border-radius: 10px;
       color: white;
       font-weight: bold;
-      text-decoration: none;
       cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      margin: 5px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     }
-    input.song-title-input, textarea {
-      width: 100%;
+    .btn:hover {
+      background: linear-gradient(to right, #2575fc, #6a11cb);
+    }
+    .lang-switch { text-align: center; margin-bottom: 20px; }
+    .input-area {
       max-width: 600px;
-      padding: 10px;
-      margin: 10px auto;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      display: block;
-    }
-    textarea {
-      height: 140px;
-      resize: none;
-    }
-    .action-buttons {
+      margin: auto;
       display: flex;
       flex-direction: column;
-      align-items: center;
       gap: 10px;
-      margin-top: 10px;
     }
-    .shared-lyrics {
-      width: 100%;
-      max-width: 600px;
-      margin: 40px auto 20px;
-    }
-    .lyric-item {
-      background-color: rgba(255, 255, 255, 0.1);
-      padding: 15px;
-      margin-bottom: 15px;
+    input, textarea {
+      padding: 12px;
       border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border: none;
+      font-size: 16px;
     }
-    .lyric-item p {
-      margin: 4px 0;
+    textarea { height: 140px; resize: none; }
+    .lyrics-list {
+      max-width: 600px;
+      margin: 40px auto 0;
     }
-    .username {
-      font-weight: bold;
-      font-size: 18px;
-      color: #ffcc70;
+    .item {
+      background: rgba(0,0,0,0.4);
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
     }
-    .song-title {
-      font-size: 20px;
-      font-weight: bold;
-      color: #ffffff;
-      margin: 6px 0;
-    }
-    .timestamp {
-      font-size: 0.9em;
-      color: #ffffffcc;
-      font-style: italic;
-    }
+    .item h3 { color: #ffcc70; }
+    .item .username { font-weight: bold; }
+    .item .timestamp { font-size: 0.9em; font-style: italic; color: #ddd; }
     .delete-btn {
-      margin-top: 10px;
-      padding: 6px 12px;
       background: red;
+      padding: 8px 12px;
       border: none;
       border-radius: 6px;
       color: white;
       cursor: pointer;
-    }
-    .delete-btn:hover {
-      background: darkred;
-    }
-    @media (max-width: 600px) {
-      .lang-switch {
-        flex-direction: column;
-      }
-      .btn {
-        width: 100%;
-      }
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <header>
-    <div class="lang-switch">
-      <button class="btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
-      <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
-    </div>
-    <h1 id="page-title">Şarkı Sözlerini Paylaş</h1>
-    <p id="info-text">Söz / Şiirlerinizi yazın ve paylaşın! (Telif hakkınız saklıdır)</p>
-  </header>
-
-  <input type="text" id="song-title" class="song-title-input" placeholder="Şarkı başlığını yazın..." />
-  <textarea id="song-lyrics" placeholder="Şarkı sözlerinizi yazın..."></textarea>
-
-  <div class="action-buttons">
-    <button class="btn" id="share-button">Paylaş</button>
-    <button class="btn" id="home" onclick="window.location.href='anasayfa.html'">Anasayfa</button>
+  <div class="lang-switch">
+    <button class="btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
+    <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
   </div>
 
-  <div class="shared-lyrics">
-    <h2 id="shared-title">Paylaşılan Sözler</h2>
-    <div id="lyrics-list"></div>
+  <h1 id="title">Şarkı Sözlerini Paylaş</h1>
+  <p id="desc">Söz / Şiirlerinizi yazın ve paylaşın! (Telif hakkınız saklıdır)</p>
+
+  <div class="input-area">
+    <input type="text" id="songTitle" placeholder="Şarkı başlığı">
+    <textarea id="lyrics" placeholder="Şarkı sözlerinizi yazın..."></textarea>
+    <button class="btn" id="shareBtn">Paylaş</button>
+    <button class="btn" onclick="location.href='anasayfa.html'" id="homeBtn">Anasayfa</button>
+  </div>
+
+  <div class="lyrics-list">
+    <h2 id="sharedTitle">Paylaşılan Sözler</h2>
+    <div id="lyricsList"></div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
+    import {
+      getFirestore, collection, addDoc, serverTimestamp, onSnapshot,
+      orderBy, query, deleteDoc, doc
+    } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -163,98 +119,109 @@
     const db = getFirestore(app);
     const auth = getAuth();
 
-    let currentUsername = "";
     let currentUID = "";
+    let currentUsername = "";
     let currentLang = "tr";
+
+    const translations = {
+      tr: {
+        title: "Şarkı Sözlerini Paylaş",
+        desc: "Söz / Şiirlerinizi yazın ve paylaşın! (Telif hakkınız saklıdır)",
+        placeholderTitle: "Şarkı başlığı",
+        placeholderLyrics: "Şarkı sözlerinizi yazın...",
+        share: "Paylaş",
+        home: "Anasayfa",
+        shared: "Paylaşılan Sözler",
+        empty: "Henüz paylaşım yok.",
+        confirmDelete: "Bu sözü silmek istediğinize emin misiniz?",
+        error: "Bir hata oluştu.",
+        success: "Paylaşıldı!"
+      },
+      en: {
+        title: "Share Your Lyrics",
+        desc: "Write your lyrics and share them! (Your copyright is protected)",
+        placeholderTitle: "Song title",
+        placeholderLyrics: "Write your lyrics here...",
+        share: "Share",
+        home: "Home",
+        shared: "Shared Lyrics",
+        empty: "No lyrics shared yet.",
+        confirmDelete: "Are you sure you want to delete this lyric?",
+        error: "An error occurred.",
+        success: "Shared successfully!"
+      }
+    };
+
+    window.setLang = function (lang) {
+      currentLang = lang;
+      const t = translations[lang];
+      document.getElementById("title").innerText = t.title;
+      document.getElementById("desc").innerText = t.desc;
+      document.getElementById("songTitle").placeholder = t.placeholderTitle;
+      document.getElementById("lyrics").placeholder = t.placeholderLyrics;
+      document.getElementById("shareBtn").innerText = t.share;
+      document.getElementById("homeBtn").innerText = t.home;
+      document.getElementById("sharedTitle").innerText = t.shared;
+    };
+
+    window.addEventListener("DOMContentLoaded", () => setLang("tr"));
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         currentUID = user.uid;
-        const userSnap = await getDoc(doc(db, "users", currentUID));
-        if (userSnap.exists()) {
-          currentUsername = userSnap.data().username || "Anonim";
-        }
+        const userDoc = await doc(db, "users", user.uid);
+        const snap = await getDoc(userDoc);
+        if (snap.exists()) currentUsername = snap.data().username || "Anonim";
       }
     });
 
-    document.getElementById("share-button").addEventListener("click", async () => {
-      const title = document.getElementById("song-title").value.trim();
-      const lyrics = document.getElementById("song-lyrics").value.trim();
-
-      if (!title || !lyrics) {
-        alert(currentLang === "tr" ? "Lütfen başlık ve sözleri yazın." : "Please enter both title and lyrics.");
-        return;
-      }
+    document.getElementById("shareBtn").addEventListener("click", async () => {
+      const title = document.getElementById("songTitle").value.trim();
+      const lyrics = document.getElementById("lyrics").value.trim();
+      if (!title || !lyrics) return alert(translations[currentLang].error);
 
       try {
         await addDoc(collection(db, "lyrics"), {
           title,
           lyrics,
           username: currentUsername,
-          uploaderUID: currentUID,
+          uploaderUID: auth.currentUser.uid,
           timestamp: serverTimestamp()
         });
-        alert(currentLang === "tr" ? "Paylaşım başarılı!" : "Shared successfully!");
-        document.getElementById("song-title").value = "";
-        document.getElementById("song-lyrics").value = "";
+        alert(translations[currentLang].success);
+        document.getElementById("songTitle").value = "";
+        document.getElementById("lyrics").value = "";
       } catch (err) {
-        alert(currentLang === "tr" ? "Hata oluştu." : "An error occurred.");
+        alert(translations[currentLang].error);
       }
     });
 
-    const lyricsList = document.getElementById("lyrics-list");
+    const lyricsList = document.getElementById("lyricsList");
     const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
-
     onSnapshot(q, (snapshot) => {
       lyricsList.innerHTML = "";
+      if (snapshot.empty) {
+        lyricsList.innerHTML = `<p>${translations[currentLang].empty}</p>`;
+      }
       snapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        const docId = docSnap.id;
-        const showDelete = data.uploaderUID === currentUID;
-
-        const lyricElement = document.createElement("div");
-        lyricElement.classList.add("lyric-item");
-        lyricElement.innerHTML = `
-          <p class="username">${data.username}</p>
-          <p class="song-title">${data.title || "(Başlıksız)"}</p>
-          <p>${data.lyrics}</p>
-          <p class="timestamp">${data.timestamp?.toDate().toLocaleString()}</p>
-          ${showDelete ? `<button class="delete-btn" onclick="deleteLyric('${docId}')">❌ Sil</button>` : ""}
+        const d = docSnap.data();
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <h3>${d.title}</h3>
+          <p class="username">${d.username}</p>
+          <p>${d.lyrics.replace(/\n/g, "<br>")}</p>
+          <p class="timestamp">${d.timestamp?.toDate().toLocaleString() || ""}</p>
+          ${d.uploaderUID === auth.currentUser?.uid ? `<button class="delete-btn" onclick="deleteLyric('${docSnap.id}')">❌ Sil</button>` : ""}
         `;
-        lyricsList.appendChild(lyricElement);
+        lyricsList.appendChild(div);
       });
     });
 
-    window.deleteLyric = async function (id) {
-      if (confirm(currentLang === "tr" ? "Bu sözü silmek istediğinize emin misiniz?" : "Are you sure you want to delete this lyric?")) {
-        await deleteDoc(doc(db, "lyrics", id));
-      }
+    window.deleteLyric = async function(id) {
+      if (!confirm(translations[currentLang].confirmDelete)) return;
+      await deleteDoc(doc(db, "lyrics", id));
     };
-
-    window.setLang = function(lang) {
-      currentLang = lang;
-      if (lang === "tr") {
-        document.getElementById("page-title").innerText = "Şarkı Sözlerini Paylaş";
-        document.getElementById("info-text").innerText = "Söz / Şiirlerinizi yazın ve paylaşın! (Telif hakkınız saklıdır)";
-        document.getElementById("shared-title").innerText = "Paylaşılan Sözler";
-        document.getElementById("share-button").innerText = "Paylaş";
-        document.getElementById("home").innerText = "Anasayfa";
-        document.getElementById("song-title").placeholder = "Şarkı başlığını yazın...";
-        document.getElementById("song-lyrics").placeholder = "Şarkı sözlerinizi yazın...";
-      } else {
-        document.getElementById("page-title").innerText = "Share Your Lyrics";
-        document.getElementById("info-text").innerText = "Write your lyrics and share! (Your copyright is protected)";
-        document.getElementById("shared-title").innerText = "Shared Lyrics";
-        document.getElementById("share-button").innerText = "Share";
-        document.getElementById("home").innerText = "Home Page";
-        document.getElementById("song-title").placeholder = "Enter the song title...";
-        document.getElementById("song-lyrics").placeholder = "Write your lyrics here...";
-      }
-    };
-
-    window.addEventListener("DOMContentLoaded", () => {
-      setLang("tr");
-    });
   </script>
 </body>
 </html>
