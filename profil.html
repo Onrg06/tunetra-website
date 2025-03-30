@@ -15,9 +15,7 @@
       --button-hover: linear-gradient(to right, #ffcc70, #6a11cb);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -46,16 +44,8 @@
       box-shadow: 0 0 10px rgba(255,255,255,0.3);
     }
 
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: bold;
-    }
+    h2 { text-align: center; margin-bottom: 20px; }
+    label { display: block; margin-top: 15px; font-weight: bold; }
 
     input {
       width: 100%;
@@ -218,13 +208,16 @@
     <button onclick="updateProfile()" id="btnUpdateProfile">Bilgileri Güncelle</button>
 
     <label id="labelPassword">Yeni Şifre</label>
-    <input type="password" id="newPassword">
+    <input type="password" id="newPassword" placeholder="Yeni şifre">
+
+    <label id="labelPasswordConfirm">Yeni Şifre (Tekrar)</label>
+    <input type="password" id="confirmPassword" placeholder="Yeni şifre tekrar">
+
     <button onclick="updatePassword()" id="btnPassword">Şifreyi Güncelle</button>
 
     <button style="background: red;" onclick="deleteAccount()" id="btnDelete">Hesabı Sil</button>
     <div id="messageBox"></div>
-    <button onclick="goToMyCreations()" id="btnMyCreations">📁 Yaptıklarım</button></div>
-
+    <button onclick="goToMyCreations()" id="btnMyCreations">📁 Yaptıklarım</button>
   </div>
 
   <script type="module">
@@ -256,14 +249,18 @@
         labelUsername: "Kullanıcı Adı",
         labelDob: "Doğum Tarihi",
         labelPassword: "Yeni Şifre",
+        labelPasswordConfirm: "Yeni Şifre (Tekrar)",
         btnUpdateProfile: "Bilgileri Güncelle",
         btnPassword: "Şifreyi Güncelle",
         btnDelete: "Hesabı Sil",
         updateSuccess: "Bilgiler güncellendi!",
         passwordSuccess: "Şifre güncellendi!",
         deleted: "Hesap silindi.",
-        home: "Ana Sayfa"
-        btnMyCreations: "📁 Yaptıklarım"
+        home: "Ana Sayfa",
+        btnMyCreations: "📁 Yaptıklarım",
+        passwordMismatch: "Şifreler uyuşmuyor!",
+        passwordEmpty: "Lütfen her iki şifreyi de girin.",
+        passwordFail: "Şifre güncellenemedi!"
       },
       en: {
         profileTitle: "My Profile",
@@ -272,14 +269,18 @@
         labelUsername: "Username",
         labelDob: "Date of Birth",
         labelPassword: "New Password",
+        labelPasswordConfirm: "Confirm New Password",
         btnUpdateProfile: "Update Info",
         btnPassword: "Update Password",
         btnDelete: "Delete Account",
         updateSuccess: "Profile updated!",
         passwordSuccess: "Password updated!",
         deleted: "Account deleted.",
-        home: "Home"
-        btnMyCreations: "📁 My Creations"
+        home: "Home",
+        btnMyCreations: "📁 My Creations",
+        passwordMismatch: "Passwords do not match!",
+        passwordEmpty: "Please enter both passwords.",
+        passwordFail: "Password update failed!"
       }
     };
 
@@ -290,9 +291,9 @@
         if (el) el.innerText = t[key];
       }
       updateHomeButtonText();
-      if (document.getElementById("btnMyCreations")) document.getElementById("btnMyCreations").innerText = t.btnMyCreations;
+      const btnMyCreations = document.getElementById("btnMyCreations");
+      if (btnMyCreations) btnMyCreations.innerText = t.btnMyCreations;
     }
-  
 
     window.changeLang = function(lang) {
       currentLang = lang;
@@ -308,7 +309,7 @@
     function showMessage(msg) {
       const box = document.getElementById("messageBox");
       box.innerText = msg;
-      setTimeout(() => box.innerText = "", 3000);
+      setTimeout(() => box.innerText = "", 4000);
     }
 
     onAuthStateChanged(auth, async (user) => {
@@ -339,9 +340,22 @@
     }
 
     window.updatePassword = async () => {
+      const t = translations[currentLang];
       const newPassword = document.getElementById("newPassword").value;
-      await firebaseUpdatePassword(currentUser, newPassword);
-      showMessage(translations[currentLang].passwordSuccess);
+      const confirmPassword = document.getElementById("confirmPassword").value;
+
+      if (!newPassword || !confirmPassword) return showMessage(t.passwordEmpty);
+      if (newPassword !== confirmPassword) return showMessage(t.passwordMismatch);
+
+      try {
+        await firebaseUpdatePassword(currentUser, newPassword);
+        showMessage(t.passwordSuccess);
+        document.getElementById("newPassword").value = "";
+        document.getElementById("confirmPassword").value = "";
+      } catch (error) {
+        console.error(error);
+        showMessage(t.passwordFail);
+      }
     }
 
     window.deleteAccount = async () => {
@@ -352,9 +366,8 @@
       }
     }
 
-    window.goHome = function () {
-      window.location.href = "anasayfa.html";
-    };
+    window.goHome = () => location.href = "anasayfa.html";
+    window.goToMyCreations = () => location.href = "yaptiklarim.html";
 
     window.addEventListener("DOMContentLoaded", () => {
       changeLang(currentLang);
