@@ -339,55 +339,28 @@ if (chatItem) {
 
   setupLoadMoreButton(messagesCol);
 
-unsubMessages = onSnapshot(
-  query(messagesCol, orderBy("timestamp", "asc")),
-  async (snapshot) => {
-    for (const docChange of snapshot.docChanges()) {
-      const msg = { id: docChange.doc.id, ...docChange.doc.data() };
+  unsubMessages = onSnapshot(query(messagesCol, orderBy("timestamp", "asc"), limitToLast(1)), async (snapshot) => {
+  for (const docChange of snapshot.docChanges()) {
+    const msg = { id: docChange.doc.id, ...docChange.doc.data() };
+    if (loadedMessageIds.has(msg.id)) continue;
 
-      // ✅ SİLİNEN MESAJ
-      if (docChange.type === "removed") {
-        const div = document.querySelector(`.message[data-id="${msg.id}"]`);
-        if (div) div.remove();
-        loadedMessageIds.delete(msg.id);
-        continue;
-      }
+    loadedMessageIds.add(msg.id);
+    const div = await buildMessageDiv(msg);
+    area.appendChild(div);
+    setTimeout(() => area.scrollTop = area.scrollHeight, 100);
 
-      // ✅ DÜZENLENEN MESAJ
-      if (docChange.type === "modified") {
-        const div = document.querySelector(`.message[data-id="${msg.id}"]`);
-        if (div) {
-          div.querySelector(".msg-text").innerText = msg.text;
-          div.querySelector(".timestamp").innerText = `${t[lang].sentAt}: ${formatTimestamp(msg.timestamp)}`;
-        }
-        continue;
-      }
-
-      // ✅ YENİ MESAJ → sadece daha önce eklenmediyse
-      if (docChange.type === "added" && !loadedMessageIds.has(msg.id)) {
-        loadedMessageIds.add(msg.id);
-        const div = await buildMessageDiv(msg);
-        area.appendChild(div);
-
-        // ✅ Scroll’u aşağı indir
-        setTimeout(() => {
-          area.scrollTop = area.scrollHeight;
-        }, 50);
-
-        // ✅ Eğer bu kullanıcı mesajı görmemişse → seenBy ekle
-        if (!msg.seenBy?.includes(currentUser.uid)) {
-          await updateDoc(doc(db, "conversations", convoId, "messages", msg.id), {
-            seenBy: arrayUnion(currentUser.uid)
-          });
-        }
-
-        // ✅ Sohbet listesinde güncelleme yap
-        await updateChatListItem(selectedFriendId);
-      }
+    // Önce seenBy güncelle
+    if (!msg.seenBy?.includes(currentUser.uid)) {
+      await updateDoc(doc(db, "conversations", convoId, "messages", msg.id), {
+        seenBy: arrayUnion(currentUser.uid)
+      });
     }
-  }
-);
 
+    // Sonra listeyi güncelle (bildirim işareti artık görünmemeli)
+    await updateChatListItem(selectedFriendId);
+  }
+});
+}
 
 function setupLoadMoreButton(messagesCol) {
   const loadBtn = document.getElementById("loadMoreBtn");
@@ -468,16 +441,13 @@ if (msg.sender === currentUser.uid) {
   deleteBtn.style.marginLeft = "6px";
   deleteBtn.onclick = async () => {
     if (confirm("Mesaj silinsin mi?")) {
-  const convoId = getConversationId(currentUser.uid, selectedFriendId);
-  await deleteDoc(doc(db, "conversations", convoId, "messages", msg.id));
+      const convoId = getConversationId(currentUser.uid, selectedFriendId);
+      await deleteDoc(doc(db, "conversations", convoId, "messages", msg.id));
 
-  // DOM'dan mesajı kaldır
-  const divToRemove = document.querySelector(`.message[data-id="${msg.id}"]`);
-  if (divToRemove) divToRemove.remove();
-
-  // loadedMessageIds'den de sil
-  loadedMessageIds.delete(msg.id);
-}
+      // DOM'dan mesajı kaldır
+      const divToRemove = document.querySelector(`.message[data-id="${msg.id}"]`);
+      if (divToRemove) divToRemove.remove();
+    }
   };
 
   div.appendChild(editBtn);
