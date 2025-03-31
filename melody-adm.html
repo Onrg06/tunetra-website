@@ -118,34 +118,41 @@
       loadMelodies();
     });
 
-    function loadMelodies() {
-      const q = query(collection(db, "melodies"), orderBy("timestamp", "desc"));
-      onSnapshot(q, (snapshot) => {
-        list.innerHTML = "";
-        const uniqueUploaders = new Set();
+function loadMelodies() {
+  const q = query(collection(db, "melodies"), orderBy("timestamp", "desc"));
+  onSnapshot(q, (snapshot) => {
+    console.log("Snapshot alındı:", snapshot);  // Veriyi konsola yazdıralım
+    list.innerHTML = "";
+    const uniqueUploaders = new Set();
 
-        snapshot.forEach(docSnap => {
-          const d = docSnap.data();
-          const docId = docSnap.id;
-          const time = d.timestamp?.toDate().toLocaleString() || "";
-          uniqueUploaders.add(d.uploaderUID);
+    // Veriyi işliyoruz
+    snapshot.forEach(docSnap => {
+      const d = docSnap.data();
+      const docId = docSnap.id;
+      const time = d.timestamp?.toDate().toLocaleString() || "";
+      uniqueUploaders.add(d.uploaderUID);
 
-          const canDelete = isAdmin || d.uploaderUID === currentUID;
+      const canDelete = isAdmin || d.uploaderUID === currentUID;
 
-          list.innerHTML += `
-            <div class="melody-item" id="melody-${docId}">
-              <p><strong>${d.uploader}</strong> (${time})</p>
-              <audio controls src="${d.audioUrl}"></audio>
-              <h3>${d.title}</h3>
-              <p>${d.lyrics.replace(/\\n/g, "<br>")}</p>
-              ${canDelete ? `<button class="btn" onclick="deleteMelody('${docId}')">❌ Sil</button>` : ""}
-            </div>
-          `;
-        });
+      list.innerHTML += `
+        <div class="melody-item" id="melody-${docId}">
+          <p><strong>${d.uploader}</strong> (${time})</p>
+          <audio controls src="${d.audioUrl}"></audio>
+          <h3>${d.title}</h3>
+          <p>${d.lyrics.replace(/\\n/g, "<br>")}</p>
+          ${canDelete ? `<button class="btn" onclick="deleteMelody('${docId}')">❌ Sil</button>` : ""}
+        </div>
+      `;
+    });
 
-        countBox.innerText = `Toplam ${uniqueUploaders.size} farklı kullanıcı melodi paylaştı.`;
-      });
-    }
+    // Yüklenen kullanıcı sayısını güncelle
+    countBox.innerText = `Toplam ${uniqueUploaders.size} farklı kullanıcı melodi paylaştı.`;
+  }, (error) => {
+    console.error("Veri yüklenirken bir hata oluştu:", error);
+    countBox.innerText = "Veriler yüklenemedi, lütfen tekrar deneyin.";
+  });
+}
+
 
     window.deleteMelody = async function (id) {
       if (!confirm("Bu melodiyi silmek istediğine emin misin?")) return;
