@@ -196,7 +196,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Fix: Timestamp formatter
 function formatTimestamp(ts) {
   if (!ts || !ts.toDate) return "-";
   const d = ts.toDate();
@@ -205,6 +204,7 @@ function formatTimestamp(ts) {
   const yil = d.getFullYear();
   const saat = d.getHours().toString().padStart(2, "0");
   const dakika = d.getMinutes().toString().padStart(2, "0");
+
   return `${gun}/${ay}/${yil} ${saat}:${dakika}`;
 }
 
