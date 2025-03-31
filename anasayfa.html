@@ -258,35 +258,47 @@ async function updateTexts() {
 function listenForNotifications(uid) {
   const q = query(
     collection(db, "notifications"),
-    where("to", "==", uid),
-    orderBy("timestamp", "desc")
+    where("to", "==", uid),  // Bu filtre kullanıcının UID'sine göre bildirimleri çekiyor
+    orderBy("timestamp", "desc")  // Zaman sırasına göre sıralama
   );
 
+  // Verilerin güncellenmesi anlık (real-time) olarak yapılır
   onSnapshot(q, (snapshot) => {
     if (!snapshot.empty) {
+      // İlk bildirimi alıyoruz
       const doc = snapshot.docs[0];
       const data = doc.data();
-      showNotification(data.message, doc.id);
+      console.log("Yeni Bildirim Verisi:", data);  // Burada veriyi konsola yazdırıyoruz
+      showNotification(data.message, doc.id);  // Bildirimi ekrana yansıtıyoruz
+    } else {
+      console.log("Yeni bildirim yok.");
     }
   });
 }
+
 
 function showNotification(message, docId) {
   const notifBox = document.getElementById("songNotificationBox");
   const notifText = document.getElementById("notifText");
 
-  notifText.innerText = message;
-  notifBox.style.display = "block";
-
-  document.getElementById("dismissNotif").onclick = async () => {
-    try {
-      await deleteDoc(doc(db, "notifications", docId));
-      notifBox.style.display = "none";
-    } catch (e) {
-      alert("Bildirim silinemedi: " + e.message);
-    }
-  };
+  if (notifBox && notifText) {
+    notifText.innerText = message;  // Mesajı güncelliyoruz
+    notifBox.style.display = "block";  // Bildirimi görünür yapıyoruz
+  
+    document.getElementById("dismissNotif").onclick = async () => {
+      try {
+        // Bildirimi Firestore'dan silme
+        await deleteDoc(doc(db, "notifications", docId));
+        notifBox.style.display = "none";  // Bildirimi gizleme
+      } catch (e) {
+        alert("Bildirim silinemedi: " + e.message);
+      }
+    };
+  } else {
+    console.log("Bildirim kutusu veya metin bulunamadı.");
+  }
 }
+
 
 window.logout = function () {
   signOut(auth).then(() => {
