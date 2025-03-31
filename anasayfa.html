@@ -224,7 +224,20 @@ async function updateUI() {
     const username = userDoc.data().username;
     const role = userDoc.data().role || "user";
     document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
+    document.getElementById("introText").innerHTML = translations[currentLang].intro;
     document.getElementById("btnMessages").innerText = `📨 ${translations[currentLang].messages}`;
+    document.getElementById("introText").innerHTML = translations[currentLang].intro;
+    document.getElementById("btnProfile").innerText = translations[currentLang].profile;
+    document.getElementById("btnFriends").innerText = translations[currentLang].friends;
+    document.getElementById("btnMessages").innerText = `📨 ${translations[currentLang].messages}`;
+    document.getElementById("btnFeedback").innerText = translations[currentLang].feedback;
+    document.getElementById("btnAbout").innerText = translations[currentLang].about;
+    document.getElementById("btnLyrics").innerText = translations[currentLang].lyrics;
+    document.getElementById("btnMelody").innerText = translations[currentLang].melody;
+    document.getElementById("btnSongs").innerText = translations[currentLang].songs;
+    document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
+    document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
+
     if (role === "admin") {
       document.getElementById("btnAdmin").style.display = "block";
     }
