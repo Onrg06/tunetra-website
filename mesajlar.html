@@ -516,22 +516,23 @@ window.sendMessage = async () => {
   if (editId) {
     await updateDoc(doc(msgCol, editId), { text });
 
-    // DOM'da mesaj metnini güncelle
     const msgDiv = document.querySelector(`.message[data-id="${editId}"]`);
     if (msgDiv) {
       msgDiv.querySelector(".msg-text").innerText = text;
     }
 
     delete input.dataset.editing;
-} else {
-  const msg = {
-    sender: currentUser.uid,
-    text,
-    timestamp: serverTimestamp(), // ✅ Doğru
-    seenBy: []
-  };
-  await addDoc(msgCol, msg); // ✅ BU satır eksikti
-}
+  } else {
+    const msg = {
+      sender: currentUser.uid,
+      text,
+      timestamp: serverTimestamp(),
+      seenBy: []
+    };
+    await addDoc(msgCol, msg);
+    // ❌ UI'ya burada ekleme YAPMA — timestamp henüz gelmemiştir!
+  }
+
   input.value = "";
 };
 
