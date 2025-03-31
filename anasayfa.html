@@ -193,44 +193,26 @@
 
   let currentLang = "tr";
 
-  const translations = {
-    tr: {
-      welcome: "🎶 Hoş Geldin, ",
-      intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!",
-      logout: "Çıkış Yap",
-      profile: "👤 Profilim",
-      friends: "🧑‍🤝‍🧑 Arkadaşlarım",
-      messages: "Mesajlarım",
-      feedback: "📮 Dilek & Şikayet Kutusu",
-      announcements: "📢 Duyurular",
-      about: "ℹ️ Hakkımızda",
-      lyrics: "✍️ Sözler / Şiirler",
-      melody: "🎵 Melodi",
-      songs: "🎶 Hazır Şarkılar"
-    },
-    en: {
-      welcome: "🎶 Welcome, ",
-      intro: "You’re in the right place to create your dream song.<br><br>Share your lyrics or melody, let others collaborate and turn them into music.<br><br>On Tunetra, music is born through collaboration!",
-      logout: "Log Out",
-      profile: "👤 My Profile",
-      friends: "🧑‍🤝‍🧑 My Friends",
-      messages: "My Messages",
-      feedback: "📮 Feedback & Complaints",
-      announcements: "📢 Announcements",
-      about: "ℹ️ About",
-      lyrics: "✍️ Lyrics",
-      melody: "🎵 Melody",
-      songs: "🎶 Ready Songs"
-    }
-  };
-
   // Set language
   window.setLang = function (lang) {
     currentLang = lang;
     updateUI();
   };
 
-  // Update UI
+  // Yeni mesaj sayısını artır
+  async function incrementNewMessagesCount(uid) {
+    const userRef = doc(db, "users", uid);
+    const userDoc = await getDoc(userRef);
+    if (userDoc.exists()) {
+      const currentCount = userDoc.data().newMessagesCount || 0;
+      // Yeni mesaj sayısını artır
+      await updateDoc(userRef, {
+        newMessagesCount: currentCount + 1
+      });
+    }
+  }
+
+  // UI'yı güncelle
   async function updateUI() {
     const user = auth.currentUser;
     if (!user) return;
@@ -240,7 +222,7 @@
     if (!userDoc.exists()) return;
 
     const username = userDoc.data().username;
-    const newMessagesCount = userDoc.data().newMessagesCount || 0; // Yeni mesaj sayısı
+    const newMessagesCount = userDoc.data().newMessagesCount || 0;
 
     // UI'yı güncelle
     document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
@@ -260,9 +242,9 @@
     const msgDot = document.getElementById("msgDot");
     if (newMessagesCount > 0) {
       msgDot.style.display = "inline-block";
-      msgDot.textContent = `(${newMessagesCount})`; // Sayıyı parantez içinde göster
+      msgDot.textContent = `(${newMessagesCount})`; 
     } else {
-      msgDot.style.display = "none"; // Mesaj yoksa gizle
+      msgDot.style.display = "none"; 
     }
   }
 
@@ -287,7 +269,6 @@
     const userDoc = await getDoc(userRef);
     if (userDoc.exists()) {
       const currentCount = userDoc.data().newMessagesCount || 0;
-      // Yeni mesaj sayısını artır
       await updateDoc(userRef, {
         newMessagesCount: currentCount + 1
       });
@@ -298,17 +279,14 @@
   window.addEventListener("DOMContentLoaded", () => {
     setLang("tr");
 
-    // 🔐 auth kullanıcısı yüklendiğinde listener'ı ekle
     onAuthStateChanged(auth, async (user) => {
-      if (!user) return window.location.href = "index.html"; // Eğer kullanıcı yoksa giriş sayfasına yönlendir
+      if (!user) return window.location.href = "index.html";
 
-      // Inbox değişikliklerini dinlemeye başla
       listenInboxChanges(user.uid);
 
       const userDoc = await getDoc(doc(db, "users", user.uid));
       let newMessagesCount = userDoc.exists() && userDoc.data().newMessagesCount || 0;
 
-      // UI'yı güncelle
       await updateUI(newMessagesCount);
     });
   });
@@ -321,13 +299,12 @@
         const data = docSnap.data();
         const newMessagesCount = data.newMessagesCount || 0;
 
-        // Yeni mesaj sayısını parantez içinde göster
         const msgDot = document.getElementById("msgDot");
         if (newMessagesCount > 0) {
           msgDot.style.display = "inline-block";
-          msgDot.textContent = `(${newMessagesCount})`; // Sayıyı parantez içinde göster
+          msgDot.textContent = `(${newMessagesCount})`; 
         } else {
-          msgDot.style.display = "none"; // Mesaj yoksa gizle
+          msgDot.style.display = "none"; 
         }
       }
     });
@@ -336,11 +313,11 @@
   // Kullanıcı çıkışı
   window.logout = function () {
     signOut(auth).then(() => {
-      window.location.href = "index.html"; // Çıkış yaptıktan sonra anasayfaya yönlendir
+      window.location.href = "index.html"; 
     });
   };
-
 </script>
+
 
 </body>
 </html>
