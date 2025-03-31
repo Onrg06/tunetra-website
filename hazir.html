@@ -314,11 +314,33 @@ window.deleteSong = async function (id) {
     await deleteDoc(docRef);
     document.getElementById(`song-${id}`)?.remove();
     alert(getText("deleted") || "Silme başarılı");
+
+    // Bildirim gönder
+    await sendDeleteNotification(id);
+
   } catch (err) {
     console.error("Silme hatası:", err);
     alert(getText("deleteError") || "Silinirken hata oluştu");
   }
 };
+
+// Bildirim gönderme işlemi
+async function sendDeleteNotification(songId) {
+  const songDoc = await getDoc(doc(db, "songs", songId));
+  const songData = songDoc.data();
+  
+  // Eğer şarkıyı yükleyen veya işbirlikçi silmişse bildirim gönder
+  if (songData) {
+    const notificationData = {
+      to: songData.collaboratorUID, // Bildirimi alacak olan kişinin UID'si
+      message: `Bir arkadaşınızla paylaştığınız şarkı silindi: ${songData.title}`,
+      timestamp: serverTimestamp()
+    };
+
+    // Bildirimi Firestore'a kaydedin
+    await addDoc(collection(db, "notifications"), notificationData);
+  }
+}
 
 document.getElementById("melodyInput").addEventListener("change", function() {
   const file = this.files[0];
@@ -338,7 +360,10 @@ const texts = {
     uploadTitleEmpty: "Lütfen şarkının başlığını yazın.",
     uploadLyricsEmpty: "Lütfen şarkı sözlerini yazın.",
     friendInvalid: "Lütfen sadece arkadaş listenizden birini seçin.",
-    friendPlaceholder: "Arkadaş seç"
+    friendPlaceholder: "Arkadaş seç",
+    confirmDelete: "Bu şarkıyı silmek istiyor musunuz?",
+    deleted: "Şarkı başarıyla silindi.",
+    deleteError: "Silinirken hata oluştu."
   },
   en: {
     title: "Upload Melody",
@@ -352,7 +377,10 @@ const texts = {
     uploadTitleEmpty: "Please enter the song title.",
     uploadLyricsEmpty: "Please enter the lyrics.",
     friendInvalid: "Please select only from your friend list.",
-    friendPlaceholder: "Select a friend"
+    friendPlaceholder: "Select a friend",
+    confirmDelete: "Do you want to delete this song?",
+    deleted: "Song successfully deleted.",
+    deleteError: "Error occurred while deleting."
   }
 };
 
