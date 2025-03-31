@@ -281,9 +281,10 @@ onSnapshot(
       const count = unique.length;
       document.getElementById("btnMessages").innerText =
         count > 0 ? `📨 ${base} (${count})` : `📨 ${base}`;
-    });
+        });
+      }
+    );
   }
-);
 });
   window.logout = function () {
     signOut(auth).then(() => {
