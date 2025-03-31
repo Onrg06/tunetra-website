@@ -209,23 +209,24 @@ const translations = {
   }
 };
 
+// Dil değiştirme fonksiyonu
 window.setLang = function (lang) {
   currentLang = lang;
   updateUI();
 };
 
+// Firebase Authentication state değişimini kontrol et
 onAuthStateChanged(auth, (user) => {
   if (!user) {
-    window.location.href = "index.html";
+    window.location.href = "index.html"; // Kullanıcı giriş yapmadıysa giriş sayfasına yönlendir
   } else {
     currentUID = user.uid;
-    updateUI();
-    listenForFriendRequests(user.uid);
-    listenForMessages(user.uid);
-    listenForSharedSongs(user.uid);
+    updateUI(); // UI'yi güncelle
+    listenForSharedSongs(user.uid); // Paylaşılan şarkılar için dinleyici başlat
   }
 });
 
+// UI güncelleme fonksiyonu
 async function updateUI() {
   const user = auth.currentUser;
   if (!user) return;
@@ -235,8 +236,6 @@ async function updateUI() {
 
   if (userDoc.exists()) {
     const username = userDoc.data().username;
-    const role = userDoc.data().role || "user";
-
     document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
     document.getElementById("introText").innerHTML = translations[currentLang].intro;
     document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
@@ -249,57 +248,12 @@ async function updateUI() {
     document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
     document.getElementById("btnFriends").innerText = translations[currentLang].friends;
     document.getElementById("btnMessages").innerText = `📨 ${translations[currentLang].messages}`;
-
-    if (role === "admin") {
-      document.getElementById("btnAdmin").style.display = "block";
-    }
   }
 }
 
-function listenForFriendRequests(uid) {
-  onSnapshot(doc(db, "friendRequests", uid), (docSnap) => {
-    const count = docSnap.exists() ? (docSnap.data().requests?.length || 0) : 0;
-    const base = translations[currentLang].friends;
-    document.getElementById("btnFriends").innerText = count > 0 ? `${base} (${count})` : base;
-  });
-}
-
-function listenForMessages(uid) {
-  onSnapshot(
-    query(collection(db, "conversations"), where("users", "array-contains", uid)),
-    (convoSnap) => {
-      const base = translations[currentLang].messages;
-      const unseenFrom = new Set();
-
-      convoSnap.docs.forEach(convo => {
-        const convoId = convo.id;
-        const messagesRef = collection(db, "conversations", convoId, "messages");
-
-        onSnapshot(
-          query(messagesRef, orderBy("timestamp", "desc"), limit(1)),
-          (msgSnap) => {
-            msgSnap.forEach(doc => {
-              const msg = doc.data();
-              if (
-                msg.sender !== uid &&
-                (!msg.seenBy || !msg.seenBy.includes(uid))
-              ) {
-                unseenFrom.add(msg.sender);
-              }
-            });
-
-            const msgCount = unseenFrom.size;
-            document.getElementById("btnMessages").innerText =
-              msgCount > 0 ? `📨 ${base} (${msgCount})` : `📨 ${base}`;
-          }
-        );
-      });
-    }
-  );
-}
-
+// Firebase'den paylaşılan şarkıları dinle
 function listenForSharedSongs(uid) {
-  const sharedRef = collection(db, "songs");  // 'sharedSongs' yerine 'songs' koleksiyonu
+  const sharedRef = collection(db, "songs");
   const q = query(sharedRef, where("to", "==", uid));
 
   onSnapshot(q, (snapshot) => {
@@ -316,33 +270,36 @@ function listenForSharedSongs(uid) {
   });
 }
 
+// Yeni gelen bildirim için gösterim
 function showNotification(data, docId) {
   const notifBox = document.getElementById("songNotificationBox");
   const notifText = document.getElementById("notifText");
 
   notifText.innerHTML = `${translations[currentLang].sharedWithYou} <strong>${data.fromUsername}</strong>`;
-  notifBox.style.display = "block"; // Bildirimin görünür hale gelmesi sağlanır.
+  notifBox.style.display = "block"; // Bildirimi görünür hale getir
 
   document.getElementById("dismissNotif").onclick = () => {
     deleteNotification(docId);
   };
 }
 
+// Silinen şarkı için bildirim gösterim
 function showDeleteNotification(data) {
   const notifBox = document.getElementById("songNotificationBox");
   const notifText = document.getElementById("notifText");
 
   notifText.innerHTML = `${translations[currentLang].sharedSongDeleted} <strong>${data.fromUsername}</strong>`;
-  notifBox.style.display = "block"; // Bildirimin görünür hale gelmesi sağlanır.
+  notifBox.style.display = "block"; // Bildirimin görünür hale gelmesi sağlanır
 
   document.getElementById("dismissNotif").onclick = () => {
     deleteNotification(data.docId);
   };
 }
 
+// Bildirimi Firebase'den silme
 async function deleteNotification(docId) {
   try {
-    // Firestore'dan bildirim silme
+    // Firebase'den bildirim silme
     await deleteDoc(doc(db, "notifications", docId));  
     document.getElementById("songNotificationBox").style.display = "none"; // Bildirimi UI'dan kaldır
   } catch (e) {
@@ -350,7 +307,7 @@ async function deleteNotification(docId) {
   }
 }
 
-
+// Çıkış yapma fonksiyonu
 window.logout = function () {
   signOut(auth).then(() => {
     window.location.href = "index.html";
@@ -358,8 +315,9 @@ window.logout = function () {
 };
 
 window.addEventListener("DOMContentLoaded", () => {
-  setLang("tr");
+  setLang("tr"); // Sayfa yüklendiğinde Türkçe dilini varsayılan olarak ayarla
 });
 </script>
 </body>
 </html>
+
