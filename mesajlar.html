@@ -255,10 +255,6 @@ onAuthStateChanged(auth, user => {
   loadChatList(user.uid);
 });
 
-  await updateDoc(doc(db, "users", user.uid), {
-  inboxHasNew: false
-  });
-
 async function loadChatList(uid) {
   const friendsSnap = await getDoc(doc(db, "friends", uid));
   const list = document.getElementById("chatList");
@@ -523,6 +519,11 @@ window.sendMessage = async () => {
       seenBy: []
     };
     await addDoc(msgCol, msg);
+
+    // ✅ Karşı tarafa kırmızı nokta çıkması için
+    await updateDoc(doc(db, "users", selectedFriendId), {
+      inboxHasNew: true
+    });
   }
 
   input.value = "";
