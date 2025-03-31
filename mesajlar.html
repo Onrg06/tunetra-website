@@ -290,6 +290,7 @@ async function loadChatList(uid) {
     div.onclick = () => openChat(fid, div);
     list.appendChild(div);
   }
+  await listenForNewMessages(uid, friends);
 }
 
 async function openChat(fid, el) {
@@ -528,4 +529,51 @@ async function updateChatListItem(friendId) {
     }
   }
 }
+
+  async function listenForNewMessages(uid, friends) {
+  for (const fid of friends) {
+    const convoId = getConversationId(uid, fid);
+    const messagesCol = collection(db, "conversations", convoId, "messages");
+
+    onSnapshot(
+      query(messagesCol, orderBy("timestamp", "asc"), limitToLast(1)),
+      async (snapshot) => {
+        const doc = snapshot.docs[0];
+        if (!doc) return;
+
+        const msg = doc.data();
+        const hasNew = !msg.seenBy?.includes(uid);
+
+        const fdoc = await getDoc(doc(db, "users", fid));
+        if (!fdoc.exists()) return;
+
+        const name = fdoc.data().username;
+
+        // Sohbet kartını bul
+        const items = document.querySelectorAll(".chat-item");
+        for (const item of items) {
+          if (item.textContent.includes(name)) {
+            const lastMsgDiv = item.querySelector(".last-message");
+            if (lastMsgDiv) lastMsgDiv.textContent = msg.text;
+
+            // Kırmızı nokta varsa tekrar eklemeyelim
+            if (hasNew && !item.querySelector(".notification")) {
+              const notif = document.createElement("div");
+              notif.className = "notification";
+              item.appendChild(notif);
+            }
+
+            // Eğer mesaj okunduysa ama hala bildirim görünüyorsa onu da temizle
+            if (!hasNew && item.querySelector(".notification")) {
+              item.querySelector(".notification").remove();
+            }
+
+            break;
+          }
+        }
+      }
+    );
+  }
+}
+
 </script>
