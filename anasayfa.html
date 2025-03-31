@@ -244,6 +244,7 @@ async function updateUI() {
   }
 }
 
+const isOnMessagesPage = window.location.pathname.includes("mesajlar");
 onAuthStateChanged(auth, (user) => {
   if (!user) return location.href = "index.html";
 
@@ -272,12 +273,16 @@ onAuthStateChanged(auth, (user) => {
         return null;
       });
 
-      Promise.all(checkUnread).then((senders) => {
-        unreadMessageSenders = new Set(senders.filter(Boolean));
-        const count = unreadMessageSenders.size;
-        document.getElementById("btnMessages").innerText =
-          count > 0 ? `📨 ${base} (${count})` : `📨 ${base}`;
-      });
+Promise.all(checkUnread).then((senders) => {
+  unreadMessageSenders = new Set(senders.filter(Boolean));
+  const count = unreadMessageSenders.size;
+  const base = translations[currentLang].messages;
+
+  // Eğer mesajlar sayfasındaysa sayı gösterme
+  const finalText = count > 0 && !isOnMessagesPage ? `📨 ${base} (${count})` : `📨 ${base}`;
+  document.getElementById("btnMessages").innerText = finalText;
+});
+
     }
   );
 
