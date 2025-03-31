@@ -121,24 +121,11 @@
   <h1 id="welcomeMessage">🎶 Hoş Geldin!</h1>
   <p id="introText">Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!</p>
 
-  <div class="button-group">
-    <a href="profil.html" class="profile-btn" id="btnProfile">👤 Profilim</a>
-    <a href="arkadaslar.html" class="friends-btn" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım</a>
-    <a href="mesajlar.html" class="messages-btn" id="btnMessages">📨 Mesajlarım</a>
-  </div>
-
-  <div class="button-group">
-    <a href="lyrics.html" class="extra-btn" id="btnLyrics">✍️ Sözler / Şiirler</a>
-    <a href="melody.html" class="extra-btn" id="btnMelody">🎵 Melodi</a>
-    <a href="hazir.html" class="extra-btn" id="btnSongs">🎶 Hazır Şarkılar</a>
-  </div>
-
-  <div class="button-group">
-    <a href="dilek.html" class="extra-btn" id="btnFeedback">📮 Dilek & Şikayet Kutusu</a>
-    <a href="duyuru.html" class="extra-btn" id="btnAnnouncements">📢 Duyurular</a>
-    <a href="hakkimizda.html" class="extra-btn" id="btnAbout">ℹ️ Hakkımızda</a>
-    <a href="adminpanel.html" class="extra-btn" id="btnAdmin" style="display: none;">⚙️ Yönetim Paneline Git</a>
-    <a href="index.html" class="btn" onclick="logout()" id="logoutBtn">Çıkış Yap</a>
+  <div id="songNotificationBox">
+    <p id="songNotification">
+      <span id="notifText">🎵 Bir arkadaşın seninle bir şarkı paylaştı!</span>
+      <button id="dismissNotif">❌</button>
+    </p>
   </div>
 
 <script type="module">
@@ -304,36 +291,25 @@ function listenForSharedSongs(uid) {
 }
 
 function showNotification(data, docId) {
-  const notif = document.createElement("div");
-  notif.style = `
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 14px 20px;
-    margin-top: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    max-width: 340px;
-    text-align: center;
-  `;
+  const notifBox = document.getElementById("songNotificationBox");
+  const notifText = document.getElementById("notifText");
 
-  notif.innerHTML = `
-    <p>${translations[currentLang].sharedWithYou} <strong>${data.fromUsername}</strong></p>
-    <button style="margin-top:10px;padding:6px 14px;background:#ff4b4b;border:none;border-radius:8px;color:white;font-weight:bold;cursor:pointer;" onclick="deleteNotification('${docId}', this)">
-      ❌ ${translations[currentLang].close}
-    </button>
-  `;
+  notifText.innerHTML = `${translations[currentLang].sharedWithYou} <strong>${data.fromUsername}</strong>`;
+  notifBox.style.display = "block"; // Bildirimin görünür hale gelmesi sağlanır.
 
-  document.body.insertBefore(notif, document.body.firstChild);
+  document.getElementById("dismissNotif").onclick = () => {
+    deleteNotification(docId);
+  };
 }
 
-window.deleteNotification = async function (docId, btn) {
+async function deleteNotification(docId) {
   try {
     await deleteDoc(doc(db, "sharedSongs", docId));
-    btn.parentElement.remove();
+    document.getElementById("songNotificationBox").style.display = "none"; // Bildirimi UI'dan kaldır
   } catch (e) {
     alert("Silinemedi.");
   }
-};
+}
 
 window.logout = function () {
   signOut(auth).then(() => {
