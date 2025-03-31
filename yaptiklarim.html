@@ -268,18 +268,37 @@
     });
   }
 
-  window.deleteItem = async function (col, id, audioUrl = null) {
-    if (!confirm("Silmek istediğinizden emin misiniz?")) return;
+window.deleteItem = async function (col, id, audioUrl = null) {
+  if (!confirm("Silmek istediğinizden emin misiniz?")) return;
+
+  try {
+    // 1. Firebase'den belgeyi sil
     await deleteDoc(doc(db, col, id));
+
+    // 2. Eğer audioUrl varsa, Supabase'den dosyayı sil
     if (audioUrl) {
-      const fileName = audioUrl.split("/").pop().split("?")[0];
+      const fileName = audioUrl.split("/").pop().split("?")[0];  // URL'den dosya adını çıkar
       const bucket = col === "songs" ? "songs" : col === "melodies" ? "melodies" : null;
+
       if (bucket) {
-        await supabase.storage.from(bucket).remove([fileName]);
+        const { data, error } = await supabase.storage.from(bucket).remove([fileName]);
+
+        if (error) {
+          console.error("Supabase dosya silme hatası:", error.message);
+          alert("Ses dosyası silinirken bir hata oluştu.");
+        } else {
+          console.log("Ses dosyası başarıyla silindi:", data);
+        }
       }
     }
+
+    // 3. İçeriği yeniden yükle
     loadContent();
-  };
+  } catch (e) {
+    alert("Bir hata oluştu: " + e.message);
+    console.error("Silme hatası:", e);
+  }
+};
 
   window.editItem = async function (col, id, currentTitle, currentText) {
     const newTitle = prompt(currentLang === "tr" ? "Yeni başlık:" : "New title:", currentTitle);
