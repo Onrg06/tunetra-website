@@ -364,21 +364,31 @@ async function sendDeleteNotification(songId) {
     const songData = songDoc.data();
 
     if (songData) {
-      const notificationData = {
-        to: songData.collaboratorUID,
+      // Bildirim verisini hazırla
+      const notificationDataToCollaborator = {
+        to: songData.collaboratorUID, // Bildirimi alacak olan kişinin UID'si (işbirlikçi)
         message: `Bir arkadaşınızla paylaştığınız şarkı silindi: ${songData.title}`,
-        timestamp: serverTimestamp()
+        timestamp: serverTimestamp() // Zaman damgası ekle
       };
 
-      const docRef = await addDoc(collection(db, "notifications"), notificationData);
-      console.log("Bildirim başarıyla eklendi:", docRef.id); // Bildirimin ID'sini yazdır
+      const notificationDataToUploader = {
+        to: songData.uploaderUID, // Bildirimi alacak olan kişinin UID'si (yükleyen kişi)
+        message: `Bir işbirlikçiniz şarkınızı silmiş: ${songData.title}`,
+        timestamp: serverTimestamp() // Zaman damgası ekle
+      };
+
+      // Bildirimi Firestore'a ekle
+      const docRefCollaborator = await addDoc(collection(db, "notifications"), notificationDataToCollaborator);
+      const docRefUploader = await addDoc(collection(db, "notifications"), notificationDataToUploader);
+
+      console.log("Bildirimler başarıyla eklendi:", docRefCollaborator.id, docRefUploader.id); // Başarıyla eklenirse bildirimin ID'sini yazdır
 
     } else {
       console.log("Şarkı bulunamadı.");
     }
   } catch (e) {
     console.error("Bildirim eklenirken hata oluştu:", e);  // Hata mesajını yazdır
-    alert("Bildirim eklenirken hata oluştu: " + e.message);
+    alert("Bildirim eklenirken hata oluştu: " + e.message);  // Kullanıcıya hata mesajı göster
   }
 }
 
