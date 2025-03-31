@@ -121,19 +121,47 @@
   </style>
 </head>
 <body>
-<!-- 👇 DEVAMI BİR SONRAKİ MESAJDA: JavaScript kısmı eksiksiz şekilde entegre edilerek gönderilecek -->
-<!-- JavaScript: Tam entegrasyon (bildirim + silme yetkisi + TR/EN desteği) -->
-<script type="module">
+  <div class="container">
+    <div class="lang-buttons">
+      <button class="btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
+      <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
+    </div>
+
+    <h1 id="title">Melodi Yükle</h1>
+
+    <input type="file" id="melodyInput" accept="audio/*" style="display:none;" />
+    <button class="btn" onclick="document.getElementById('melodyInput').click()" id="file-label">Ses Dosyası Seç</button>
+    <span id="file-name"></span>
+
+    <input type="text" id="song-title" placeholder="Şarkı başlığı" />
+    <textarea id="song-lyrics" placeholder="Şarkı sözlerini buraya yaz..."></textarea>
+
+    <select id="friend-name">
+      <option value="">-- Arkadaş seç --</option>
+    </select>
+
+    <div class="button-group">
+      <button class="btn" onclick="uploadMelodyFull()" id="upload-btn">Yükle</button>
+      <a href="/anasayfa.html" class="btn" id="home-btn">Anasayfaya Dön</a>
+    </div>
+
+    <h2 id="melody-title">Yüklenen Şarkılar</h2>
+    <div id="melodyList"></div>
+  </div>
+
+  <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
 import {
   getFirestore, collection, addDoc, query, orderBy, onSnapshot,
-  serverTimestamp, doc, getDoc, deleteDoc, where
+  serverTimestamp, doc, getDoc
 } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
 import {
   getAuth, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
+import { deleteDoc } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
 
+// Firebase config (tam)
 const firebaseConfig = {
   apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
   authDomain: "tunetra-2579b.firebaseapp.com",
@@ -146,6 +174,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth();
 
+// Supabase config (tam)
 const supabase = createClient(
   "https://kqgbdfnqckcgrfizjdgt.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZ2JkZm5xY2tjZ3JmaXpqZGd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5Nzk2NDQsImV4cCI6MjA1ODU1NTY0NH0.oxyfinrgv7AscolwMv6CuTMHBLeNokdERCKH00d1kfo"
@@ -164,7 +193,6 @@ onAuthStateChanged(auth, async (user) => {
       currentUser = userSnap.data().username || "Anonim";
     }
     await loadFriendsOnly(currentUID);
-    loadSongs(); // 🔥 yüklemeyi buraya aldık
   } else {
     await signInAnonymously(auth);
   }
@@ -204,12 +232,17 @@ window.uploadMelodyFull = async function () {
   if (!lyrics) return alert(getText("uploadLyricsEmpty"));
   if (!selectedFriend) return alert(getText("friendInvalid"));
 
+  // Dosya adını güvenli hale getir (Türkçe karakter temizleme)
   const cleanName = file.name
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[çğıöşüÇĞİÖŞÜ]/g, c => ({ ç:'c', ğ:'g', ı:'i', ö:'o', ş:'s', ü:'u', Ç:'C', Ğ:'G', İ:'I', Ö:'O', Ş:'S', Ü:'U' }[c]))
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[çğıöşüÇĞİÖŞÜ]/g, c => ({
+      ç: 'c', ğ: 'g', ı: 'i', ö: 'o', ş: 's', ü: 'u',
+      Ç: 'C', Ğ: 'G', İ: 'I', Ö: 'O', Ş: 'S', Ü: 'U'
+    }[c]))
     .replace(/\s+/g, "_")
     .replace(/[^a-zA-Z0-9._-]/g, "");
+
   const fileName = `${Date.now()}_${cleanName}`;
 
   const { error } = await supabase.storage.from(bucket).upload(fileName, file);
@@ -228,15 +261,6 @@ window.uploadMelodyFull = async function () {
     timestamp: serverTimestamp()
   });
 
-  await addDoc(collection(db, "notifications"), {
-    type: "collab-song",
-    toUID: selectedFriend.uid,
-    fromUID: currentUID,
-    fromUsername: currentUser,
-    title,
-    timestamp: serverTimestamp()
-  });
-
   alert(getText("uploadSuccess"));
   document.getElementById("melodyInput").value = "";
   document.getElementById("song-title").value = "";
@@ -245,49 +269,45 @@ window.uploadMelodyFull = async function () {
   document.getElementById("friend-name").selectedIndex = 0;
 };
 
-function loadSongs() {
-  const list = document.getElementById("melodyList");
-  const q = query(collection(db, "songs"), orderBy("timestamp", "desc"));
-  onSnapshot(q, (snapshot) => {
-    list.innerHTML = "";
-    snapshot.forEach(docSnap => {
-      const d = docSnap.data();
-      const docId = docSnap.id;
-      const time = d.timestamp?.toDate().toLocaleString() || "";
-      const showDelete = currentUID === d.uploaderUID || currentUID === d.collaboratorUID;
-      list.innerHTML += `
-        <div class="melody-item" id="song-${docId}">
-          <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong> (${time})</p>
-          <audio controls src="${d.audioUrl}"></audio>
-          <h3>${d.title}</h3>
-          <p>${d.lyrics.replace(/\n/g, "<br>")}</p>
-          ${showDelete ? `<button class="btn" onclick="deleteSong('${docId}', '${d.audioUrl}', '${d.title}', '${d.collaboratorUID}')">❌ Sil</button>` : ""}
-        </div>
-      `;
-    });
-  });
-}
+const list = document.getElementById("melodyList");
+const q = query(collection(db, "songs"), orderBy("timestamp", "desc"));
+onSnapshot(q, (snapshot) => {
+  list.innerHTML = "";
+  snapshot.forEach(docSnap => {
+    const d = docSnap.data();
+    const docId = docSnap.id;
+    const time = d.timestamp?.toDate().toLocaleString() || "";
+    const showDelete = currentUID === d.uploaderUID;
 
-window.deleteSong = async function(id, fileUrl, title, collaboratorUID) {
+    list.innerHTML += `
+      <div class="melody-item" id="song-${docId}">
+        <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong> (${time})</p>
+        <audio controls src="${d.audioUrl}"></audio>
+        <h3>${d.title}</h3>
+        <p>${d.lyrics.replace(/\\n/g, "<br>")}</p>
+        ${showDelete ? `<button class="btn" onclick="deleteSong('${docId}')">❌ Sil</button>` : ""}
+      </div>
+    `;
+  });
+});
+window.deleteSong = async function (id) {
   if (!confirm(getText("confirmDelete") || "Bu şarkıyı silmek istiyor musun?")) return;
+
   try {
     const docRef = doc(db, "songs", id);
     const docSnap = await getDoc(docRef);
     if (!docSnap.exists()) return alert("Şarkı bulunamadı");
 
+    const data = docSnap.data();
+    const fileUrl = data.audioUrl;
     const fileName = fileUrl.split("/").pop().split("?")[0];
+
+    // Supabase'ten sil
     const { error } = await supabase.storage.from(bucket).remove([fileName]);
     if (error) console.warn("Supabase silme hatası:", error.message);
 
+    // Firestore'dan sil
     await deleteDoc(docRef);
-
-    const notifQ = query(collection(db, "notifications"), where("title", "==", title), where("toUID", "==", collaboratorUID));
-    onSnapshot(notifQ, (snapshot) => {
-      snapshot.forEach(async noti => {
-        await deleteDoc(doc(db, "notifications", noti.id));
-      });
-    });
-
     document.getElementById(`song-${id}`)?.remove();
     alert(getText("deleted") || "Silme başarılı");
   } catch (err) {
@@ -295,4 +315,59 @@ window.deleteSong = async function(id, fileUrl, title, collaboratorUID) {
     alert(getText("deleteError") || "Silinirken hata oluştu");
   }
 };
+
+document.getElementById("melodyInput").addEventListener("change", function() {
+  const file = this.files[0];
+  document.getElementById("file-name").innerText = file ? file.name : "";
+});
+
+const texts = {
+  tr: {
+    title: "Melodi Yükle",
+    upload: "Yükle",
+    home: "Anasayfaya Dön",
+    list: "Yüklenen Şarkılar",
+    selectFile: "Lütfen bir ses dosyası seçin.",
+    selectFileBtn: "Ses Dosyası Seç",
+    uploadError: "Dosya yüklenemedi:",
+    uploadSuccess: "Melodi başarıyla yüklendi!",
+    uploadTitleEmpty: "Lütfen şarkının başlığını yazın.",
+    uploadLyricsEmpty: "Lütfen şarkı sözlerini yazın.",
+    friendInvalid: "Lütfen sadece arkadaş listenizden birini seçin.",
+    friendPlaceholder: "Arkadaş seç"
+  },
+  en: {
+    title: "Upload Melody",
+    upload: "Upload",
+    home: "Back to Home",
+    list: "Uploaded Songs",
+    selectFile: "Please select an audio file.",
+    selectFileBtn: "Choose Audio File",
+    uploadError: "File upload failed:",
+    uploadSuccess: "Melody uploaded successfully!",
+    uploadTitleEmpty: "Please enter the song title.",
+    uploadLyricsEmpty: "Please enter the lyrics.",
+    friendInvalid: "Please select only from your friend list.",
+    friendPlaceholder: "Select a friend"
+  }
+};
+
+window.setLang = function (lang) {
+  document.documentElement.lang = lang;
+  document.getElementById("title").innerText = texts[lang].title;
+  document.getElementById("upload-btn").innerText = texts[lang].upload;
+  document.getElementById("melody-title").innerText = texts[lang].list;
+  document.getElementById("home-btn").innerText = texts[lang].home;
+  document.getElementById("song-title").placeholder = lang === "tr" ? "Şarkı başlığı" : "Song title";
+  document.getElementById("song-lyrics").placeholder = lang === "tr" ? "Şarkı sözlerini buraya yaz..." : "Write your lyrics here...";
+  document.getElementById("file-label").innerText = texts[lang].selectFileBtn;
+  document.querySelector("#friend-name option[value='']").textContent = texts[lang].friendPlaceholder;
+};
+
+function getText(key) {
+  const lang = document.documentElement.lang || "tr";
+  return texts[lang][key];
+}
 </script>
+</body>
+</html>
