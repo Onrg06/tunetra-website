@@ -242,8 +242,21 @@ function setLang(l) {
 window.setLang = setLang;
 
 function formatTimestamp(ts) {
-  const d = new Date(Number(ts));
-  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+  if (!ts) return "-";
+  let d;
+  try {
+    d = typeof ts.toDate === "function" ? ts.toDate() : new Date(ts);
+  } catch {
+    d = new Date(ts);
+  }
+
+  const gun = d.getDate().toString().padStart(2, "0");
+  const ay = (d.getMonth() + 1).toString().padStart(2, "0");
+  const yil = d.getFullYear();
+  const saat = d.getHours().toString().padStart(2, "0");
+  const dakika = d.getMinutes().toString().padStart(2, "0");
+
+  return `${gun}/${ay}/${yil} ${saat}:${dakika}`;
 }
 
 function getConversationId(uid1, uid2) {
