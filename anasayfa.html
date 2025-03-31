@@ -280,14 +280,12 @@ onAuthStateChanged(auth, async (user) => {
   if (!user) return window.location.href = "index.html";
 
   const userDoc = await getDoc(doc(db, "users", user.uid));
-  const hasUnseen = userDoc.exists() && userDoc.data().inboxHasNew === true;
+  let hasUnseen = userDoc.exists() && userDoc.data().inboxHasNew === true;
 
   await updateUI(hasUnseen);
 
   const convoQuery = query(collection(db, "conversations"), where("users", "array-contains", user.uid));
   const convoSnap = await getDocs(convoQuery);
-
-  let hasUnseen = false;
 
   for (const convoDoc of convoSnap.docs) {
     const convoId = convoDoc.id;
