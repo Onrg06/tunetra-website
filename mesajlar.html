@@ -182,7 +182,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-
+// Firebase Config ve Initialization
 const firebaseConfig = {
   apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
   authDomain: "tunetra-2579b.firebaseapp.com",
@@ -195,6 +195,18 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+// Fix: Timestamp formatter
+function formatTimestamp(ts) {
+  if (!ts || !ts.toDate) return "-";
+  const d = ts.toDate();
+  const gun = d.getDate().toString().padStart(2, "0");
+  const ay = (d.getMonth() + 1).toString().padStart(2, "0");
+  const yil = d.getFullYear();
+  const saat = d.getHours().toString().padStart(2, "0");
+  const dakika = d.getMinutes().toString().padStart(2, "0");
+  return `${gun}/${ay}/${yil} ${saat}:${dakika}`;
+}
 
 let currentUser = null;
 let selectedFriendId = null;
@@ -240,12 +252,6 @@ function setLang(l) {
   updateTexts();
 }
 window.setLang = setLang;
-
-function formatTimestamp(ts) {
-  if (!ts || !ts.toDate) return "-";
-  const d = ts.toDate();
-  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
 
   const gun = d.getDate().toString().padStart(2, "0");
   const ay = (d.getMonth() + 1).toString().padStart(2, "0");
