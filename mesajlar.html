@@ -180,6 +180,8 @@ import {
   collection, query, orderBy, limitToLast, endBefore,
   addDoc, getDocs, onSnapshot, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -508,16 +510,15 @@ window.sendMessage = async () => {
     }
 
     delete input.dataset.editing;
-  } else {
-    const msg = {
-      sender: currentUser.uid,
-      text,
-      timestamp: Date.now(),
-      seenBy: []
-    };
-    await addDoc(msgCol, msg);
-  }
-
+} else {
+  const msg = {
+    sender: currentUser.uid,
+    text,
+    timestamp: serverTimestamp(), // ✅ Doğru
+    seenBy: []
+  };
+  await addDoc(msgCol, msg); // ✅ BU satır eksikti
+}
   input.value = "";
 };
 
