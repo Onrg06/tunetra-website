@@ -264,7 +264,7 @@ window.uploadMelodyFull = async function () {
   if (!lyrics) return alert(getText("uploadLyricsEmpty"));
   if (!selectedFriend) return alert(getText("friendInvalid"));
 
-  // Clean the filename
+  // Dosya adını güvenli hale getir (Türkçe karakter temizleme)
   const cleanName = file.name
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -279,7 +279,7 @@ window.uploadMelodyFull = async function () {
 
   const publicUrl = supabase.storage.from(bucket).getPublicUrl(fileName).data.publicUrl;
 
-  // Save song to Firestore
+  // Şarkıyı Firestore'a kaydet
   const songRef = await addDoc(collection(db, "songs"), {
     uploader: currentUser,
     uploaderUID: currentUID,
@@ -291,7 +291,7 @@ window.uploadMelodyFull = async function () {
     timestamp: serverTimestamp()
   });
 
-  // Send upload notification
+  // Bildirim gönderme işlemi (notifications koleksiyonu)
   await sendUploadNotification(selectedFriend.uid, title);
 
   alert(getText("uploadSuccess"));
@@ -302,23 +302,27 @@ window.uploadMelodyFull = async function () {
   document.getElementById("friend-name").selectedIndex = 0;
 };
 
-// Send upload notification
+// Bildirim gönderme işlemi
 async function sendUploadNotification(friendUID, songTitle) {
   try {
+    // Bildirim verisini oluştur
     const notificationData = {
-      to: friendUID,
-      message: `${currentUser} bir şarkıyı seninle paylaştı: ${songTitle}`,
-      timestamp: serverTimestamp()
+      to: friendUID, // Bildirimi alacak kişinin UID'si
+      message: `${currentUser} bir şarkıyı seninle paylaştı: ${songTitle}`, // Bildirim mesajı
+      timestamp: serverTimestamp() // Zaman damgası ekleyelim
     };
+
+    // Bildirimi Firestore'a ekle (notifications koleksiyonu burada oluşturulacak)
     const docRef = await addDoc(collection(db, "notifications"), notificationData);
-    console.log("Bildirim başarıyla eklendi:", docRef.id);
+    console.log("Bildirim başarıyla eklendi:", docRef.id);  // Başarıyla eklenirse bildirimin ID'sini yazdır
+
   } catch (e) {
-    console.error("Bildirim eklenirken hata oluştu:", e);
-    alert("Bildirim eklenirken hata oluştu: " + e.message);
+    console.error("Bildirim eklenirken hata oluştu:", e);  // Hata mesajını yazdır
+    alert("Bildirim eklenirken hata oluştu: " + e.message);  // Kullanıcıya hata mesajı göster
   }
 }
 
-// Delete song function
+
 window.deleteSong = async function (id) {
   if (!confirm(getText("confirmDelete") || "Bu şarkıyı silmek istiyor musun?")) return;
 
@@ -331,54 +335,52 @@ window.deleteSong = async function (id) {
     const fileUrl = data.audioUrl;
     const fileName = fileUrl.split("/").pop().split("?")[0];
 
-    // Delete from Supabase
+    // Supabase'ten sil
     const { error } = await supabase.storage.from(bucket).remove([fileName]);
     if (error) console.warn("Supabase silme hatası:", error.message);
 
-    // Delete from Firestore
+    // Firestore'dan sil
     await deleteDoc(docRef);
     document.getElementById(`song-${id}`)?.remove();
     alert(getText("deleted") || "Silme başarılı");
 
-    // Send delete notification
-    await sendDeleteNotification(id);
+    // Bildirim gönder
+    await sendDeleteNotification(data);
+
   } catch (err) {
     console.error("Silme hatası:", err);
     alert(getText("deleteError") || "Silinirken hata oluştu");
   }
 };
 
-// Send delete notification
-async function sendDeleteNotification(songId) {
+// Şarkı silindiğinde her iki kullanıcıya bildirim gönder
+async function sendDeleteNotification(songData) {
   try {
-    const songDoc = await getDoc(doc(db, "songs", songId));
-    const songData = songDoc.data();
+    // Bildirim verilerini hazırla
+    const notificationDataToCollaborator = {
+      to: songData.collaboratorUID, // Bildirimi alacak olan kişinin UID'si (işbirlikçi)
+      message: `Bir arkadaşınızla paylaştığınız şarkı silindi: ${songData.title}`,
+      timestamp: serverTimestamp() // Zaman damgası ekle
+    };
 
-    if (songData) {
-      const notificationDataToCollaborator = {
-        to: songData.collaboratorUID,
-        message: `Bir arkadaşınızla paylaştığınız şarkı silindi: ${songData.title}`,
-        timestamp: serverTimestamp()
-      };
+    const notificationDataToUploader = {
+      to: songData.uploaderUID, // Bildirimi alacak olan kişinin UID'si (yükleyen kişi)
+      message: `Bir işbirlikçiniz şarkınızı silmiş: ${songData.title}`,
+      timestamp: serverTimestamp() // Zaman damgası ekle
+    };
 
-      const notificationDataToUploader = {
-        to: songData.uploaderUID,
-        message: `Bir işbirlikçiniz şarkınızı silmiş: ${songData.title}`,
-        timestamp: serverTimestamp()
-      };
+    // Bildirimleri Firestore'a ekle
+    const docRefCollaborator = await addDoc(collection(db, "notifications"), notificationDataToCollaborator);
+    const docRefUploader = await addDoc(collection(db, "notifications"), notificationDataToUploader);
 
-      const docRefCollaborator = await addDoc(collection(db, "notifications"), notificationDataToCollaborator);
-      const docRefUploader = await addDoc(collection(db, "notifications"), notificationDataToUploader);
+    console.log("Bildirimler başarıyla eklendi:", docRefCollaborator.id, docRefUploader.id); // Başarıyla eklenirse bildirimin ID'sini yazdır
 
-      console.log("Bildirimler başarıyla eklendi:", docRefCollaborator.id, docRefUploader.id);
-    } else {
-      console.log("Şarkı bulunamadı.");
-    }
   } catch (e) {
-    console.error("Bildirim eklenirken hata oluştu:", e);
-    alert("Bildirim eklenirken hata oluştu: " + e.message);
+    console.error("Bildirim eklenirken hata oluştu:", e);  // Hata mesajını yazdır
+    alert("Bildirim eklenirken hata oluştu: " + e.message);  // Kullanıcıya hata mesajı göster
   }
 }
+
 
 // Handle file name display
 document.getElementById("melodyInput").addEventListener("change", function() {
