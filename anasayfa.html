@@ -152,8 +152,15 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import {
-  getFirestore, doc, getDoc, collection, query, where,
-  getDocs, orderBy, limit, onSnapshot, deleteDoc
+  getFirestore,
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -186,11 +193,8 @@ const translations = {
     lyrics: "✍️ Sözler / Şiirler",
     melody: "🎵 Melodi",
     songs: "🎶 Hazır Şarkılar",
-    sharedWithYou: "Sizinle bir şarkı paylaşıldı:",
-    sharedSongDeleted: "Bir ortak şarkınız silindi.",
-    close: "Kapat",
     songNotification: "🎵 Bir arkadaşın seninle bir şarkı paylaştı!",
-    songDeletedNotification: "🎶 Bir arkadaşınızla paylaştığınız şarkı silindi!"
+    close: "Kapat"
   },
   en: {
     welcome: "🎶 Welcome, ",
@@ -205,30 +209,27 @@ const translations = {
     lyrics: "✍️ Lyrics",
     melody: "🎵 Melody",
     songs: "🎶 Ready Songs",
-    sharedWithYou: "A song was shared with you:",
-    sharedSongDeleted: "A shared song with your friend was deleted.",
-    close: "Close",
     songNotification: "🎵 A friend shared a song with you!",
-    songDeletedNotification: "🎶 A song you shared with a friend was deleted!"
+    close: "Close"
   }
 };
 
 window.setLang = function (lang) {
   currentLang = lang;
-  updateUI();
+  updateTexts();
 };
 
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "index.html";
   } else {
     currentUID = user.uid;
-    updateUI();
-    listenForNotifications(user.uid); // Bildirimleri dinlemeye başla
+    await updateTexts();
+    listenForNotifications(currentUID);
   }
 });
 
-async function updateUI() {
+async function updateTexts() {
   const user = auth.currentUser;
   if (!user) return;
 
@@ -236,70 +237,55 @@ async function updateUI() {
   const userDoc = await getDoc(docRef);
 
   if (userDoc.exists()) {
-    const username = userDoc.data().username;
-    const role = userDoc.data().role || "user";
+    const username = userDoc.data().username || "Kullanıcı";
+    const t = translations[currentLang];
 
-    document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
-    document.getElementById("introText").innerHTML = translations[currentLang].intro;
-    document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
-    document.getElementById("btnProfile").innerText = translations[currentLang].profile;
-    document.getElementById("btnFeedback").innerText = translations[currentLang].feedback;
-    document.getElementById("btnAbout").innerText = translations[currentLang].about;
-    document.getElementById("btnLyrics").innerText = translations[currentLang].lyrics;
-    document.getElementById("btnMelody").innerText = translations[currentLang].melody;
-    document.getElementById("btnSongs").innerText = translations[currentLang].songs;
-    document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
-    document.getElementById("btnFriends").innerText = translations[currentLang].friends;
-    document.getElementById("btnMessages").innerText = `📨 ${translations[currentLang].messages}`;
-
-    if (role === "admin") {
-      document.getElementById("btnAdmin").style.display = "block";
-    }
+    document.getElementById("welcomeMessage").innerHTML = t.welcome + username + "!";
+    document.getElementById("introText").innerHTML = t.intro;
+    document.getElementById("logoutBtn").innerText = t.logout;
+    document.getElementById("btnProfile").innerText = t.profile;
+    document.getElementById("btnFriends").innerText = t.friends;
+    document.getElementById("btnMessages").innerText = `📨 ${t.messages}`;
+    document.getElementById("btnFeedback").innerText = t.feedback;
+    document.getElementById("btnAnnouncements").innerText = t.announcements;
+    document.getElementById("btnAbout").innerText = t.about;
+    document.getElementById("btnLyrics").innerText = t.lyrics;
+    document.getElementById("btnMelody").innerText = t.melody;
+    document.getElementById("btnSongs").innerText = t.songs;
   }
 }
 
 function listenForNotifications(uid) {
-  const notifBox = document.getElementById("songNotificationBox");
-  const notifText = document.getElementById("notifText");
-
-  const notifRef = collection(db, "notifications");
-  const q = query(notifRef, where("to", "==", uid), orderBy("timestamp", "desc"));
+  const q = query(
+    collection(db, "notifications"),
+    where("to", "==", uid),
+    orderBy("timestamp", "desc")
+  );
 
   onSnapshot(q, (snapshot) => {
-    snapshot.docChanges().forEach(change => {
-      if (change.type === "added") {
-        const notif = change.doc.data();
-        showNotification(notif);
-      }
-    });
+    if (!snapshot.empty) {
+      const doc = snapshot.docs[0];
+      const data = doc.data();
+      showNotification(data.message, doc.id);
+    }
   });
 }
 
-function showNotification(data) {
+function showNotification(message, docId) {
   const notifBox = document.getElementById("songNotificationBox");
   const notifText = document.getElementById("notifText");
 
-  if (currentLang === 'tr') {
-    notifText.innerHTML = `${translations[currentLang].songNotification} <strong>${data.fromUsername}</strong>`;
-  } else {
-    notifText.innerHTML = `${translations[currentLang].songNotification} <strong>${data.fromUsername}</strong>`;
-  }
-
+  notifText.innerText = message;
   notifBox.style.display = "block";
 
-  document.getElementById("dismissNotif").onclick = () => {
-    deleteNotification(data.id);
+  document.getElementById("dismissNotif").onclick = async () => {
+    try {
+      await deleteDoc(doc(db, "notifications", docId));
+      notifBox.style.display = "none";
+    } catch (e) {
+      alert("Bildirim silinemedi: " + e.message);
+    }
   };
-}
-
-async function deleteNotification(docId) {
-  try {
-    // Bildirimi Firestore'dan silme işlemi
-    await deleteDoc(doc(db, "notifications", docId));
-    document.getElementById("songNotificationBox").style.display = "none"; // Bildirimi UI'dan kaldır
-  } catch (e) {
-    alert("Bildirim silinirken hata oluştu.");
-  }
 }
 
 window.logout = function () {
@@ -312,8 +298,5 @@ window.addEventListener("DOMContentLoaded", () => {
   setLang("tr");
 });
 </script>
-
-
 </body>
 </html>
-
