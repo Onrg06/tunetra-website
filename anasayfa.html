@@ -306,14 +306,14 @@ onAuthStateChanged(auth, async (user) => {
 
   await updateUI(hasUnseen);
 
-  // Mesajlar butonuna tıklanınca tümünü görüldü yap
 document.getElementById("btnMessages").addEventListener("click", async () => {
-  // Mesajları okundu olarak işaretle
   const user = auth.currentUser;
   if (!user) return;
 
-  // Tüm sohbetlerdeki mesajları güncelle
-  const convoQuery = query(collection(db, "conversations"), where("users", "array-contains", user.uid));
+  const userUid = user.uid;
+
+  // Kullanıcının dahil olduğu tüm konuşmaları al
+  const convoQuery = query(collection(db, "conversations"), where("users", "array-contains", userUid));
   const convoSnap = await getDocs(convoQuery);
 
   for (const convoDoc of convoSnap.docs) {
@@ -323,24 +323,26 @@ document.getElementById("btnMessages").addEventListener("click", async () => {
     // Son 10 mesajı al
     const msgSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(10)));
 
-    // Her mesajı işaretle
     for (const msgDoc of msgSnap.docs) {
       const msg = msgDoc.data();
-      if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
-        const updatedSeenBy = [...(msg.seenBy || []), user.uid];
-        await updateDoc(msgDoc.ref, { seenBy: updatedSeenBy });
+      if (msg.sender !== userUid && (!msg.seenBy || !msg.seenBy.includes(userUid))) {
+        // Mesajın seenBy alanına kullanıcının UID'sini ekle
+        await updateDoc(msgDoc.ref, {
+          seenBy: arrayUnion(userUid)
+        });
       }
     }
   }
 
-  // 🔴 Kırmızı nokta kaybolmalı
-  document.getElementById("msgDot").style.display = "none";
-
-  // ✅ Kullanıcının inboxHasNew alanını sıfırla
-  await updateDoc(doc(db, "users", user.uid), {
+  // Kullanıcının inboxHasNew alanını false olarak güncelle
+  await updateDoc(doc(db, "users", userUid), {
     inboxHasNew: false
   });
+
+  // Arayüzdeki kırmızı bildirim noktasını gizle
+  document.getElementById("msgDot").style.display = "none";
 });
+
 
 });
 
