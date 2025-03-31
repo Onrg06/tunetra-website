@@ -264,6 +264,7 @@ async function updateUI(hasUnseen = false) {
     document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
     document.getElementById("btnFriends").innerText = translations[currentLang].friends;
     document.getElementById("btnMessagesText").textContent = translations[currentLang].messages;
+    document.getElementById("msgDot").style.display = "inline-block";
 
     if (role === "admin") {
       document.getElementById("btnAdmin").style.display = "block";
