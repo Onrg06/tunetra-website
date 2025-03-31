@@ -299,18 +299,18 @@ function listenForMessages(uid) {
 }
 
 function listenForSharedSongs(uid) {
-  const sharedRef = collection(db, "sharedSongs");
+  const sharedRef = collection(db, "songs");  // 'sharedSongs' yerine 'songs' koleksiyonu
   const q = query(sharedRef, where("to", "==", uid));
 
   onSnapshot(q, (snapshot) => {
     snapshot.docChanges().forEach(change => {
       if (change.type === "added") {
         const data = change.doc.data();
-        showNotification(data, change.doc.id);
+        showNotification(data, change.doc.id);  // Paylaşıldığında bildirim göster
       }
       if (change.type === "removed") {
         const data = change.doc.data();
-        showDeleteNotification(data);
+        showDeleteNotification(data);  // Silindiğinde bildirim göster
       }
     });
   });
@@ -342,7 +342,7 @@ function showDeleteNotification(data) {
 
 async function deleteNotification(docId) {
   try {
-    await deleteDoc(doc(db, "sharedSongs", docId));
+    await deleteDoc(doc(db, "songs", docId));
     document.getElementById("songNotificationBox").style.display = "none"; // Bildirimi UI'dan kaldır
   } catch (e) {
     alert("Silinemedi.");
