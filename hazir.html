@@ -275,7 +275,8 @@ window.uploadMelodyFull = async function () {
 
   const publicUrl = supabase.storage.from(bucket).getPublicUrl(fileName).data.publicUrl;
 
-  await addDoc(collection(db, "songs"), {
+  // Şarkıyı Firestore'a kaydet
+  const songRef = await addDoc(collection(db, "songs"), {
     uploader: currentUser,
     uploaderUID: currentUID,
     collaborator: selectedFriend.username,
@@ -285,6 +286,30 @@ window.uploadMelodyFull = async function () {
     lyrics,
     timestamp: serverTimestamp()
   });
+
+  // Bildirim gönderme
+  await sendUploadNotification(selectedFriend.uid, title);
+
+  alert(getText("uploadSuccess"));
+  document.getElementById("melodyInput").value = "";
+  document.getElementById("song-title").value = "";
+  document.getElementById("song-lyrics").value = "";
+  document.getElementById("file-name").innerText = "";
+  document.getElementById("friend-name").selectedIndex = 0;
+};
+
+// Şarkı Yüklemede Bildirim Gönderme
+async function sendUploadNotification(friendUID, songTitle) {
+  const notificationData = {
+    to: friendUID, // Bildirimi alacak olan kişinin UID'si
+    message: `${currentUser} bir şarkıyı seninle paylaştı: ${songTitle}`,
+    timestamp: serverTimestamp()
+  };
+
+  // Bildirimi Firestore'a kaydedin
+  await addDoc(collection(db, "notifications"), notificationData);
+}
+
 
   alert(getText("uploadSuccess"));
   document.getElementById("melodyInput").value = "";
