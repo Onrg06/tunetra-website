@@ -305,10 +305,8 @@ onAuthStateChanged(auth, async (user) => {
   const hasUnseen = results.includes(true);
 
   await updateUI(hasUnseen); // ✅ Parametre olarak gönder
-});
 
-
-  // "Mesajlar" butonuna tıklanınca tümünü görüldü yap
+  // ✅ BU SATIR BURADA KALMALI (içeride)
   document.getElementById("btnMessages").addEventListener("click", async () => {
     for (const convoDoc of convoSnap.docs) {
       const convoId = convoDoc.id;
@@ -326,7 +324,9 @@ onAuthStateChanged(auth, async (user) => {
     }
     msgDot.style.display = "none";
   });
-});
+
+}); // ✅ onAuthStateChanged BUNUNLA biter
+
   
   window.logout = function () {
     signOut(auth).then(() => {
