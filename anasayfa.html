@@ -268,82 +268,35 @@ async function updateUI(hasUnseen = false) {
   document.getElementById("btnFriends").innerText = translations[currentLang].friends;
   document.getElementById("btnMessagesText").textContent = translations[currentLang].messages;
 
-  if (role === "admin") {
-    document.getElementById("btnAdmin").style.display = "block";
-  }
+window.addEventListener("DOMContentLoaded", () => {
+  setLang("tr");
 
-  const msgDot = document.getElementById("msgDot");
-  msgDot.style.display = hasUnseen ? "inline-block" : "none";
-}
+  // 🔐 auth kullanıcısı yüklendiğinde listener'ı ekle
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) return window.location.href = "index.html";
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) return window.location.href = "index.html";
+    listenInboxChanges(user.uid);
 
-  listenInboxChanges(user.uid);
-  
-  const userDoc = await getDoc(doc(db, "users", user.uid));
-  let hasUnseen = userDoc.exists() && userDoc.data().inboxHasNew === true;
+    // 🔴 Kırmızı nokta tıklama listener'ı
+    document.getElementById("btnMessages").addEventListener("click", async () => {
+      document.getElementById("msgDot").style.display = "none";
 
-  await updateUI(hasUnseen);
+      await updateDoc(doc(db, "users", user.uid), {
+        inboxHasNew: false
+      });
+    });
 
-  const convoQuery = query(collection(db, "conversations"), where("users", "array-contains", user.uid));
-  const convoSnap = await getDocs(convoQuery);
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    let hasUnseen = userDoc.exists() && userDoc.data().inboxHasNew === true;
 
-  for (const convoDoc of convoSnap.docs) {
-    const convoId = convoDoc.id;
-    const messagesRef = collection(db, "conversations", convoId, "messages");
-    const msgSnap = await getDocs(messagesRef);
-    const messages = msgSnap.docs.map(doc => doc.data()).reverse();
+    await updateUI(hasUnseen);
 
-    for (const msg of messages) {
-      if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
-        hasUnseen = true;
-        break;
-      }
+    // Eğer adminse, admin butonunu göster
+    const role = userDoc.exists() ? userDoc.data().role : null;
+    if (role === "admin") {
+      document.getElementById("btnAdmin").style.display = "block";
     }
-    if (hasUnseen) break;
-  }
-
-  await updateUI(hasUnseen);
-
-document.getElementById("btnMessages").addEventListener("click", async () => {
-  const user = auth.currentUser;
-  if (!user) return;
-
-  const userUid = user.uid;
-
-  // Kullanıcının dahil olduğu tüm konuşmaları al
-  const convoQuery = query(collection(db, "conversations"), where("users", "array-contains", userUid));
-  const convoSnap = await getDocs(convoQuery);
-
-  for (const convoDoc of convoSnap.docs) {
-    const convoId = convoDoc.id;
-    const messagesRef = collection(db, "conversations", convoId, "messages");
-
-    // Son 10 mesajı al
-    const msgSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(10)));
-
-    for (const msgDoc of msgSnap.docs) {
-      const msg = msgDoc.data();
-      if (msg.sender !== userUid && (!msg.seenBy || !msg.seenBy.includes(userUid))) {
-        // Mesajın seenBy alanına kullanıcının UID'sini ekle
-        await updateDoc(msgDoc.ref, {
-          seenBy: arrayUnion(userUid)
-        });
-      }
-    }
-  }
-
-  // Kullanıcının inboxHasNew alanını false olarak güncelle
-  await updateDoc(doc(db, "users", userUid), {
-    inboxHasNew: false
   });
-
-  // Arayüzdeki kırmızı bildirim noktasını gizle
-  document.getElementById("msgDot").style.display = "none";
-});
-
-
 });
 
 function listenInboxChanges(uid) {
@@ -356,15 +309,12 @@ function listenInboxChanges(uid) {
     }
   });
 }
-  
+
 window.logout = function () {
   signOut(auth).then(() => {
     window.location.href = "index.html";
   });
 };
 
-window.addEventListener("DOMContentLoaded", () => {
-  setLang("tr");
-});
 </script>
 
