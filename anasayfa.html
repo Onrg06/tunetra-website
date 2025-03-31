@@ -131,150 +131,171 @@
   </div>
 
   <h1 id="welcomeMessage">🎶 Hoş Geldin!</h1>
-  <p id="introText"></p>
+  <p id="introText">Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!</p>
 
   <div class="button-group">
-    <a href="profil.html" class="profile-btn" id="btnProfile"></a>
-    <a href="arkadaslar.html" class="friends-btn" id="btnFriends"></a>
-    <a href="mesajlar.html" class="messages-btn" id="btnMessages"></a>
+    <a href="profil.html" class="profile-btn" id="btnProfile">👤 Profilim</a>
+    <a href="arkadaslar.html" class="friends-btn" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım</a>
+    <a href="mesajlar.html" class="messages-btn" id="btnMessages">📨 Mesajlarım</a>
   </div>
+
   <div class="button-group">
-    <a href="lyrics.html" class="extra-btn" id="btnLyrics"></a>
-    <a href="melody.html" class="extra-btn" id="btnMelody"></a>
-    <a href="hazir.html" class="extra-btn" id="btnSongs"></a>
+    <a href="lyrics.html" class="extra-btn" id="btnLyrics">✍️ Sözler / Şiirler</a>
+    <a href="melody.html" class="extra-btn" id="btnMelody">🎵 Melodi</a>
+    <a href="hazir.html" class="extra-btn" id="btnSongs">🎶 Hazır Şarkılar</a>
   </div>
+
   <div class="button-group">
-    <a href="dilek.html" class="extra-btn" id="btnFeedback"></a>
-    <a href="duyuru.html" class="extra-btn" id="btnAnnouncements"></a>
-    <a href="hakkimizda.html" class="extra-btn" id="btnAbout"></a>
-    <a href="adminpanel.html" class="extra-btn" id="btnAdmin" style="display: none;"></a>
-    <a href="index.html" class="btn" onclick="logout()" id="logoutBtn"></a>
+    <a href="dilek.html" class="extra-btn" id="btnFeedback">📮 Dilek & Şikayet Kutusu</a>
+    <a href="duyuru.html" class="extra-btn" id="btnAnnouncements">📢 Duyurular</a>
+    <a href="hakkimizda.html" class="extra-btn" id="btnAbout">ℹ️ Hakkımızda</a>
+    <a href="index.html" class="btn" onclick="logout()" id="logoutBtn">Çıkış Yap</a>
   </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import {
-  getFirestore, doc, getDoc, collection, query, where,
-  getDocs, orderBy, limit, onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc, collection, query, where,
+    getDocs, orderBy, limit, onSnapshot
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-  authDomain: "tunetra-2579b.firebaseapp.com",
-  projectId: "tunetra-2579b",
-  storageBucket: "tunetra-2579b.appspot.com",
-  messagingSenderId: "576238823779",
-  appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+    authDomain: "tunetra-2579b.firebaseapp.com",
+    projectId: "tunetra-2579b",
+    storageBucket: "tunetra-2579b.appspot.com",
+    messagingSenderId: "576238823779",
+    appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+  };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-let currentLang = "tr";
-let unreadSenderUIDs = new Set();
+  const translations = {
+    tr: {
+      welcome: "🎶 Hoş Geldin, ",
+      intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!",
+      logout: "Çıkış Yap",
+      profile: "👤 Profilim",
+      friends: "🧑‍🤝‍🧑 Arkadaşlarım",
+      messages: "Mesajlarım",
+      feedback: "📮 Dilek & Şikayet Kutusu",
+      announcements: "📢 Duyurular",
+      about: "ℹ️ Hakkımızda",
+      lyrics: "✍️ Sözler / Şiirler",
+      melody: "🎵 Melodi",
+      songs: "🎶 Hazır Şarkılar",
+      friends: "🧑‍🤝‍🧑 Arkadaşlarım",
+      messages: "Mesajlarım",
+    },
+    en: {
+      welcome: "🎶 Welcome, ",
+      intro: "You’re in the right place to create your dream song.<br><br>Share your lyrics or melody, let others collaborate and turn them into music.<br><br>On Tunetra, music is born through collaboration!",
+      logout: "Log Out",
+      profile: "👤 My Profile",
+      friends: "🧑‍🤝‍🧑 My Friends",
+      messages: "My Messages",
+      feedback: "📮 Feedback & Complaints",
+      announcements: "📢 Announcements",
+      about: "ℹ️ About",
+      lyrics: "✍️ Lyrics",
+      melody: "🎵 Melody",
+      songs: "🎶 Ready Songs",
+      friends: "🧑‍🤝‍🧑 My Friends",
+      messages: "My Messages",
+    }
+  };
 
-const translations = {
-  tr: {
-    welcome: "🎶 Hoş Geldin, ",
-    intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!",
-    logout: "Çıkış Yap",
-    profile: "👤 Profilim",
-    friends: "🧑‍🤝‍🧑 Arkadaşlarım",
-    messages: "Mesajlarım",
-    feedback: "📮 Dilek & Şikayet Kutusu",
-    announcements: "📢 Duyurular",
-    about: "ℹ️ Hakkımızda",
-    lyrics: "✍️ Sözler / Şiirler",
-    melody: "🎵 Melodi",
-    songs: "🎶 Hazır Şarkılar",
-    admin: "⚙️ Yönetim Paneline Git"
-  },
-  en: {
-    welcome: "🎶 Welcome, ",
-    intro: "You're in the right place to create your dream song.<br><br>Share your lyrics or melody, let others collaborate and turn them into music.<br><br>On Tunetra, music is born through collaboration!",
-    logout: "Log Out",
-    profile: "👤 My Profile",
-    friends: "🧑‍🤝‍🧑 My Friends",
-    messages: "My Messages",
-    feedback: "📮 Feedback & Complaints",
-    announcements: "📢 Announcements",
-    about: "ℹ️ About",
-    lyrics: "✍️ Lyrics / Poems",
-    melody: "🎵 Melody",
-    songs: "🎶 Ready Songs",
-    admin: "⚙️ Go to Admin Panel"
-  }
-};
+  let currentLang = "tr";
 
-function setLang(lang) {
-  currentLang = lang;
-  updateUI();
-}
-window.setLang = setLang;
+  window.setLang = function (lang) {
+    currentLang = lang;
+    updateUI();
+  };
 
-function updateUITexts(userDoc) {
-  const t = translations[currentLang];
-  document.getElementById("introText").innerHTML = t.intro;
-  document.getElementById("btnProfile").innerText = t.profile;
-  document.getElementById("btnFriends").innerText = t.friends;
-  document.getElementById("btnMessages").innerText = `📨 ${t.messages}`;
-  document.getElementById("btnLyrics").innerText = t.lyrics;
-  document.getElementById("btnMelody").innerText = t.melody;
-  document.getElementById("btnSongs").innerText = t.songs;
-  document.getElementById("btnFeedback").innerText = t.feedback;
-  document.getElementById("btnAnnouncements").innerText = t.announcements;
-  document.getElementById("btnAbout").innerText = t.about;
-  document.getElementById("logoutBtn").innerText = t.logout;
-  if (userDoc.data().role === "admin") {
-    document.getElementById("btnAdmin").style.display = "block";
-    document.getElementById("btnAdmin").innerText = t.admin;
-  }
-}
+  async function updateUI() {
+    const user = auth.currentUser;
+    if (!user) return;
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) return location.href = "index.html";
+    const docRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(docRef);
 
-  const userDoc = await getDoc(doc(db, "users", user.uid));
-  if (userDoc.exists()) {
-    document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + userDoc.data().username + "!";
-    updateUITexts(userDoc);
+    if (userDoc.exists()) {
+      const username = userDoc.data().username;
+      document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
+      document.getElementById("introText").innerHTML = translations[currentLang].intro;
+      document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
+      document.getElementById("btnProfile").innerText = translations[currentLang].profile;
+      document.getElementById("btnFeedback").innerText = translations[currentLang].feedback;
+      document.getElementById("btnAbout").innerText = translations[currentLang].about;
+      document.getElementById("btnLyrics").innerText = translations[currentLang].lyrics;
+      document.getElementById("btnMelody").innerText = translations[currentLang].melody;
+      document.getElementById("btnSongs").innerText = translations[currentLang].songs;
+      document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
+
+document.getElementById("btnFriends").innerText = translations[currentLang].friends;
+
+document.getElementById("btnMessages").innerText = `📨 ${translations[currentLang].messages}`;
+    }
   }
 
-  // Arkadaşlık bildirimleri
-  onSnapshot(doc(db, "friendRequests", user.uid), (snap) => {
-    const count = snap.exists() ? (snap.data().requests?.length || 0) : 0;
-    const base = translations[currentLang].friends;
-    document.getElementById("btnFriends").innerText = count > 0 ? `${base} (${count})` : base;
-  });
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      window.location.href = "index.html";
+    } else {
+      updateUI();
 
-  // Mesaj bildirimleri
-  onSnapshot(query(collection(db, "conversations"), where("users", "array-contains", user.uid)), async (snap) => {
-    const checks = snap.docs.map(async (c) => {
-      const convoId = c.id;
-      const messagesRef = collection(db, "conversations", convoId, "messages");
-      const latestSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(1)));
-      if (!latestSnap.empty) {
-        const msg = latestSnap.docs[0].data();
-        if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
-          return msg.sender;
+      // --- Gerçek Zamanlı Arkadaşlık İstekleri ---
+      onSnapshot(doc(db, "friendRequests", user.uid), (docSnap) => {
+        const count = docSnap.exists() ? (docSnap.data().requests?.length || 0) : 0;
+        const base = translations[currentLang].friends;
+        document.getElementById("btnFriends").innerText = count > 0 ? `${base} (${count})` : base;
+      });
+
+      // --- Gerçek Zamanlı Mesajlar (Kişi bazlı sayım) ---
+      onSnapshot(
+        query(collection(db, "conversations"), where("users", "array-contains", user.uid)),
+        (convoSnap) => {
+          const base = translations[currentLang].messages;
+          const unseenFrom = new Set();
+
+          convoSnap.docs.forEach(convo => {
+            const convoId = convo.id;
+            const messagesRef = collection(db, "conversations", convoId, "messages");
+
+            onSnapshot(
+              query(messagesRef, orderBy("timestamp", "desc"), limit(1)),
+              (msgSnap) => {
+                msgSnap.forEach(doc => {
+                  const msg = doc.data();
+                  if (
+                    msg.sender !== user.uid &&
+                    (!msg.seenBy || !msg.seenBy.includes(user.uid))
+                  ) {
+                    unseenFrom.add(msg.sender); // Sadece 1 kere sayar
+                  }
+                });
+
+                const msgCount = unseenFrom.size;
+                document.getElementById("btnMessages").innerText =
+                  msgCount > 0 ? `📨 ${base} (${msgCount})` : `📨 ${base}`;
+              }
+            );
+          });
         }
-      }
-      return null;
-    });
-
-    const senders = (await Promise.all(checks)).filter(Boolean);
-    unreadSenderUIDs = new Set(senders);
-    const msgCount = unreadSenderUIDs.size;
-    const base = translations[currentLang].messages;
-    const isOnMessagesPage = window.location.pathname.includes("mesajlar");
-    document.getElementById("btnMessages").innerText = msgCount > 0 && !isOnMessagesPage ? `📨 ${base} (${msgCount})` : `📨 ${base}`;
+      );
+    }
   });
-});
 
-window.logout = () => signOut(auth).then(() => location.href = "index.html");
-window.addEventListener("DOMContentLoaded", () => setLang("tr"));
+  window.logout = function () {
+    signOut(auth).then(() => {
+      window.location.href = "index.html";
+    });
+  };
+
+  window.addEventListener("DOMContentLoaded", () => {
+    setLang("tr");
+  });
 </script>
-</body>
-</html>
