@@ -187,6 +187,7 @@ const translations = {
     melody: "🎵 Melodi",
     songs: "🎶 Hazır Şarkılar",
     sharedWithYou: "Sizinle bir şarkı paylaşıldı:",
+    sharedSongDeleted: "Bir ortak şarkınız silindi.",
     close: "Kapat"
   },
   en: {
@@ -203,6 +204,7 @@ const translations = {
     melody: "🎵 Melody",
     songs: "🎶 Ready Songs",
     sharedWithYou: "A song was shared with you:",
+    sharedSongDeleted: "A shared song with your friend was deleted.",
     close: "Close"
   }
 };
@@ -306,6 +308,10 @@ function listenForSharedSongs(uid) {
         const data = change.doc.data();
         showNotification(data, change.doc.id);
       }
+      if (change.type === "removed") {
+        const data = change.doc.data();
+        showDeleteNotification(data);
+      }
     });
   });
 }
@@ -319,6 +325,18 @@ function showNotification(data, docId) {
 
   document.getElementById("dismissNotif").onclick = () => {
     deleteNotification(docId);
+  };
+}
+
+function showDeleteNotification(data) {
+  const notifBox = document.getElementById("songNotificationBox");
+  const notifText = document.getElementById("notifText");
+
+  notifText.innerHTML = `${translations[currentLang].sharedSongDeleted} <strong>${data.fromUsername}</strong>`;
+  notifBox.style.display = "block"; // Bildirimin görünür hale gelmesi sağlanır.
+
+  document.getElementById("dismissNotif").onclick = () => {
+    deleteNotification(data.docId);
   };
 }
 
