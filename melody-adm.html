@@ -2,20 +2,26 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <title>Paylaşılan Melodiler | Admin</title>
+  <title>Melodiler | Admin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body {
-      background: #0a0a0a;
-      font-family: 'Segoe UI', sans-serif;
-      color: #fff;
-      padding: 30px 20px;
-      min-height: 100vh;
-      text-align: center;
-      background-image: radial-gradient(circle at top left, #6a11cb33 0%, transparent 70%),
-                        radial-gradient(circle at bottom right, #2575fc33 0%, transparent 70%);
+body {
+  background: #0a0a0a;
+  font-family: 'Segoe UI', sans-serif;
+  color: #fff;
+  padding: 30px 20px;
+  min-height: 100vh;
+  text-align: center;
+  background-image: radial-gradient(circle at top left, #6a11cb33 0%, transparent 70%),
+                    radial-gradient(circle at bottom right, #2575fc33 0%, transparent 70%);
+}
+
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
-    
     .melody-item {
       background: rgba(255, 255, 255, 0.1);
       padding: 15px;
@@ -24,12 +30,10 @@
       max-width: 600px;
       text-align: left;
     }
-
     audio {
       width: 100%;
       margin-top: 10px;
     }
-
     .btn {
       padding: 10px 18px;
       background: #ff4e4e;
@@ -39,26 +43,23 @@
       cursor: pointer;
       margin-top: 10px;
     }
-
     .btn:hover {
       background: #ff2e2e;
     }
-
     .admin-back-btn {
-      display: inline-block;
-      margin-top: 40px;
-      padding: 12px 20px;
-      background: linear-gradient(to right, #6a11cb, #2575fc);
-      color: white;
-      border-radius: 8px;
-      font-weight: bold;
-      text-decoration: none;
-      transition: 0.3s;
-    }
-
-    .admin-back-btn:hover {
-      background: linear-gradient(to right, #2575fc, #6a11cb);
-    }
+  display: inline-block;
+  margin-top: 40px;
+  padding: 12px 20px;
+  background: linear-gradient(to right, #6a11cb, #2575fc);
+  color: white;
+  border-radius: 8px;
+  font-weight: bold;
+  text-decoration: none;
+  transition: 0.3s;
+}
+.admin-back-btn:hover {
+  background: linear-gradient(to right, #2575fc, #6a11cb);
+}
 
     #uploaderCount {
       margin: 20px 0;
@@ -68,12 +69,12 @@
   </style>
 </head>
 <body>
-  <h1>🎶 Paylaşılan Melodiler (Admin)</h1>
+  <h1>🎶 Yüklenen Melodiler (Admin)</h1>
   <div id="uploaderCount">Yükleniyor...</div>
   <div id="melodyList"></div>
   <a href="adminpanel.html" class="admin-back-btn">⬅️ Yönetim Paneline Dön</a>
-  
   <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
     import {
       getFirestore, collection, query, orderBy, onSnapshot,
@@ -81,8 +82,7 @@
     } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
     import {
       getAuth, onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";    
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -97,7 +97,7 @@
       'https://kqgbdfnqckcgrfizjdgt.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZ2JkZm5xY2tjZ3JmaXpqZGd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5Nzk2NDQsImV4cCI6MjA1ODU1NTY0NH0.oxyfinrgv7AscolwMv6CuTMHBLeNokdERCKH00d1kfo'
     );
-
+    
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth();
@@ -115,88 +115,74 @@
       if (docSnap.exists()) {
         isAdmin = docSnap.data().role === "admin";
       }
-      loadMelodies();
+      loadSongs();
     });
 
-function loadMelodies() {
-  const q = query(collection(db, "melodies"), orderBy("timestamp", "desc"));
-  
-  // Firebase Firestore'dan melodileri almak
-  onSnapshot(q, async (snapshot) => {
-    console.log("Snapshot alındı:", snapshot);
-    list.innerHTML = "";
-    const uniqueUploaders = new Set();
+    function loadSongs() {
+      const q = query(collection(db, "melodies"), orderBy("timestamp", "desc"));
+      onSnapshot(q, (snapshot) => {
+        list.innerHTML = "";
+        const uniqueUploaders = new Set();
 
-    for (const docSnap of snapshot.docs) {
-      const d = docSnap.data();
-      const docId = docSnap.id;
-      const time = d.timestamp?.toDate().toLocaleString() || "";
-      uniqueUploaders.add(d.uploaderUID);
+        snapshot.forEach(docSnap => {
+          const d = docSnap.data();
+          const docId = docSnap.id;
+          const time = d.timestamp?.toDate().toLocaleString() || "";
+          uniqueUploaders.add(d.uploaderUID);
 
-      const canDelete = isAdmin || d.uploaderUID === currentUID;
-      
-      // Supabase'den ses dosyasının URL'ini almak
-      const { data, error } = await supabase.storage.from('melodies').download(d.audioFileName);
-      if (error) {
-        console.error("Supabase'den ses dosyası alınamadı:", error.message);
-        return;
-      }
-      
-      const audioUrl = URL.createObjectURL(data);  // Ses dosyasını URL'ye dönüştür
+          const canDelete = isAdmin || d.uploaderUID === currentUID;
 
-      list.innerHTML += `
-        <div class="melody-item" id="melody-${docId}">
-          <p><strong>${d.uploader}</strong> (${time})</p>
-          <audio controls src="${audioUrl}"></audio>
-          <h3>${d.title}</h3>
-          <p>${d.lyrics.replace(/\\n/g, "<br>")}</p>
-          ${canDelete ? `<button class="btn" onclick="deleteMelody('${docId}')">❌ Sil</button>` : ""}
-        </div>
-      `;
+          list.innerHTML += `
+            <div class="melody-item" id="song-${docId}">
+              <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong> (${time})</p>
+              <audio controls src="${d.audioUrl}"></audio>
+              <h3>${d.title}</h3>
+              <p>${d.lyrics.replace(/\\n/g, "<br>")}</p>
+              ${canDelete ? `<button class="btn" onclick="deleteMelody('${docId}')">❌ Sil</button>` : ""}
+            </div>
+          `;
+        });
+
+        countBox.innerText = `Toplam ${uniqueUploaders.size} farklı kullanıcı şarkı yükledi.`;
+      });
     }
 
-    countBox.innerText = `Toplam ${uniqueUploaders.size} farklı kullanıcı melodi paylaştı.`;
-  }, (error) => {
-    console.error("Veri yüklenirken bir hata oluştu:", error);
-    countBox.innerText = "Veriler yüklenemedi, lütfen tekrar deneyin.";
-  });
-}
+window.deleteSong = async function (id) {
+  if (!confirm("Bu melodiyi silmek istediğine emin misin?")) return;
 
-    window.deleteMelody = async function (id) {
-      if (!confirm("Bu melodiyi silmek istediğine emin misin?")) return;
-      try {
-        const melodyRef = doc(db, "melodies", id);
-        const melodySnap = await getDoc(melodyRef);
+  try {
+    const songRef = doc(db, "melodies", id);
+    const songSnap = await getDoc(songRef);
 
-        if (!melodySnap.exists()) {
-          alert("Melodi zaten silinmiş.");
-          return;
-        }
+    if (!songSnap.exists()) {
+      alert("Melodi zaten silinmiş.");
+      return;
+    }
 
-        const data = melodySnap.data();
-        const audioUrl = data.audioUrl;
+    const data = songSnap.data();
+    const audioUrl = data.audioUrl;
 
-        // Firestore'dan belgeyi sil
-        await deleteDoc(melodyRef);
-        document.getElementById(`melody-${id}`)?.remove();
+    // Firestore'dan belgeyi sil
+    await deleteDoc(songRef);
+    document.getElementById(`song-${id}`)?.remove();
 
-        // Supabase'den ses dosyasını sil
-        if (audioUrl) {
-          const fileName = audioUrl.split("/").pop().split("?")[0];
-          const { error } = await supabase.storage.from("melodies").remove([fileName]);
+    // Supabase'den ses dosyasını sil
+    if (audioUrl) {
+      const fileName = audioUrl.split("/").pop().split("?")[0];
+      const { error } = await supabase.storage.from("melodies").remove([fileName]);
 
-          if (error) {
-            console.error("Supabase silme hatası:", error.message);
-            alert("Ses dosyası Firestore'dan silindi ama Supabase'den silinemedi.");
-          } else {
-            console.log("Supabase'den ses dosyası silindi:", fileName);
-          }
-        }
-      } catch (e) {
-        console.error("Silme sırasında hata:", e);
-        alert("Silme sırasında bir hata oluştu.");
+      if (error) {
+        console.error("Supabase silme hatası:", error.message);
+        alert("Ses dosyası Firestore'dan silindi ama Supabase'den silinemedi.");
+      } else {
+        console.log("Supabase'den ses dosyası silindi:", fileName);
       }
-    };
+    }
+  } catch (e) {
+    console.error("Silme sırasında hata:", e);
+    alert("Silme sırasında bir hata oluştu.");
+  }
+};
 
   </script>
 </body>
