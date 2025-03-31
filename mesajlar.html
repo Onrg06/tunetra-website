@@ -242,13 +242,10 @@ function setLang(l) {
 window.setLang = setLang;
 
 function formatTimestamp(ts) {
-  if (!ts) return "-";
-  let d;
-  try {
-    d = typeof ts.toDate === "function" ? ts.toDate() : new Date(ts);
-  } catch {
-    d = new Date(ts);
-  }
+  if (!ts || !ts.toDate) return "-";
+  const d = ts.toDate();
+  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
 
   const gun = d.getDate().toString().padStart(2, "0");
   const ay = (d.getMonth() + 1).toString().padStart(2, "0");
