@@ -63,6 +63,15 @@
       display: block;
       text-align: center;
     }
+    .messages-btn {
+     position: relative;
+     }
+
+    #msgDot {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      }
 
     .btn:hover, .profile-btn:hover, .friends-btn:hover, .messages-btn:hover, .lang-btn:hover, .extra-btn:hover {
       transform: scale(1.03);
@@ -149,7 +158,8 @@
     <a href="profil.html" class="profile-btn" id="btnProfile">👤 Profilim</a>
     <a href="arkadaslar.html" class="friends-btn" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım</a>
 <a href="mesajlar.html" class="messages-btn" id="btnMessages">
-  📨 <span id="btnMessagesText">Mesajlarım</span><span id="msgDot" class="dot" style="display: none;"></span>
+  📨 <span id="btnMessagesText">Mesajlarım</span>
+  <span id="msgDot" class="dot" style="display: none;"></span>
 </a>
   </div>
 
@@ -253,7 +263,9 @@ import {
     document.getElementById("btnSongs").innerText = translations[currentLang].songs;
     document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
     document.getElementById("btnFriends").innerText = translations[currentLang].friends;
-    document.getElementById("btnMessagesText").textContent = translations[currentLang].messages;
+    document.getElementById("btnMessagesText").innerHTML = hasUnseen
+   ? `${translations[currentLang].messages} <span class="dot"></span>`
+   : translations[currentLang].messages;
 
     if (role === "admin") {
       document.getElementById("btnAdmin").style.display = "block";
