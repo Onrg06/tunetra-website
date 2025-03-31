@@ -260,39 +260,46 @@
       });
 
       // --- Gerçek Zamanlı Mesajlar (Kişi bazlı sayım) ---
+onSnapshot(
+  query(collection(db, "conversations"), where("users", "array-contains", user.uid)),
+  (convoSnap) => {
+    const base = translations[currentLang].messages;
+    const unseenFrom = new Set();
+
+    convoSnap.docs.forEach(convo => {
+      const convoId = convo.id;
+      const messagesRef = collection(db, "conversations", convoId, "messages");
+
       onSnapshot(
-        query(collection(db, "conversations"), where("users", "array-contains", user.uid)),
-        (convoSnap) => {
-          const base = translations[currentLang].messages;
-          const unseenFrom = new Set();
-
-          convoSnap.docs.forEach(convo => {
-            const convoId = convo.id;
-            const messagesRef = collection(db, "conversations", convoId, "messages");
-
-            onSnapshot(
-              query(messagesRef, orderBy("timestamp", "desc"), limit(1)),
-              (msgSnap) => {
-                msgSnap.forEach(doc => {
-                  const msg = doc.data();
-                  if (
-                    msg.sender !== user.uid &&
-                    (!msg.seenBy || !msg.seenBy.includes(user.uid))
-                  ) {
-                    unseenFrom.add(msg.sender); // Sadece 1 kere sayar
-                  }
-                });
-
-                const msgCount = unseenFrom.size;
-                document.getElementById("btnMessages").innerText =
-                  msgCount > 0 ? `📨 ${base} (${msgCount})` : `📨 ${base}`;
-              }
-            );
+        query(messagesRef, orderBy("timestamp", "desc"), limit(1)),
+        (msgSnap) => {
+          msgSnap.forEach(doc => {
+            const msg = doc.data();
+            if (
+              msg.sender !== user.uid &&
+              (!msg.seenBy || !msg.seenBy.includes(user.uid))
+            ) {
+              unseenFrom.add(msg.sender); // Sadece 1 kere sayar
+            }
           });
+
+          // Mesaj sayısını ve kişi sayısını güncelle
+          const msgCount = unseenFrom.size;
+
+          // Eğer gelen mesaj sayısı varsa, sayıyı göster
+          if (msgCount > 0) {
+            document.getElementById("btnMessages").innerText =
+              `📨 ${base} (${msgCount})`;
+          } else {
+            document.getElementById("btnMessages").innerText =
+              `📨 ${base}`;
+          }
         }
       );
-    }
-  });
+    });
+  }
+);
+});
 
   window.logout = function () {
     signOut(auth).then(() => {
