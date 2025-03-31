@@ -84,6 +84,14 @@
       gap: 10px;
       margin: 20px 0;
     }
+    .dot {
+      display: inline-block;
+      margin-left: 6px;
+      width: 10px;
+      height: 10px;
+      background-color: red;
+      border-radius: 50%;
+      vertical-align: middle;
 
     @media (max-width: 768px) {
       h1 {
@@ -121,6 +129,8 @@
         background: rgba(255, 255, 255, 0.05);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
       }
+}
+
     }
   </style>
 </head>
@@ -136,7 +146,9 @@
   <div class="button-group">
     <a href="profil.html" class="profile-btn" id="btnProfile">👤 Profilim</a>
     <a href="arkadaslar.html" class="friends-btn" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım</a>
-    <a href="mesajlar.html" class="messages-btn" id="btnMessages">📨 Mesajlarım</a>
+    <a href="mesajlar.html" class="messages-btn" id="btnMessages">
+    📨 Mesajlarım <span id="msgDot" class="dot" style="display: none;"></span>
+    </a>
   </div>
 
   <div class="button-group">
@@ -238,7 +250,7 @@
     document.getElementById("btnSongs").innerText = translations[currentLang].songs;
     document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
     document.getElementById("btnFriends").innerText = translations[currentLang].friends;
-    document.getElementById("btnMessages").innerText = `${translations[currentLang].messages}`;
+    document.getElementById("btnMessages").childNodes[0].textContent = `${translations[currentLang].messages} `;
 
     if (role === "admin") {
       document.getElementById("btnAdmin").style.display = "block";
@@ -254,24 +266,24 @@ onAuthStateChanged(auth, (user) => {
 
   updateUI();
 
-  // --- Arkadaşlık istekleri ---
+  // Arkadaş istekleri
   onSnapshot(doc(db, "friendRequests", user.uid), (docSnap) => {
     const count = docSnap.exists() ? (docSnap.data().requests?.length || 0) : 0;
     const base = translations[currentLang].friends;
     document.getElementById("btnFriends").innerText = count > 0 ? `${base} (${count})` : base;
   });
 
-  // --- 🔴 GÖRÜLMEMİŞ MESAJ NOKTASI ---
-  const baseMsgText = translations[currentLang].messages;
+  // 🔴 GÖRÜLMEMİŞ MESAJLAR İÇİN KIRMIZI NOKTA
+  const msgDot = document.getElementById("msgDot");
   const convoQuery = query(collection(db, "conversations"), where("users", "array-contains", user.uid));
 
-  let hasUnseenGlobal = false; // Sayfa yenilense bile tutsun
-
   onSnapshot(convoQuery, (convoSnap) => {
-    hasUnseenGlobal = false;
+    let checkCount = 0;
+    let total = convoSnap.docs.length;
+    let unseenFound = false;
 
-    if (convoSnap.empty) {
-      updateMessageBtn(false);
+    if (total === 0) {
+      msgDot.style.display = "none";
       return;
     }
 
@@ -279,41 +291,32 @@ onAuthStateChanged(auth, (user) => {
       const convoId = convoDoc.id;
       const messagesRef = collection(db, "conversations", convoId, "messages");
 
-      onSnapshot(
-        query(messagesRef, orderBy("timestamp", "desc"), limit(1)),
-        (msgSnap) => {
-          msgSnap.forEach((doc) => {
-            const msg = doc.data();
-            if (
-              msg.sender !== user.uid &&
-              (!msg.seenBy || !msg.seenBy.includes(user.uid))
-            ) {
-              hasUnseenGlobal = true;
-              updateMessageBtn(true);
-            }
-          });
-
-          if (!hasUnseenGlobal) {
-            updateMessageBtn(false);
+      getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(1))).then((msgSnap) => {
+        msgSnap.forEach((doc) => {
+          const msg = doc.data();
+          if (
+            msg.sender !== user.uid &&
+            (!msg.seenBy || !msg.seenBy.includes(user.uid))
+          ) {
+            unseenFound = true;
           }
+        });
+
+        checkCount++;
+        if (checkCount === total) {
+          msgDot.style.display = unseenFound ? "inline-block" : "none";
         }
-      );
+      });
     });
   });
 
-  function updateMessageBtn(showDot) {
-    const msgBtn = document.getElementById("btnMessages");
-    msgBtn.innerText = showDot ? `${baseMsgText} 🔴` : `${baseMsgText}`;
-  }
-
-  // --- BUTONA TIKLAYINCA NOKTA SİLİNSİN ---
+  // Butona tıklayınca mesajları görüldü yap ve noktayı kaldır
   document.getElementById("btnMessages").addEventListener("click", async () => {
     const convoSnap = await getDocs(convoQuery);
 
     for (const convoDoc of convoSnap.docs) {
       const convoId = convoDoc.id;
       const messagesRef = collection(db, "conversations", convoId, "messages");
-
       const msgSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(10)));
 
       for (const msgDoc of msgSnap.docs) {
@@ -328,13 +331,10 @@ onAuthStateChanged(auth, (user) => {
       }
     }
 
-    // 🔴 Nokta anında silinsin
-    document.getElementById("btnMessages").innerText = baseMsgText;
+    msgDot.style.display = "none"; // Kırmızı noktayı gizle
   });
 });
-
-
-
+  
   window.logout = function () {
     signOut(auth).then(() => {
       window.location.href = "index.html";
