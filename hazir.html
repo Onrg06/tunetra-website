@@ -185,18 +185,46 @@ let currentUID = "";
 let currentUser = "Anonim";
 let friendList = [];
 
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    currentUID = user.uid;
-    const userSnap = await getDoc(doc(db, "users", currentUID));
-    if (userSnap.exists()) {
-      currentUser = userSnap.data().username || "Anonim";
+async function init() {
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      currentUID = user.uid;
+      const userSnap = await getDoc(doc(db, "users", currentUID));
+      if (userSnap.exists()) {
+        currentUser = userSnap.data().username || "Anonim";
+      }
+      await loadFriendsOnly(currentUID);
+      setupRealtimeListener(); // snapshot'ı burada başlat
+    } else {
+      await signInAnonymously(auth);
     }
-    await loadFriendsOnly(currentUID);
-  } else {
-    await signInAnonymously(auth);
-  }
-});
+  });
+}
+
+function setupRealtimeListener() {
+  const list = document.getElementById("melodyList");
+  const q = query(collection(db, "songs"), orderBy("timestamp", "desc"));
+  onSnapshot(q, (snapshot) => {
+    list.innerHTML = "";
+    snapshot.forEach(docSnap => {
+      const d = docSnap.data();
+      const docId = docSnap.id;
+      const time = d.timestamp?.toDate().toLocaleString() || "";
+      const showDelete = currentUID === d.uploaderUID || currentUID === d.collaboratorUID;
+
+      list.innerHTML += `
+        <div class="melody-item" id="song-${docId}">
+          <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong> (${time})</p>
+          <audio controls src="${d.audioUrl}"></audio>
+          <h3>${d.title}</h3>
+          <p>${d.lyrics.replace(/\\n/g, "<br>")}</p>
+          ${showDelete ? `<button class="btn" onclick="deleteSong('${docId}')">❌ Sil</button>` : ""}
+        </div>
+      `;
+    });
+  });
+}
+
 
 async function loadFriendsOnly(uid) {
   const snap = await getDoc(doc(db, "friends", uid));
@@ -368,6 +396,8 @@ function getText(key) {
   const lang = document.documentElement.lang || "tr";
   return texts[lang][key];
 }
+
+init(); // sayfa yüklendiğinde kullanıcı tanımlansın
 </script>
 </body>
 </html>
