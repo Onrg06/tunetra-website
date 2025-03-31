@@ -2,203 +2,297 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <title>Hazır Şarkılar</title>
+  <title>Melodi Yükle</title>
   <link rel="icon" type="image/png" href="image.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to right, #6a11cb, #2575fc, #ffcc70);
+      background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
       background-size: 400% 400%;
       animation: gradientShift 15s ease infinite;
+      font-family: Arial, sans-serif;
       color: white;
       min-height: 100vh;
       padding: 20px;
       text-align: center;
     }
+
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
+
     .container {
       max-width: 800px;
-      margin: auto;
-      background-color: rgba(255, 255, 255, 0.05);
+      margin: 0 auto;
       padding: 30px 20px;
+      background-color: rgba(255, 255, 255, 0.05);
       border-radius: 16px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     }
+
     .btn {
-      padding: 10px 18px;
+      padding: 12px 20px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
       border: none;
       border-radius: 10px;
       color: white;
       font-weight: bold;
+      margin: 0 auto;
       cursor: pointer;
+      transition: 0.3s;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      display: block;
+      width: fit-content;
+      text-decoration: none;
     }
-    .melody-item {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 15px;
-      margin: 20px auto;
-      border-radius: 8px;
-      max-width: 600px;
-      text-align: left;
-    }
-    audio {
-      width: 100%;
-      margin-top: 10px;
-    }
+
     .lang-buttons {
       display: flex;
       justify-content: center;
       gap: 15px;
+      flex-wrap: wrap;
       margin-bottom: 20px;
+    }
+
+    .button-group {
+      margin-top: 20px;
+      margin-bottom: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+
+    input, select, textarea {
+      margin: 10px auto;
+      width: 100%;
+      max-width: 600px;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      display: block;
+    }
+
+    textarea {
+      height: 120px;
+      resize: vertical;
+    }
+
+    .melody-item {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      margin: 15px auto;
+      border-radius: 8px;
+      max-width: 600px;
+      text-align: left;
+    }
+
+    audio {
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    #file-name {
+      display: block;
+      margin-top: 5px;
+      font-style: italic;
+      color: #eee;
+    }
+
+    #melody-title {
+      margin-top: 40px;
+      margin-bottom: 15px;
+    }
+
+    @media (max-width: 600px) {
+      .btn {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="lang-buttons">
-      <button class="btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
-      <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
-    </div>
-    <h1 id="page-title">Hazır Şarkılar</h1>
-    <div id="melodyList"></div>
-  </div>
+<!-- 👇 DEVAMI BİR SONRAKİ MESAJDA: JavaScript kısmı eksiksiz şekilde entegre edilerek gönderilecek -->
+<!-- JavaScript: Tam entegrasyon (bildirim + silme yetkisi + TR/EN desteği) -->
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, query, orderBy, onSnapshot,
+  serverTimestamp, doc, getDoc, deleteDoc, where
+} from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
+import {
+  getAuth, onAuthStateChanged, signInAnonymously
+} from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
-    import {
-      getFirestore, collection, query, orderBy, onSnapshot, deleteDoc, doc, getDoc, serverTimestamp, where, getDocs
-    } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
-    import {
-      getAuth, onAuthStateChanged, signInAnonymously
-    } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+const firebaseConfig = {
+  apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+  authDomain: "tunetra-2579b.firebaseapp.com",
+  projectId: "tunetra-2579b",
+  storageBucket: "tunetra-2579b.appspot.com",
+  messagingSenderId: "576238823779",
+  appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth();
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-      authDomain: "tunetra-2579b.firebaseapp.com",
-      projectId: "tunetra-2579b",
-      storageBucket: "tunetra-2579b.appspot.com",
-      messagingSenderId: "576238823779",
-      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-    };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth();
+const supabase = createClient(
+  "https://kqgbdfnqckcgrfizjdgt.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZ2JkZm5xY2tjZ3JmaXpqZGd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5Nzk2NDQsImV4cCI6MjA1ODU1NTY0NH0.oxyfinrgv7AscolwMv6CuTMHBLeNokdERCKH00d1kfo"
+);
+const bucket = "songs";
 
-    const supabase = createClient(
-      "https://kqgbdfnqckcgrfizjdgt.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-    );
-    const bucket = "songs";
+let currentUID = "";
+let currentUser = "Anonim";
+let friendList = [];
 
-    let currentUID = "";
-    let currentUser = "Anonim";
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUID = user.uid;
+    const userSnap = await getDoc(doc(db, "users", currentUID));
+    if (userSnap.exists()) {
+      currentUser = userSnap.data().username || "Anonim";
+    }
+    await loadFriendsOnly(currentUID);
+    loadSongs(); // 🔥 yüklemeyi buraya aldık
+  } else {
+    await signInAnonymously(auth);
+  }
+});
 
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        currentUID = user.uid;
-        const userSnap = await getDoc(doc(db, "users", currentUID));
-        if (userSnap.exists()) {
-          currentUser = userSnap.data().username || "Anonim";
-        }
-        loadSongs();
-      } else {
-        await signInAnonymously(auth);
+async function loadFriendsOnly(uid) {
+  const snap = await getDoc(doc(db, "friends", uid));
+  const select = document.getElementById("friend-name");
+  select.innerHTML = `<option value="">-- ${getText("friendPlaceholder")} --</option>`;
+  friendList = [];
+
+  if (snap.exists()) {
+    const list = snap.data().list || [];
+    for (const fid of list) {
+      const fdoc = await getDoc(doc(db, "users", fid));
+      if (fdoc.exists()) {
+        const uname = fdoc.data().username;
+        friendList.push({ uid: fid, username: uname });
+        const opt = document.createElement("option");
+        opt.value = fid;
+        opt.textContent = uname;
+        select.appendChild(opt);
       }
+    }
+  }
+}
+
+window.uploadMelodyFull = async function () {
+  const file = document.getElementById("melodyInput").files[0];
+  const title = document.getElementById("song-title").value.trim();
+  const lyrics = document.getElementById("song-lyrics").value.trim();
+  const selectedUID = document.getElementById("friend-name").value;
+  const selectedFriend = friendList.find(f => f.uid === selectedUID);
+
+  if (!file) return alert(getText("selectFile"));
+  if (!title) return alert(getText("uploadTitleEmpty"));
+  if (!lyrics) return alert(getText("uploadLyricsEmpty"));
+  if (!selectedFriend) return alert(getText("friendInvalid"));
+
+  const cleanName = file.name
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[çğıöşüÇĞİÖŞÜ]/g, c => ({ ç:'c', ğ:'g', ı:'i', ö:'o', ş:'s', ü:'u', Ç:'C', Ğ:'G', İ:'I', Ö:'O', Ş:'S', Ü:'U' }[c]))
+    .replace(/\s+/g, "_")
+    .replace(/[^a-zA-Z0-9._-]/g, "");
+  const fileName = `${Date.now()}_${cleanName}`;
+
+  const { error } = await supabase.storage.from(bucket).upload(fileName, file);
+  if (error) return alert(getText("uploadError") + " " + error.message);
+
+  const publicUrl = supabase.storage.from(bucket).getPublicUrl(fileName).data.publicUrl;
+
+  await addDoc(collection(db, "songs"), {
+    uploader: currentUser,
+    uploaderUID: currentUID,
+    collaborator: selectedFriend.username,
+    collaboratorUID: selectedFriend.uid,
+    audioUrl: publicUrl,
+    title,
+    lyrics,
+    timestamp: serverTimestamp()
+  });
+
+  await addDoc(collection(db, "notifications"), {
+    type: "collab-song",
+    toUID: selectedFriend.uid,
+    fromUID: currentUID,
+    fromUsername: currentUser,
+    title,
+    timestamp: serverTimestamp()
+  });
+
+  alert(getText("uploadSuccess"));
+  document.getElementById("melodyInput").value = "";
+  document.getElementById("song-title").value = "";
+  document.getElementById("song-lyrics").value = "";
+  document.getElementById("file-name").innerText = "";
+  document.getElementById("friend-name").selectedIndex = 0;
+};
+
+function loadSongs() {
+  const list = document.getElementById("melodyList");
+  const q = query(collection(db, "songs"), orderBy("timestamp", "desc"));
+  onSnapshot(q, (snapshot) => {
+    list.innerHTML = "";
+    snapshot.forEach(docSnap => {
+      const d = docSnap.data();
+      const docId = docSnap.id;
+      const time = d.timestamp?.toDate().toLocaleString() || "";
+      const showDelete = currentUID === d.uploaderUID || currentUID === d.collaboratorUID;
+      list.innerHTML += `
+        <div class="melody-item" id="song-${docId}">
+          <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong> (${time})</p>
+          <audio controls src="${d.audioUrl}"></audio>
+          <h3>${d.title}</h3>
+          <p>${d.lyrics.replace(/\n/g, "<br>")}</p>
+          ${showDelete ? `<button class="btn" onclick="deleteSong('${docId}', '${d.audioUrl}', '${d.title}', '${d.collaboratorUID}')">❌ Sil</button>` : ""}
+        </div>
+      `;
+    });
+  });
+}
+
+window.deleteSong = async function(id, fileUrl, title, collaboratorUID) {
+  if (!confirm(getText("confirmDelete") || "Bu şarkıyı silmek istiyor musun?")) return;
+  try {
+    const docRef = doc(db, "songs", id);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) return alert("Şarkı bulunamadı");
+
+    const fileName = fileUrl.split("/").pop().split("?")[0];
+    const { error } = await supabase.storage.from(bucket).remove([fileName]);
+    if (error) console.warn("Supabase silme hatası:", error.message);
+
+    await deleteDoc(docRef);
+
+    const notifQ = query(collection(db, "notifications"), where("title", "==", title), where("toUID", "==", collaboratorUID));
+    onSnapshot(notifQ, (snapshot) => {
+      snapshot.forEach(async noti => {
+        await deleteDoc(doc(db, "notifications", noti.id));
+      });
     });
 
-    async function loadSongs() {
-      const q = query(collection(db, "songs"), orderBy("timestamp", "desc"));
-      const list = document.getElementById("melodyList");
-      onSnapshot(q, (snapshot) => {
-        list.innerHTML = "";
-        snapshot.forEach(docSnap => {
-          const d = docSnap.data();
-          const docId = docSnap.id;
-          const time = d.timestamp?.toDate().toLocaleString() || "";
-          const canDelete = currentUID === d.uploaderUID || currentUID === d.collaboratorUID;
-
-          const item = document.createElement("div");
-          item.className = "melody-item";
-          item.id = "song-" + docId;
-          item.innerHTML = `
-            <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong> (${time})</p>
-            <audio controls src="${d.audioUrl}"></audio>
-            <h3>${d.title}</h3>
-            <p>${d.lyrics.replace(/\n/g, "<br>")}</p>
-            ${canDelete ? `<button class="btn" onclick="deleteSong('${docId}', '${d.audioUrl}', '${d.title}')">❌ ${getText("delete")}</button>` : ""}
-          `;
-          list.appendChild(item);
-        });
-      });
-    }
-
-    window.deleteSong = async function (id, audioUrl, title) {
-      if (!confirm(getText("confirmDelete"))) return;
-
-      try {
-        const docRef = doc(db, "songs", id);
-        const docSnap = await getDoc(docRef);
-        if (!docSnap.exists()) return alert(getText("notFound"));
-
-        // Supabase dosyasını sil
-        const fileName = audioUrl.split("/").pop().split("?")[0];
-        const { error } = await supabase.storage.from(bucket).remove([fileName]);
-        if (error) console.warn("Supabase silme hatası:", error.message);
-
-        // Bildirimleri sil (eğer varsa)
-        const notifQuery = query(
-          collection(db, "notifications"),
-          where("songTitle", "==", title),
-          where("to", "==", currentUID)
-        );
-        const notifSnap = await getDocs(notifQuery);
-        notifSnap.forEach(async (n) => await deleteDoc(doc(db, "notifications", n.id)));
-
-        // Firestore şarkı kaydını sil
-        await deleteDoc(docRef);
-        document.getElementById("song-" + id)?.remove();
-        alert(getText("deleted"));
-      } catch (err) {
-        console.error("Silme hatası:", err);
-        alert(getText("deleteError"));
-      }
-    };
-
-    const texts = {
-      tr: {
-        delete: "Sil",
-        deleted: "Şarkı silindi.",
-        confirmDelete: "Bu şarkıyı silmek istiyor musun?",
-        deleteError: "Silme sırasında hata oluştu.",
-        notFound: "Şarkı bulunamadı.",
-        title: "Hazır Şarkılar"
-      },
-      en: {
-        delete: "Delete",
-        deleted: "Song deleted.",
-        confirmDelete: "Are you sure you want to delete this song?",
-        deleteError: "Error deleting song.",
-        notFound: "Song not found.",
-        title: "Ready Songs"
-      }
-    };
-
-    function getText(key) {
-      const lang = document.documentElement.lang || "tr";
-      return texts[lang][key];
-    }
-
-    window.setLang = function (lang) {
-      document.documentElement.lang = lang;
-      document.getElementById("page-title").innerText = texts[lang].title;
-    };
-  </script>
-</body>
-</html>
+    document.getElementById(`song-${id}`)?.remove();
+    alert(getText("deleted") || "Silme başarılı");
+  } catch (err) {
+    console.error("Silme hatası:", err);
+    alert(getText("deleteError") || "Silinirken hata oluştu");
+  }
+};
+</script>
