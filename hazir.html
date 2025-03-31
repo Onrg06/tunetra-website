@@ -303,12 +303,12 @@ async function sendUploadNotification(friendUID, songTitle) {
     const notificationData = {
       to: friendUID,
       message: `${currentUser} bir şarkıyı seninle paylaştı: ${songTitle}`,
-      timestamp: serverTimestamp()
+      timestamp: serverTimestamp() // Zaman damgası ekle
     };
 
     // Bildirimi Firestore'a ekle
     const docRef = await addDoc(collection(db, "notifications"), notificationData);
-    console.log("Bildirim başarıyla eklendi:", docRef.id);  // Başarıyla eklendiyse ID'yi yazdır
+    console.log("Bildirim başarıyla eklendi:", docRef.id);  // Başarıyla eklenirse bildirimin ID'sini yazdır
 
   } catch (e) {
     console.error("Bildirim eklenirken hata oluştu:", e);  // Hata mesajını yazdır
@@ -357,28 +357,25 @@ window.deleteSong = async function (id) {
 
 async function sendDeleteNotification(songId) {
   try {
-    // Şarkıyı Firestore'dan al
     const songDoc = await getDoc(doc(db, "songs", songId));
     const songData = songDoc.data();
-    
-    // Şarkı verisi varsa
+
     if (songData) {
-      // Bildirim verisini hazırla
       const notificationData = {
-        to: songData.collaboratorUID, // Bildirimi alacak olan kişinin UID'si
+        to: songData.collaboratorUID,
         message: `Bir arkadaşınızla paylaştığınız şarkı silindi: ${songData.title}`,
-        timestamp: serverTimestamp() // Zaman damgası ekle
+        timestamp: serverTimestamp()
       };
 
-      // Bildirimi Firestore'a ekle
       const docRef = await addDoc(collection(db, "notifications"), notificationData);
-      console.log("Bildirim başarıyla eklendi:", docRef.id);  // Başarıyla eklenirse bildirimin ID'sini yazdır
+      console.log("Bildirim başarıyla eklendi:", docRef.id); // Bildirimin ID'sini yazdır
+
     } else {
       console.log("Şarkı bulunamadı.");
     }
   } catch (e) {
     console.error("Bildirim eklenirken hata oluştu:", e);  // Hata mesajını yazdır
-    alert("Bildirim eklenirken hata oluştu: " + e.message);  // Kullanıcıya hata mesajı göster
+    alert("Bildirim eklenirken hata oluştu: " + e.message);
   }
 }
 
