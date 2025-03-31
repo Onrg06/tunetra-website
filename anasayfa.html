@@ -268,10 +268,14 @@ onAuthStateChanged(auth, async (user) => {
 
   updateUI();
 
-  // Konuşmalar sorgusu
-  const convoQuery = query(collection(db, "conversations"), where("users", "array-contains", user.uid));
+// Konuşmalar sorgusu
+const convoQuery = query(
+  collection(db, "conversations"),
+  where("users", "array-contains", user.uid)
+);
 
-  const convoSnap = await getDocs(convoQuery);
+const convoSnap = await getDocs(convoQuery);
+
 const checks = convoSnap.docs.map(async (convoDoc) => {
   const convoId = convoDoc.id;
   const messagesRef = collection(db, "conversations", convoId, "messages");
@@ -280,21 +284,21 @@ const checks = convoSnap.docs.map(async (convoDoc) => {
   const messages = msgSnap.docs.map(doc => doc.data()).reverse(); // son mesajlar başta
 
   for (const msg of messages) {
-    if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
-      return true;
+    if (
+      msg.sender !== user.uid &&
+      (!msg.seenBy || !msg.seenBy.includes(user.uid))
+    ) {
+      return true; // görülememiş bir mesaj var
     }
   }
-  return false;
+
+  return false; // tüm mesajlar görülmüş
 });
 
+const results = await Promise.all(checks);
+const hasUnseen = results.includes(true);
+msgDot.style.display = hasUnseen ? "inline-block" : "none";
 
-    return msg && msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid));
-  });
-
-  const results = await Promise.all(checks);
-  const hasUnseen = results.includes(true);
-
-  msgDot.style.display = hasUnseen ? "inline-block" : "none";
 
   // "Mesajlar" butonuna tıklanınca tümünü görüldü yap
   document.getElementById("btnMessages").addEventListener("click", async () => {
