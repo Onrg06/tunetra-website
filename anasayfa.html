@@ -85,48 +85,30 @@
       margin: 20px 0;
     }
 
-    @media (max-width: 768px) {
-      h1 {
-        font-size: 1.8rem;
-        margin-top: 20px;
-      }
+    #songNotificationBox {
+      margin: 20px 0;
+      display: none;
+    }
 
-      p {
-        font-size: 1rem;
-      }
+    #songNotification {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 12px 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      max-width: 340px;
+      margin: 0 auto;
+      position: relative;
+    }
 
-      .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn, .extra-btn {
-        font-size: 0.95rem;
-        padding: 12px 20px;
-        width: 100%;
-        max-width: 340px;
-        margin: 8px auto;
-        text-align: center;
-      }
-
-      .language-buttons {
-        flex-direction: row;
-        justify-content: center;
-      }
-
-      .button-group {
-        flex-direction: column;
-        align-items: center;
-        gap: 12px;
-        margin: 20px auto;
-        width: 100%;
-        max-width: 340px;
-        padding: 10px 0;
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.05);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-      }
-      <div id="songNotificationBox" style="margin: 20px 0; display: none;">
-  <p id="songNotification" style="background: rgba(0,0,0,0.2); padding: 12px 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); max-width: 340px; margin: 0 auto; position: relative;">
-    <span id="notifText">🎵 Bir arkadaşın seninle bir şarkı paylaştı!</span>
-    <button id="dismissNotif" style="position: absolute; right: 10px; top: 10px; border: none; background: transparent; color: white; font-size: 18px; cursor: pointer;">❌</button>
-  </p>
-</div>
+    #dismissNotif {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      border: none;
+      background: transparent;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -363,3 +345,5 @@ window.addEventListener("DOMContentLoaded", () => {
   setLang("tr");
 });
 </script>
+</body>
+</html>
