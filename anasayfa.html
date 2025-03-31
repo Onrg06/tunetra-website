@@ -68,18 +68,17 @@
      }
 
     #msgDot {
-      position: absolute;
-      top: 8px;
-      right: 12px;
-      font-size: 0.8rem;
-      background-color: red;
-      border-radius: 50%;
-      color: white;
-      padding: 2px 6px;
-      box-shadow: 0 0 6px rgba(255, 0, 0, 0.6);
-      display: none;
-      z-index: 9999;
-    }
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(255, 0, 0, 0.6);
+  display: none;
+  z-index: 9999;
+}
 
     .btn:hover, .profile-btn:hover, .friends-btn:hover, .messages-btn:hover, .lang-btn:hover, .extra-btn:hover {
       transform: scale(1.03);
@@ -101,6 +100,16 @@
       gap: 10px;
       margin: 20px 0;
     }
+.dot {
+  display: inline-block;
+  margin-left: 6px;
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  border-radius: 50%;
+  vertical-align: middle;
+  box-shadow: 0 0 5px rgba(255, 0, 0, 0.6);
+}
 
     @media (max-width: 768px) {
       h1 {
@@ -138,6 +147,8 @@
         background: rgba(255, 255, 255, 0.05);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
       }
+}
+
     }
   </style>
 </head>
@@ -153,10 +164,10 @@
   <div class="button-group">
     <a href="profil.html" class="profile-btn" id="btnProfile">👤 Profilim</a>
     <a href="arkadaslar.html" class="friends-btn" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım</a>
-    <a href="mesajlar.html" class="messages-btn" id="btnMessages">
-      📨 <span id="btnMessagesText">Mesajlarım</span>
-      <span id="msgDot" class="dot" style="display: none;"></span>
-    </a>
+<a href="mesajlar.html" class="messages-btn" id="btnMessages">
+  📨 <span id="btnMessagesText">Mesajlarım</span>
+  <span id="msgDot" class="dot" style="display: none;"></span>
+</a>
   </div>
 
   <div class="button-group">
@@ -191,60 +202,48 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
+  const msgDot = document.getElementById("msgDot");
+
+  const translations = {
+    tr: {
+      welcome: "🎶 Hoş Geldin, ",
+      intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!",
+      logout: "Çıkış Yap",
+      profile: "👤 Profilim",
+      friends: "🧑‍🤝‍🧑 Arkadaşlarım",
+      messages: "Mesajlarım",
+      feedback: "📮 Dilek & Şikayet Kutusu",
+      announcements: "📢 Duyurular",
+      about: "ℹ️ Hakkımızda",
+      lyrics: "✍️ Sözler / Şiirler",
+      melody: "🎵 Melodi",
+      songs: "🎶 Hazır Şarkılar"
+    },
+    en: {
+      welcome: "🎶 Welcome, ",
+      intro: "You’re in the right place to create your dream song.<br><br>Share your lyrics or melody, let others collaborate and turn them into music.<br><br>On Tunetra, music is born through collaboration!",
+      logout: "Log Out",
+      profile: "👤 My Profile",
+      friends: "🧑‍🤝‍🧑 My Friends",
+      messages: "My Messages",
+      feedback: "📮 Feedback & Complaints",
+      announcements: "📢 Announcements",
+      about: "ℹ️ About",
+      lyrics: "✍️ Lyrics",
+      melody: "🎵 Melody",
+      songs: "🎶 Ready Songs"
+    }
+  };
+
   let currentLang = "tr";
 
-const translations = {
-  tr: {
-    welcome: "🎶 Hoş Geldin, ",
-    intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!",
-    logout: "Çıkış Yap",
-    profile: "👤 Profilim",
-    friends: "🧑‍🤝‍🧑 Arkadaşlarım",
-    messages: "Mesajlarım",
-    feedback: "📮 Dilek & Şikayet Kutusu",
-    announcements: "📢 Duyurular",
-    about: "ℹ️ Hakkımızda",
-    lyrics: "✍️ Sözler / Şiirler",
-    melody: "🎵 Melodi",
-    songs: "🎶 Hazır Şarkılar"
-  },
-  en: {
-    welcome: "🎶 Welcome, ",
-    intro: "You’re in the right place to create your dream song.<br><br>Share your lyrics or melody, let others collaborate and turn them into music.<br><br>On Tunetra, music is born through collaboration!",
-    logout: "Log Out",
-    profile: "👤 My Profile",
-    friends: "🧑‍🤝‍🧑 My Friends",
-    messages: "My Messages",
-    feedback: "📮 Feedback & Complaints",
-    announcements: "📢 Announcements",
-    about: "ℹ️ About",
-    lyrics: "✍️ Lyrics",
-    melody: "🎵 Melody",
-    songs: "🎶 Ready Songs"
-  }
-};
-
-  
   // Set language
   window.setLang = function (lang) {
     currentLang = lang;
     updateUI();
   };
 
-  // Yeni mesaj sayısını artır
-  async function incrementNewMessagesCount(uid) {
-    const userRef = doc(db, "users", uid);
-    const userDoc = await getDoc(userRef);
-    if (userDoc.exists()) {
-      const currentCount = userDoc.data().newMessagesCount || 0;
-      // Yeni mesaj sayısını artır
-      await updateDoc(userRef, {
-        newMessagesCount: currentCount + 1
-      });
-    }
-  }
-
-  // UI'yı güncelle
+  // Update UI
   async function updateUI() {
     const user = auth.currentUser;
     if (!user) return;
@@ -254,7 +253,7 @@ const translations = {
     if (!userDoc.exists()) return;
 
     const username = userDoc.data().username;
-    const newMessagesCount = userDoc.data().newMessagesCount || 0;
+    const inboxHasNew = userDoc.data().inboxHasNew || false;
 
     // UI'yı güncelle
     document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
@@ -270,77 +269,35 @@ const translations = {
     document.getElementById("btnFriends").innerText = translations[currentLang].friends;
     document.getElementById("btnMessagesText").textContent = translations[currentLang].messages;
 
-    // Yeni mesaj sayısını parantez içinde göster
+    // Kırmızı nokta kontrolü
     const msgDot = document.getElementById("msgDot");
-    if (newMessagesCount > 0) {
+    if (inboxHasNew) {
       msgDot.style.display = "inline-block";
-      msgDot.textContent = `(${newMessagesCount})`; 
     } else {
-      msgDot.style.display = "none"; 
+      msgDot.style.display = "none";
     }
   }
 
-  // Mesajlar tıklandığında Firestore'daki newMessagesCount sıfırlanacak
+  // Set inboxHasNew
+  async function setInboxHasNew(uid, value) {
+    const userRef = doc(db, "users", uid);
+    await updateDoc(userRef, {
+      inboxHasNew: value
+    });
+  }
+
+  // Mesajlar tıklandığında inboxHasNew sıfırlanacak
   document.getElementById("btnMessages").addEventListener("click", async () => {
     const user = auth.currentUser;
     if (!user) return;
 
-    // Firestore'daki newMessagesCount alanını sıfırla
-    await updateDoc(doc(db, "users", user.uid), {
-      newMessagesCount: 0
-    });
+    // Firestore'daki inboxHasNew alanını false yap
+    await setInboxHasNew(user.uid, false);
 
     // Kırmızı noktayı hemen gizle
     const msgDot = document.getElementById("msgDot");
     msgDot.style.display = "none";
   });
-
-  // Firestore'daki yeni mesaj sayısını artırma
-  async function addNewMessage(uid) {
-    const userRef = doc(db, "users", uid);
-    const userDoc = await getDoc(userRef);
-    if (userDoc.exists()) {
-      const currentCount = userDoc.data().newMessagesCount || 0;
-      await updateDoc(userRef, {
-        newMessagesCount: currentCount + 1
-      });
-    }
-  }
-
-  // Kullanıcı giriş durumu
-  window.addEventListener("DOMContentLoaded", () => {
-    setLang("tr");
-
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return window.location.href = "index.html";
-
-      listenInboxChanges(user.uid);
-
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      let newMessagesCount = userDoc.exists() && userDoc.data().newMessagesCount || 0;
-
-      await updateUI(newMessagesCount);
-    });
-  });
-
-  // Inbox değişikliklerini dinleme
-  function listenInboxChanges(uid) {
-    const userRef = doc(db, "users", uid);
-    onSnapshot(userRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const newMessagesCount = data.newMessagesCount || 0;
-
-        const msgDot = document.getElementById("msgDot");
-        if (newMessagesCount > 0) {
-          msgDot.style.display = "inline-block";
-          msgDot.textContent = `(${newMessagesCount})`; 
-        } else {
-          msgDot.style.display = "none"; 
-        }
-      }
-    });
-  }
 
   // Kullanıcı çıkışı
   window.logout = function () {
@@ -348,8 +305,18 @@ const translations = {
       window.location.href = "index.html"; 
     });
   };
+
+  // Listen for auth state change
+  window.addEventListener("DOMContentLoaded", () => {
+    setLang("tr");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return window.location.href = "index.html"; // Eğer kullanıcı yoksa giriş sayfasına yönlendir
+
+      await updateUI();
+
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      let hasUnseen = userDoc.exists() && userDoc.data().inboxHasNew === true;
+    });
+  });
 </script>
-
-
-</body>
-</html>
