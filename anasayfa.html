@@ -281,16 +281,21 @@
   }
 
   // Check inbox changes
-  function listenInboxChanges(uid) {
-    const userRef = doc(db, "users", uid);
-    onSnapshot(userRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const hasUnseen = data.inboxHasNew === true;
-        msgDot.style.display = hasUnseen ? "inline-block" : "none";
-      }
-    });
-  }
+function listenInboxChanges(uid) {
+  const userRef = doc(db, "users", uid);
+  onSnapshot(userRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const hasUnseen = data.inboxHasNew === true;
+
+      // Kırmızı noktanın görünürlüğünü güncelle
+      const msgDot = document.getElementById("msgDot");
+
+      // Eğer yeni mesaj varsa, kırmızı noktayı göster
+      msgDot.style.display = hasUnseen ? "inline-block" : "none";
+    }
+  });
+}
 
   // Logout function
   window.logout = function () {
@@ -306,15 +311,19 @@
     listenInboxChanges(user.uid); // Listen for inbox changes
 
     // Listen for messages button click
-    document.getElementById("btnMessages").addEventListener("click", async () => {
-      // Hide notification dot
-      msgDot.style.display = "none";
+document.getElementById("btnMessages").addEventListener("click", async () => {
+  const user = auth.currentUser;
+  if (!user) return;
 
-      // Set Firestore field inboxHasNew to false
-      await updateDoc(doc(db, "users", user.uid), {
-        inboxHasNew: false
-      });
-    });
+  // Kırmızı noktayı hemen gizle
+  document.getElementById("msgDot").style.display = "none";
+
+  // Firestore'daki inboxHasNew alanını false yap
+  await updateDoc(doc(db, "users", user.uid), {
+    inboxHasNew: false
+  });
+});
+
 
     // Fetch user data
     const userDoc = await getDoc(doc(db, "users", user.uid));
