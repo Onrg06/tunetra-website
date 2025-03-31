@@ -404,13 +404,6 @@ async function openChat(fid, el) {
     }
   );
 }
-
-function scrollToBottom() {
-  const area = document.getElementById("messageArea");
-  setTimeout(() => {
-    area.scrollTop = area.scrollHeight;  // Her durumda scroll'u en alta yap.
-  }, 100);
-}
   
 function setupLoadMoreButton(messagesCol) {
   const loadBtn = document.getElementById("loadMoreBtn");
