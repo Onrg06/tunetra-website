@@ -248,7 +248,8 @@ async function updateUI(hasUnseen = false) {
   const user = auth.currentUser;
   if (!user) return;
 
-  const userDoc = await getDoc(doc(db, "users", user.uid));
+  const docRef = doc(db, "users", user.uid);
+  const userDoc = await getDoc(docRef);
   if (!userDoc.exists()) return;
 
   const username = userDoc.data().username;
@@ -271,11 +272,17 @@ async function updateUI(hasUnseen = false) {
     document.getElementById("btnAdmin").style.display = "block";
   }
 
+  const msgDot = document.getElementById("msgDot");
   msgDot.style.display = hasUnseen ? "inline-block" : "none";
 }
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) return window.location.href = "index.html";
+
+  const userDoc = await getDoc(doc(db, "users", user.uid));
+  const hasUnseen = userDoc.exists() && userDoc.data().inboxHasNew === true;
+
+  await updateUI(hasUnseen);
 
   const convoQuery = query(collection(db, "conversations"), where("users", "array-contains", user.uid));
   const convoSnap = await getDocs(convoQuery);
@@ -300,30 +307,30 @@ onAuthStateChanged(auth, async (user) => {
   await updateUI(hasUnseen);
 
   // Mesajlar butonuna tıklanınca tümünü görüldü yap
-  document.getElementById("btnMessages").addEventListener("click", async () => {
-    for (const convoDoc of convoSnap.docs) {
-      const convoId = convoDoc.id;
-      const messagesRef = collection(db, "conversations", convoId, "messages");
+document.getElementById("btnMessages").addEventListener("click", async () => {
+  for (const convoDoc of convoSnap.docs) {
+    const convoId = convoDoc.id;
+    const messagesRef = collection(db, "conversations", convoId, "messages");
 
-      const msgSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(10)));
+    const msgSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(10)));
 
-      for (const msgDoc of msgSnap.docs) {
-        const msg = msgDoc.data();
-        if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
-          const updatedSeenBy = [...(msg.seenBy || []), user.uid];
-          await updateDoc(msgDoc.ref, { seenBy: updatedSeenBy });
-        }
+    for (const msgDoc of msgSnap.docs) {
+      const msg = msgDoc.data();
+      if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
+        const updatedSeenBy = [...(msg.seenBy || []), user.uid];
+        await updateDoc(msgDoc.ref, { seenBy: updatedSeenBy });
       }
     }
+  }
 
-    msgDot.style.display = "none";
+  // 🔴 Kırmızı nokta anasayfadan kaybolsun
+  document.getElementById("msgDot").style.display = "none";
 
-    // 🔁 Firestore'a da inboxHasNew: false olarak güncelle
-    await updateDoc(doc(db, "users", user.uid), {
-      inboxHasNew: false
-    });
+  // ✅ Kullanıcının inboxHasNew alanını da sıfırla
+  await updateDoc(doc(db, "users", user.uid), {
+    inboxHasNew: false
   });
-});
+})
 
 window.logout = function () {
   signOut(auth).then(() => {
