@@ -249,81 +249,90 @@
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     window.location.href = "index.html";
-  } else {
-    updateUI();
+    return;
+  }
 
-    // --- Gerçek Zamanlı Arkadaşlık İstekleri ---
-    onSnapshot(doc(db, "friendRequests", user.uid), (docSnap) => {
-      const count = docSnap.exists() ? (docSnap.data().requests?.length || 0) : 0;
-      const base = translations[currentLang].friends;
-      document.getElementById("btnFriends").innerText = count > 0 ? `${base} (${count})` : base;
-    });
+  updateUI();
 
-    // --- Gerçek Zamanlı Mesaj Gönderen Kişi Sayısı ---
-    const base = translations[currentLang].messages;
-    const unseenSenders = new Set();
+  // --- Arkadaşlık istekleri ---
+  onSnapshot(doc(db, "friendRequests", user.uid), (docSnap) => {
+    const count = docSnap.exists() ? (docSnap.data().requests?.length || 0) : 0;
+    const base = translations[currentLang].friends;
+    document.getElementById("btnFriends").innerText = count > 0 ? `${base} (${count})` : base;
+  });
 
-    const convosQuery = query(collection(db, "conversations"), where("users", "array-contains", user.uid));
-    const unsubscribe = onSnapshot(convosQuery, (convoSnap) => {
-      unseenSenders.clear(); // Her güncellemede sıfırla
+  // --- 🔴 GÖRÜLMEMİŞ MESAJ NOKTASI ---
+  const baseMsgText = translations[currentLang].messages;
+  const convoQuery = query(collection(db, "conversations"), where("users", "array-contains", user.uid));
 
-      let remaining = convoSnap.docs.length;
-      if (remaining === 0) updateBtn();
+  let hasUnseenGlobal = false; // Sayfa yenilense bile tutsun
 
-      convoSnap.docs.forEach((convoDoc) => {
-        const convoId = convoDoc.id;
-        const messagesRef = collection(db, "conversations", convoId, "messages");
+  onSnapshot(convoQuery, (convoSnap) => {
+    hasUnseenGlobal = false;
 
-        // Son mesajı kontrol et
-        onSnapshot(
-          query(messagesRef, orderBy("timestamp", "desc"), limit(1)),
-          (msgSnap) => {
-            msgSnap.forEach((doc) => {
-              const msg = doc.data();
-              if (
-                msg.sender !== user.uid &&
-                (!msg.seenBy || !msg.seenBy.includes(user.uid))
-              ) {
-                unseenSenders.add(msg.sender);
-              }
-            });
+    if (convoSnap.empty) {
+      updateMessageBtn(false);
+      return;
+    }
 
-            remaining--;
-            if (remaining === 0) updateBtn();
-          }
-        );
-      });
+    convoSnap.docs.forEach((convoDoc) => {
+      const convoId = convoDoc.id;
+      const messagesRef = collection(db, "conversations", convoId, "messages");
 
-      function updateBtn() {
-        const count = unseenSenders.size;
-        document.getElementById("btnMessages").innerText =
-          count > 0 ? `📨 ${base} (${count})` : `📨 ${base}`;
-      }
-    });
+      onSnapshot(
+        query(messagesRef, orderBy("timestamp", "desc"), limit(1)),
+        (msgSnap) => {
+          msgSnap.forEach((doc) => {
+            const msg = doc.data();
+            if (
+              msg.sender !== user.uid &&
+              (!msg.seenBy || !msg.seenBy.includes(user.uid))
+            ) {
+              hasUnseenGlobal = true;
+              updateMessageBtn(true);
+            }
+          });
 
-    // --- Butona tıklanınca mesajları görülmüş say ---
-    document.getElementById("btnMessages").addEventListener("click", async () => {
-      const convoSnap = await getDocs(convosQuery);
-
-      for (const convoDoc of convoSnap.docs) {
-        const convoId = convoDoc.id;
-        const messagesRef = collection(db, "conversations", convoId, "messages");
-        const latestMsgsSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(10)));
-
-        for (const msgDoc of latestMsgsSnap.docs) {
-          const msgData = msgDoc.data();
-          if (
-            msgData.sender !== user.uid &&
-            (!msgData.seenBy || !msgData.seenBy.includes(user.uid))
-          ) {
-            const updatedSeenBy = [...(msgData.seenBy || []), user.uid];
-            await msgDoc.ref.update({ seenBy: updatedSeenBy });
+          if (!hasUnseenGlobal) {
+            updateMessageBtn(false);
           }
         }
-      }
+      );
     });
+  });
+
+  function updateMessageBtn(showDot) {
+    const msgBtn = document.getElementById("btnMessages");
+    msgBtn.innerText = showDot ? `${baseMsgText} 🔴` : `${baseMsgText}`;
   }
+
+  // --- BUTONA TIKLAYINCA NOKTA SİLİNSİN ---
+  document.getElementById("btnMessages").addEventListener("click", async () => {
+    const convoSnap = await getDocs(convoQuery);
+
+    for (const convoDoc of convoSnap.docs) {
+      const convoId = convoDoc.id;
+      const messagesRef = collection(db, "conversations", convoId, "messages");
+
+      const msgSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(10)));
+
+      for (const msgDoc of msgSnap.docs) {
+        const msg = msgDoc.data();
+        if (
+          msg.sender !== user.uid &&
+          (!msg.seenBy || !msg.seenBy.includes(user.uid))
+        ) {
+          const updatedSeenBy = [...(msg.seenBy || []), user.uid];
+          await msgDoc.ref.update({ seenBy: updatedSeenBy });
+        }
+      }
+    }
+
+    // 🔴 Nokta anında silinsin
+    document.getElementById("btnMessages").innerText = baseMsgText;
+  });
 });
+
 
 
   window.logout = function () {
@@ -335,4 +344,4 @@ onAuthStateChanged(auth, (user) => {
   window.addEventListener("DOMContentLoaded", () => {
     setLang("tr");
   });
-</script> bu kodlara mesaj butonunun yanında mesaj gönderen kişi sayısı kadar sayı gözükmesini sağlar mısın butona tıklayınca da sıfırlansın ve sıfır gözükmesin
+</script>c
