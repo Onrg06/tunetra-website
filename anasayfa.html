@@ -68,17 +68,18 @@
      }
 
     #msgDot {
-  position: absolute;
-  top: 8px;
-  right: 12px;
-  width: 10px;
-  height: 10px;
-  background-color: red;
-  border-radius: 50%;
-  box-shadow: 0 0 6px rgba(255, 0, 0, 0.6);
-  display: none;
-  z-index: 9999;
-}
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 0.8rem;
+      background-color: red;
+      border-radius: 50%;
+      color: white;
+      padding: 2px 6px;
+      box-shadow: 0 0 6px rgba(255, 0, 0, 0.6);
+      display: none;
+      z-index: 9999;
+    }
 
     .btn:hover, .profile-btn:hover, .friends-btn:hover, .messages-btn:hover, .lang-btn:hover, .extra-btn:hover {
       transform: scale(1.03);
@@ -100,16 +101,6 @@
       gap: 10px;
       margin: 20px 0;
     }
-.dot {
-  display: inline-block;
-  margin-left: 6px;
-  width: 10px;
-  height: 10px;
-  background-color: red;
-  border-radius: 50%;
-  vertical-align: middle;
-  box-shadow: 0 0 5px rgba(255, 0, 0, 0.6);
-}
 
     @media (max-width: 768px) {
       h1 {
@@ -147,8 +138,6 @@
         background: rgba(255, 255, 255, 0.05);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
       }
-}
-
     }
   </style>
 </head>
@@ -164,10 +153,10 @@
   <div class="button-group">
     <a href="profil.html" class="profile-btn" id="btnProfile">👤 Profilim</a>
     <a href="arkadaslar.html" class="friends-btn" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım</a>
-<a href="mesajlar.html" class="messages-btn" id="btnMessages">
-  📨 <span id="btnMessagesText">Mesajlarım</span>
-  <span id="msgDot" class="dot" style="display: none;"></span>
-</a>
+    <a href="mesajlar.html" class="messages-btn" id="btnMessages">
+      📨 <span id="btnMessagesText">Mesajlarım</span>
+      <span id="msgDot" class="dot" style="display: none;"></span>
+    </a>
   </div>
 
   <div class="button-group">
@@ -187,10 +176,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import {
-    getFirestore, doc, getDoc, collection, query, where,
-    getDocs, orderBy, limit, updateDoc, onSnapshot
-  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -205,7 +191,7 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  const msgDot = document.getElementById("msgDot");
+  let currentLang = "tr";
 
   const translations = {
     tr: {
@@ -238,8 +224,6 @@
     }
   };
 
-  let currentLang = "tr";
-
   // Set language
   window.setLang = function (lang) {
     currentLang = lang;
@@ -247,7 +231,7 @@
   };
 
   // Update UI
-  async function updateUI(hasUnseen = false) {
+  async function updateUI() {
     const user = auth.currentUser;
     if (!user) return;
 
@@ -256,8 +240,9 @@
     if (!userDoc.exists()) return;
 
     const username = userDoc.data().username;
-    const role = userDoc.data().role || "user";
+    const newMessagesCount = userDoc.data().newMessagesCount || 0; // Yeni mesaj sayısı
 
+    // UI'yı güncelle
     document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
     document.getElementById("introText").innerHTML = translations[currentLang].intro;
     document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
@@ -271,66 +256,91 @@
     document.getElementById("btnFriends").innerText = translations[currentLang].friends;
     document.getElementById("btnMessagesText").textContent = translations[currentLang].messages;
 
-    // Admin control
-    if (role === "admin") {
-      document.getElementById("btnAdmin").style.display = "block";
+    // Yeni mesaj sayısını parantez içinde göster
+    const msgDot = document.getElementById("msgDot");
+    if (newMessagesCount > 0) {
+      msgDot.style.display = "inline-block";
+      msgDot.textContent = `(${newMessagesCount})`; // Sayıyı parantez içinde göster
+    } else {
+      msgDot.style.display = "none"; // Mesaj yoksa gizle
     }
-
-    // Show red notification if there are unread messages
-    msgDot.style.display = hasUnseen ? "inline-block" : "none";
   }
 
-  // Check inbox changes
-function listenInboxChanges(uid) {
-  const userRef = doc(db, "users", uid);
-  onSnapshot(userRef, (docSnap) => {
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      const hasUnseen = data.inboxHasNew === true;
+  // Mesajlar tıklandığında Firestore'daki newMessagesCount sıfırlanacak
+  document.getElementById("btnMessages").addEventListener("click", async () => {
+    const user = auth.currentUser;
+    if (!user) return;
 
-      // Kırmızı noktanın görünürlüğünü güncelle
-      const msgDot = document.getElementById("msgDot");
+    // Firestore'daki newMessagesCount alanını sıfırla
+    await updateDoc(doc(db, "users", user.uid), {
+      newMessagesCount: 0
+    });
 
-      // Eğer yeni mesaj varsa, kırmızı noktayı göster
-      msgDot.style.display = hasUnseen ? "inline-block" : "none";
-    }
+    // Kırmızı noktayı hemen gizle
+    const msgDot = document.getElementById("msgDot");
+    msgDot.style.display = "none";
   });
-}
 
-  // Logout function
+  // Firestore'daki yeni mesaj sayısını artırma
+  async function addNewMessage(uid) {
+    const userRef = doc(db, "users", uid);
+    const userDoc = await getDoc(userRef);
+    if (userDoc.exists()) {
+      const currentCount = userDoc.data().newMessagesCount || 0;
+      // Yeni mesaj sayısını artır
+      await updateDoc(userRef, {
+        newMessagesCount: currentCount + 1
+      });
+    }
+  }
+
+  // Kullanıcı giriş durumu
+  window.addEventListener("DOMContentLoaded", () => {
+    setLang("tr");
+
+    // 🔐 auth kullanıcısı yüklendiğinde listener'ı ekle
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return window.location.href = "index.html"; // Eğer kullanıcı yoksa giriş sayfasına yönlendir
+
+      // Inbox değişikliklerini dinlemeye başla
+      listenInboxChanges(user.uid);
+
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      let newMessagesCount = userDoc.exists() && userDoc.data().newMessagesCount || 0;
+
+      // UI'yı güncelle
+      await updateUI(newMessagesCount);
+    });
+  });
+
+  // Inbox değişikliklerini dinleme
+  function listenInboxChanges(uid) {
+    const userRef = doc(db, "users", uid);
+    onSnapshot(userRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const newMessagesCount = data.newMessagesCount || 0;
+
+        // Yeni mesaj sayısını parantez içinde göster
+        const msgDot = document.getElementById("msgDot");
+        if (newMessagesCount > 0) {
+          msgDot.style.display = "inline-block";
+          msgDot.textContent = `(${newMessagesCount})`; // Sayıyı parantez içinde göster
+        } else {
+          msgDot.style.display = "none"; // Mesaj yoksa gizle
+        }
+      }
+    });
+  }
+
+  // Kullanıcı çıkışı
   window.logout = function () {
     signOut(auth).then(() => {
-      window.location.href = "index.html"; // Redirect after logout
+      window.location.href = "index.html"; // Çıkış yaptıktan sonra anasayfaya yönlendir
     });
   };
 
-  // Listen for auth state change
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) return window.location.href = "index.html"; // If no user, redirect to login
-
-    listenInboxChanges(user.uid); // Listen for inbox changes
-
-    // Listen for messages button click
-document.getElementById("btnMessages").addEventListener("click", async () => {
-  const user = auth.currentUser;
-  if (!user) return;
-
-  // Kırmızı noktayı hemen gizle
-  document.getElementById("msgDot").style.display = "none";
-
-  // Firestore'daki inboxHasNew alanını false yap
-  await updateDoc(doc(db, "users", user.uid), {
-    inboxHasNew: false
-  });
-});
-
-
-    // Fetch user data
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    let hasUnseen = userDoc.exists() && userDoc.data().inboxHasNew === true;
-
-    // Update UI with unread messages status
-    await updateUI(hasUnseen);
-  });
-
 </script>
+
+</body>
+</html>
