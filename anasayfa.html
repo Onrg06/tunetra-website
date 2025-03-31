@@ -203,7 +203,7 @@
       melody: "🎵 Melodi",
       songs: "🎶 Hazır Şarkılar",
       friends: "🧑‍🤝‍🧑 Arkadaşlarım",
-      messages: "📨 Mesajlarım",
+      messages: "Mesajlarım",
     },
     en: {
       welcome: "🎶 Welcome, ",
@@ -219,7 +219,7 @@
       melody: "🎵 Melody",
       songs: "🎶 Ready Songs",
       friends: "🧑‍🤝‍🧑 My Friends",
-      messages: "📨 My Messages",
+      messages: "My Messages",
     }
   };
 
@@ -268,51 +268,34 @@ onAuthStateChanged(auth, (user) => {
 
   updateUI();
 
-  // Arkadaş istekleri
+  // 👥 Arkadaş istekleri (çalışıyor)
   onSnapshot(doc(db, "friendRequests", user.uid), (docSnap) => {
     const count = docSnap.exists() ? (docSnap.data().requests?.length || 0) : 0;
     const base = translations[currentLang].friends;
     document.getElementById("btnFriends").innerText = count > 0 ? `${base} (${count})` : base;
   });
 
-  // 🔴 GÖRÜLMEMİŞ MESAJLAR İÇİN KIRMIZI NOKTA
+  // 🔴 Mesaj bildirimi (çalışır ve hızlı)
   const msgDot = document.getElementById("msgDot");
   const convoQuery = query(collection(db, "conversations"), where("users", "array-contains", user.uid));
 
   onSnapshot(convoQuery, (convoSnap) => {
-    let checkCount = 0;
-    let total = convoSnap.docs.length;
-    let unseenFound = false;
-
-    if (total === 0) {
-      msgDot.style.display = "none";
-      return;
-    }
-
-    convoSnap.docs.forEach((convoDoc) => {
+    const promises = convoSnap.docs.map(async (convoDoc) => {
       const convoId = convoDoc.id;
       const messagesRef = collection(db, "conversations", convoId, "messages");
+      const msgSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(1)));
 
-      getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(1))).then((msgSnap) => {
-        msgSnap.forEach((doc) => {
-          const msg = doc.data();
-          if (
-            msg.sender !== user.uid &&
-            (!msg.seenBy || !msg.seenBy.includes(user.uid))
-          ) {
-            unseenFound = true;
-          }
-        });
+      const msg = msgSnap.docs[0]?.data();
+      return msg && msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid));
+    });
 
-        checkCount++;
-        if (checkCount === total) {
-          msgDot.style.display = unseenFound ? "inline-block" : "none";
-        }
-      });
+    Promise.all(promises).then((results) => {
+      const unseenExists = results.includes(true);
+      msgDot.style.display = unseenExists ? "inline-block" : "none";
     });
   });
 
-  // Butona tıklayınca mesajları görüldü yap ve noktayı kaldır
+  // ✅ Mesajlara tıklanınca görüldü yap
   document.getElementById("btnMessages").addEventListener("click", async () => {
     const convoSnap = await getDocs(convoQuery);
 
@@ -333,7 +316,7 @@ onAuthStateChanged(auth, (user) => {
       }
     }
 
-    msgDot.style.display = "none"; // Kırmızı noktayı gizle
+    msgDot.style.display = "none";
   });
 });
   
