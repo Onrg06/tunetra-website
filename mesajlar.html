@@ -324,6 +324,7 @@ async function loadChatList(uid) {
   }
 }
 
+// Mesajlar yüklendikten sonra scroll'u en alta getir.
 async function openChat(fid, el) {
   selectedFriendId = fid;
   const area = document.getElementById("messageArea");
@@ -358,51 +359,57 @@ async function openChat(fid, el) {
     }
   }
 
-scrollToBottom();
-  
-  // ✅ inboxHasNew'i sıfırla (anasayfa kırmızı noktayı anında silsin)
-await updateDoc(doc(db, "users", currentUser.uid), {
-  inboxHasNew: false
-});
+  scrollToBottom();  // Burada en son mesaja scroll yapılıyor.
 
-// Sohbet açılır açılmaz, UI'daki kırmızı noktayı temizle
-const chatItem = document.querySelector(`.chat-item.active`);
-if (chatItem) {
-  const notif = chatItem.querySelector(".notification");
-  if (notif) notif.remove();
+  // inboxHasNew'i sıfırla (anasayfa kırmızı noktayı anında silsin)
+  await updateDoc(doc(db, "users", currentUser.uid), {
+    inboxHasNew: false
+  });
+
+  // Sohbet açıldığında UI'daki kırmızı noktayı temizle
+  const chatItem = document.querySelector(`.chat-item.active`);
+  if (chatItem) {
+    const notif = chatItem.querySelector(".notification");
+    if (notif) notif.remove();
+  }
+
+  scrollToBottom(); // Mesaj yüklendikten sonra tekrar aşağıya git.
+
+  setupLoadMoreButton(messagesCol); // Load more butonu çalıştırılıyor.
+
+  // Yeni mesajları dinlemeye başla
+  unsubMessages = onSnapshot(
+    query(messagesCol, orderBy("timestamp", "asc"), limitToLast(1)),
+    async (snapshot) => {
+      for (const docChange of snapshot.docChanges()) {
+        const msg = { id: docChange.doc.id, ...docChange.doc.data() };
+        if (loadedMessageIds.has(msg.id)) continue;
+
+        loadedMessageIds.add(msg.id);
+        const div = await buildMessageDiv(msg);
+        area.appendChild(div);
+        scrollToBottom();  // Her yeni mesaj sonrası scroll yapıyoruz.
+
+        if (!msg.seenBy?.includes(currentUser.uid)) {
+          await updateDoc(doc(db, "conversations", convoId, "messages", msg.id), {
+            seenBy: arrayUnion(currentUser.uid)
+          });
+          await updateDoc(doc(db, "users", currentUser.uid), {
+            inboxHasNew: false
+          });
+        }
+
+        await updateChatListItem(selectedFriendId);
+      }
+    }
+  );
 }
 
-scrollToBottom(); // 👈 BURASI MESAJ SONRASI SCROLL
-
-setupLoadMoreButton(messagesCol); // 👈 LOAD MORE BUTONU AYARLANIYOR
-
-// Yeni mesajları dinlemeye başla
-unsubMessages = onSnapshot(
-  query(messagesCol, orderBy("timestamp", "asc"), limitToLast(1)),
-  async (snapshot) => {
-    for (const docChange of snapshot.docChanges()) {
-      const msg = { id: docChange.doc.id, ...docChange.doc.data() };
-      if (loadedMessageIds.has(msg.id)) continue;
-
-      loadedMessageIds.add(msg.id);
-      const div = await buildMessageDiv(msg);
-      area.appendChild(div);
-      scrollToBottom();
-
-      if (!msg.seenBy?.includes(currentUser.uid)) {
-        await updateDoc(doc(db, "conversations", convoId, "messages", msg.id), {
-          seenBy: arrayUnion(currentUser.uid)
-        });
-        await updateDoc(doc(db, "users", currentUser.uid), {
-          inboxHasNew: false
-        });
-      }
-
-      await updateChatListItem(selectedFriendId);
-    }
-  }
-);
-
+function scrollToBottom() {
+  const area = document.getElementById("messageArea");
+  setTimeout(() => {
+    area.scrollTop = area.scrollHeight;  // Her durumda scroll'u en alta yap.
+  }, 100);
 }
   
 function setupLoadMoreButton(messagesCol) {
