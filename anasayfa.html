@@ -185,142 +185,145 @@
   </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import {
-  getFirestore, doc, getDoc, collection, query, where,
-  getDocs, orderBy, limit, updateDoc, onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc, collection, query, where,
+    getDocs, orderBy, limit, updateDoc, onSnapshot
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-  authDomain: "tunetra-2579b.firebaseapp.com",
-  projectId: "tunetra-2579b",
-  storageBucket: "tunetra-2579b.appspot.com",
-  messagingSenderId: "576238823779",
-  appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+    authDomain: "tunetra-2579b.firebaseapp.com",
+    projectId: "tunetra-2579b",
+    storageBucket: "tunetra-2579b.appspot.com",
+    messagingSenderId: "576238823779",
+    appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+  };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-const msgDot = document.getElementById("msgDot");
+  const msgDot = document.getElementById("msgDot");
 
-const translations = {
-  tr: {
-    welcome: "🎶 Hoş Geldin, ",
-    intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!",
-    logout: "Çıkış Yap",
-    profile: "👤 Profilim",
-    friends: "🧑‍🤝‍🧑 Arkadaşlarım",
-    messages: "Mesajlarım",
-    feedback: "📮 Dilek & Şikayet Kutusu",
-    announcements: "📢 Duyurular",
-    about: "ℹ️ Hakkımızda",
-    lyrics: "✍️ Sözler / Şiirler",
-    melody: "🎵 Melodi",
-    songs: "🎶 Hazır Şarkılar"
-  },
-  en: {
-    welcome: "🎶 Welcome, ",
-    intro: "You’re in the right place to create your dream song.<br><br>Share your lyrics or melody, let others collaborate and turn them into music.<br><br>On Tunetra, music is born through collaboration!",
-    logout: "Log Out",
-    profile: "👤 My Profile",
-    friends: "🧑‍🤝‍🧑 My Friends",
-    messages: "My Messages",
-    feedback: "📮 Feedback & Complaints",
-    announcements: "📢 Announcements",
-    about: "ℹ️ About",
-    lyrics: "✍️ Lyrics",
-    melody: "🎵 Melody",
-    songs: "🎶 Ready Songs"
+  const translations = {
+    tr: {
+      welcome: "🎶 Hoş Geldin, ",
+      intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!",
+      logout: "Çıkış Yap",
+      profile: "👤 Profilim",
+      friends: "🧑‍🤝‍🧑 Arkadaşlarım",
+      messages: "Mesajlarım",
+      feedback: "📮 Dilek & Şikayet Kutusu",
+      announcements: "📢 Duyurular",
+      about: "ℹ️ Hakkımızda",
+      lyrics: "✍️ Sözler / Şiirler",
+      melody: "🎵 Melodi",
+      songs: "🎶 Hazır Şarkılar"
+    },
+    en: {
+      welcome: "🎶 Welcome, ",
+      intro: "You’re in the right place to create your dream song.<br><br>Share your lyrics or melody, let others collaborate and turn them into music.<br><br>On Tunetra, music is born through collaboration!",
+      logout: "Log Out",
+      profile: "👤 My Profile",
+      friends: "🧑‍🤝‍🧑 My Friends",
+      messages: "My Messages",
+      feedback: "📮 Feedback & Complaints",
+      announcements: "📢 Announcements",
+      about: "ℹ️ About",
+      lyrics: "✍️ Lyrics",
+      melody: "🎵 Melody",
+      songs: "🎶 Ready Songs"
+    }
+  };
+
+  let currentLang = "tr";
+
+  // Set language
+  window.setLang = function (lang) {
+    currentLang = lang;
+    updateUI();
+  };
+
+  // Update UI
+  async function updateUI(hasUnseen = false) {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const docRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(docRef);
+    if (!userDoc.exists()) return;
+
+    const username = userDoc.data().username;
+    const role = userDoc.data().role || "user";
+
+    document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
+    document.getElementById("introText").innerHTML = translations[currentLang].intro;
+    document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
+    document.getElementById("btnProfile").innerText = translations[currentLang].profile;
+    document.getElementById("btnFeedback").innerText = translations[currentLang].feedback;
+    document.getElementById("btnAbout").innerText = translations[currentLang].about;
+    document.getElementById("btnLyrics").innerText = translations[currentLang].lyrics;
+    document.getElementById("btnMelody").innerText = translations[currentLang].melody;
+    document.getElementById("btnSongs").innerText = translations[currentLang].songs;
+    document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
+    document.getElementById("btnFriends").innerText = translations[currentLang].friends;
+    document.getElementById("btnMessagesText").textContent = translations[currentLang].messages;
+
+    // Admin control
+    if (role === "admin") {
+      document.getElementById("btnAdmin").style.display = "block";
+    }
+
+    // Show red notification if there are unread messages
+    msgDot.style.display = hasUnseen ? "inline-block" : "none";
   }
-};
 
-let currentLang = "tr";
-window.setLang = function (lang) {
-  currentLang = lang;
-  updateUI();
-};
+  // Check inbox changes
+  function listenInboxChanges(uid) {
+    const userRef = doc(db, "users", uid);
+    onSnapshot(userRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const hasUnseen = data.inboxHasNew === true;
+        msgDot.style.display = hasUnseen ? "inline-block" : "none";
+      }
+    });
+  }
 
-async function updateUI(hasUnseen = false) {
-  const user = auth.currentUser;
-  if (!user) return;
+  // Logout function
+  window.logout = function () {
+    signOut(auth).then(() => {
+      window.location.href = "index.html"; // Redirect after logout
+    });
+  };
 
-  const docRef = doc(db, "users", user.uid);
-  const userDoc = await getDoc(docRef);
-  if (!userDoc.exists()) return;
-
-  const username = userDoc.data().username;
-  const role = userDoc.data().role || "user";
-
-  document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
-  document.getElementById("introText").innerHTML = translations[currentLang].intro;
-  document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
-  document.getElementById("btnProfile").innerText = translations[currentLang].profile;
-  document.getElementById("btnFeedback").innerText = translations[currentLang].feedback;
-  document.getElementById("btnAbout").innerText = translations[currentLang].about;
-  document.getElementById("btnLyrics").innerText = translations[currentLang].lyrics;
-  document.getElementById("btnMelody").innerText = translations[currentLang].melody;
-  document.getElementById("btnSongs").innerText = translations[currentLang].songs;
-  document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
-  document.getElementById("btnFriends").innerText = translations[currentLang].friends;
-  document.getElementById("btnMessagesText").textContent = translations[currentLang].messages;
-
-window.addEventListener("DOMContentLoaded", () => {
-  setLang("tr");
-
-  // 🔐 auth kullanıcısı yüklendiğinde listener'ı ekle
+  // Listen for auth state change
   onAuthStateChanged(auth, async (user) => {
-    if (!user) return window.location.href = "index.html"; // Eğer kullanıcı yoksa giriş sayfasına yönlendir
+    if (!user) return window.location.href = "index.html"; // If no user, redirect to login
 
-    // Inbox değişikliklerini dinlemeye başla
-    listenInboxChanges(user.uid);
+    listenInboxChanges(user.uid); // Listen for inbox changes
 
-    // 🔴 Kırmızı nokta tıklama listener'ı
+    // Listen for messages button click
     document.getElementById("btnMessages").addEventListener("click", async () => {
-      // Kırmızı noktayı gizle
-      document.getElementById("msgDot").style.display = "none";
+      // Hide notification dot
+      msgDot.style.display = "none";
 
-      // Firestore'daki inboxHasNew alanını false yap
+      // Set Firestore field inboxHasNew to false
       await updateDoc(doc(db, "users", user.uid), {
         inboxHasNew: false
       });
     });
 
+    // Fetch user data
     const userDoc = await getDoc(doc(db, "users", user.uid));
     let hasUnseen = userDoc.exists() && userDoc.data().inboxHasNew === true;
 
-    // UI'yı güncelle
+    // Update UI with unread messages status
     await updateUI(hasUnseen);
-
-    // Eğer adminse, admin butonunu göster
-    const role = userDoc.exists() ? userDoc.data().role : null;
-    if (role === "admin") {
-      document.getElementById("btnAdmin").style.display = "block";
-    }
   });
-});
-
-// Inbox değişikliklerini dinleyerek bildirim noktasını güncelle
-function listenInboxChanges(uid) {
-  const userRef = doc(db, "users", uid);
-  onSnapshot(userRef, (docSnap) => {
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      const hasUnseen = data.inboxHasNew === true;
-      document.getElementById("msgDot").style.display = hasUnseen ? "inline-block" : "none";
-    }
-  });
-}
-
-// Kullanıcı çıkış yaparsa
-window.logout = function () {
-  signOut(auth).then(() => {
-    window.location.href = "index.html"; // Çıkış yaptıktan sonra anasayfaya yönlendir
-  });
-};
 
 </script>
+
 
