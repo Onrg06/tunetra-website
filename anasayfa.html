@@ -310,7 +310,7 @@ onAuthStateChanged(auth, async (user) => {
   });
 
   const results = await Promise.all(checks);
-  const hasUnseen = results.includes(true);
+  const hasUnseen = true
 
   await updateUI(hasUnseen); // ✅ Parametre olarak gönder
 
