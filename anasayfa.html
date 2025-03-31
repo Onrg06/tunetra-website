@@ -234,28 +234,69 @@ onAuthStateChanged(auth, (user) => {
 
   updateUI();
 
-  onSnapshot(doc(db, "friendRequests", user.uid), (docSnap) => {
-    const count = docSnap.exists() ? (docSnap.data().requests?.length || 0) : 0;
-    const base = translations[currentLang].friends;
-    document.getElementById("btnFriends").innerText = count > 0 ? `${base} (${count})` : base;
-  });
-
   onSnapshot(
     query(collection(db, "conversations"), where("users", "array-contains", user.uid)),
     (convoSnap) => {
       const base = translations[currentLang].messages;
+
       const checkUnread = convoSnap.docs.map(async (convo) => {
         const convoId = convo.id;
         const messagesRef = collection(db, "conversations", convoId, "messages");
-        const latestSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(1)));
+
+        const latestSnap = await getDocs(
+          query(messagesRef, orderBy("timestamp", "desc"), limit(1))
+        );
+
         if (!latestSnap.empty) {
           const msg = latestSnap.docs[0].data();
-          if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
-            return msg.sender;
+          const otherUser = convo.data().users.find(uid => uid !== user.uid);
+
+          if (
+            msg.sender !== user.uid &&
+            (!msg.seenBy || !msg.seenBy.includes(user.uid))
+          ) {
+            return otherUser;
           }
         }
+
         return null;
       });
+
+      Promise.all(checkUnread).then((senders) => {
+        unreadMessageSenders = new Set(senders.filter(Boolean));
+        const count = unreadMessageSenders.size;
+        const finalText = count > 0 && !isOnMessagesPage
+          ? `📨 ${base} (${count})`
+          : `📨 ${base}`;
+        document.getElementById("btnMessages").innerText = finalText;
+      });
+    }
+  );
+
+  // Butona basınca bildirimi sıfırla
+  document.getElementById("btnMessages").addEventListener("click", async () => {
+    for (const senderUID of unreadMessageSenders) {
+      const convoId = [user.uid, senderUID].sort().join("_");
+      const messagesRef = collection(db, "conversations", convoId, "messages");
+
+      const unreadSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(20)));
+      for (const docSnap of unreadSnap.docs) {
+        const msg = docSnap.data();
+        const id = docSnap.id;
+
+        if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
+          await updateDoc(doc(db, "conversations", convoId, "messages", id), {
+            seenBy: arrayUnion(user.uid)
+          });
+        }
+      }
+    }
+
+    unreadMessageSenders.clear();
+    const base = translations[currentLang].messages;
+    document.getElementById("btnMessages").innerText = `📨 ${base}`;
+  });
+});
 
       Promise.all(checkUnread).then((senders) => {
         unreadMessageSenders = new Set(senders.filter(Boolean));
