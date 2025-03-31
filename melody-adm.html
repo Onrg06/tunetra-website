@@ -118,34 +118,45 @@ body {
       loadSongs();
     });
 
-    function loadSongs() {
-      const q = query(collection(db, "melodies"), orderBy("timestamp", "desc"));
-      onSnapshot(q, (snapshot) => {
-        list.innerHTML = "";
-        const uniqueUploaders = new Set();
+function loadSongs() {
+  const q = query(collection(db, "melodies"), orderBy("timestamp", "desc"));
+  onSnapshot(q, (snapshot) => {
+    console.log("Veri geldi mi?", snapshot);  // Verinin geldiğini kontrol et
+    list.innerHTML = ""; // Listeyi sıfırla
+    const uniqueUploaders = new Set();
 
-        snapshot.forEach(docSnap => {
-          const d = docSnap.data();
-          const docId = docSnap.id;
-          const time = d.timestamp?.toDate().toLocaleString() || "";
-          uniqueUploaders.add(d.uploaderUID);
-
-          const canDelete = isAdmin || d.uploaderUID === currentUID;
-
-          list.innerHTML += `
-            <div class="melody-item" id="song-${docId}">
-              <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong> (${time})</p>
-              <audio controls src="${d.audioUrl}"></audio>
-              <h3>${d.title}</h3>
-              <p>${d.lyrics.replace(/\\n/g, "<br>")}</p>
-              ${canDelete ? `<button class="btn" onclick="deleteMelody('${docId}')">❌ Sil</button>` : ""}
-            </div>
-          `;
-        });
-
-        countBox.innerText = `Toplam ${uniqueUploaders.size} farklı kullanıcı şarkı yükledi.`;
-      });
+    // Eğer veri boşsa, bir hata mesajı göster
+    if (snapshot.empty) {
+      console.log("Firestore'dan veri alınamadı.");
+      countBox.innerText = "Veri yüklenemedi.";
+      return;
     }
+
+    snapshot.forEach(docSnap => {
+      const d = docSnap.data();
+      const docId = docSnap.id;
+      const time = d.timestamp?.toDate().toLocaleString() || "";
+      uniqueUploaders.add(d.uploaderUID);
+
+      const canDelete = isAdmin || d.uploaderUID === currentUID;
+
+      list.innerHTML += `
+        <div class="melody-item" id="song-${docId}">
+          <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong> (${time})</p>
+          <audio controls src="${d.audioUrl}"></audio>
+          <h3>${d.title}</h3>
+          <p>${d.lyrics.replace(/\\n/g, "<br>")}</p>
+          ${canDelete ? `<button class="btn" onclick="deleteMelody('${docId}')">❌ Sil</button>` : ""}
+        </div>
+      `;
+    });
+
+    countBox.innerText = `Toplam ${uniqueUploaders.size} farklı kullanıcı şarkı yükledi.`;
+  }, (error) => {
+    console.error("Veri yüklenirken bir hata oluştu:", error);
+    countBox.innerText = "Veriler yüklenemedi, lütfen tekrar deneyin.";
+  });
+}
 
 window.deleteSong = async function (id) {
   if (!confirm("Bu melodiyi silmek istediğine emin misin?")) return;
@@ -161,14 +172,14 @@ window.deleteSong = async function (id) {
 
     const data = songSnap.data();
     const audioUrl = data.audioUrl;
+    const fileName = audioUrl ? audioUrl.split("/").pop().split("?")[0] : null;
 
     // Firestore'dan belgeyi sil
     await deleteDoc(songRef);
     document.getElementById(`song-${id}`)?.remove();
 
     // Supabase'den ses dosyasını sil
-    if (audioUrl) {
-      const fileName = audioUrl.split("/").pop().split("?")[0];
+    if (fileName) {
       const { error } = await supabase.storage.from("melodies").remove([fileName]);
 
       if (error) {
