@@ -301,15 +301,14 @@ window.uploadMelodyFull = async function () {
 // Şarkı Yüklemede Bildirim Gönderme
 async function sendUploadNotification(friendUID, songTitle) {
   const notificationData = {
-    to: friendUID, // Bildirimi alacak olan kişinin UID'si
-    message: `${currentUser} bir şarkıyı seninle paylaştı: ${songTitle}`,
+    to: friendUID, // Bildirimi alacak kişinin UID'si
+    message: `${currentUser} bir şarkıyı seninle paylaştı: ${songTitle}`, // Bildirim metni
     timestamp: serverTimestamp()
   };
 
-  // Bildirimi Firestore'a kaydedin
+  // Bildirimi Firestore'a kaydet
   await addDoc(collection(db, "notifications"), notificationData);
 }
-
 
   alert(getText("uploadSuccess"));
   document.getElementById("melodyInput").value = "";
@@ -350,19 +349,19 @@ window.deleteSong = async function (id) {
 };
 
 // Bildirim gönderme işlemi
+// Bildirim gönderme (Şarkı silindiğinde)
 async function sendDeleteNotification(songId) {
   const songDoc = await getDoc(doc(db, "songs", songId));
   const songData = songDoc.data();
-  
-  // Eğer şarkıyı yükleyen veya işbirlikçi silmişse bildirim gönder
+
   if (songData) {
     const notificationData = {
-      to: songData.collaboratorUID, // Bildirimi alacak olan kişinin UID'si
-      message: `Bir arkadaşınızla paylaştığınız şarkı silindi: ${songData.title}`,
+      to: songData.collaboratorUID, // Bildirimi alacak kişinin UID'si
+      message: `Bir arkadaşınızla paylaştığınız şarkı silindi: ${songData.title}`, // Bildirim metni
       timestamp: serverTimestamp()
     };
 
-    // Bildirimi Firestore'a kaydedin
+    // Bildirimi Firestore'a kaydet
     await addDoc(collection(db, "notifications"), notificationData);
   }
 }
