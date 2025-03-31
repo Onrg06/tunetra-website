@@ -287,7 +287,7 @@ window.uploadMelodyFull = async function () {
     timestamp: serverTimestamp()
   });
 
-  // Bildirim gönderme
+  // Bildirim gönderme işlemi
   await sendUploadNotification(selectedFriend.uid, title);
 
   alert(getText("uploadSuccess"));
@@ -298,11 +298,13 @@ window.uploadMelodyFull = async function () {
   document.getElementById("friend-name").selectedIndex = 0;
 };
 
+// Bildirim gönderme
 async function sendUploadNotification(friendUID, songTitle) {
   try {
+    // Bildirim verisini hazırla
     const notificationData = {
-      to: friendUID,
-      message: `${currentUser} bir şarkıyı seninle paylaştı: ${songTitle}`,
+      to: friendUID, // Bildirimi alacak kişinin UID'si
+      message: `${currentUser} bir şarkıyı seninle paylaştı: ${songTitle}`, // Bildirim mesajı
       timestamp: serverTimestamp() // Zaman damgası ekle
     };
 
@@ -315,6 +317,7 @@ async function sendUploadNotification(friendUID, songTitle) {
     alert("Bildirim eklenirken hata oluştu: " + e.message);
   }
 }
+
 
 
   alert(getText("uploadSuccess"));
