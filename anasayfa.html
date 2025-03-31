@@ -279,6 +279,8 @@ async function updateUI(hasUnseen = false) {
 onAuthStateChanged(auth, async (user) => {
   if (!user) return window.location.href = "index.html";
 
+  listenInboxChanges(user.uid);
+  
   const userDoc = await getDoc(doc(db, "users", user.uid));
   let hasUnseen = userDoc.exists() && userDoc.data().inboxHasNew === true;
 
@@ -330,6 +332,18 @@ document.getElementById("btnMessages").addEventListener("click", async () => {
   });
 });
 });
+
+function listenInboxChanges(uid) {
+  const userRef = doc(db, "users", uid);
+  onSnapshot(userRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const hasUnseen = data.inboxHasNew === true;
+      document.getElementById("msgDot").style.display = hasUnseen ? "inline-block" : "none";
+    }
+  });
+}
+  
 window.logout = function () {
   signOut(auth).then(() => {
     window.location.href = "index.html";
