@@ -342,12 +342,14 @@ function showDeleteNotification(data) {
 
 async function deleteNotification(docId) {
   try {
-    await deleteDoc(doc(db, "songs", docId));
+    // Firestore'dan bildirim silme
+    await deleteDoc(doc(db, "notifications", docId));  
     document.getElementById("songNotificationBox").style.display = "none"; // Bildirimi UI'dan kaldır
   } catch (e) {
     alert("Silinemedi.");
   }
 }
+
 
 window.logout = function () {
   signOut(auth).then(() => {
