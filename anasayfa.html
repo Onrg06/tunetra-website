@@ -328,7 +328,7 @@ document.getElementById("btnMessages").addEventListener("click", async () => {
   await updateDoc(doc(db, "users", user.uid), {
     inboxHasNew: false
   });
-})
+});
 });
 window.logout = function () {
   signOut(auth).then(() => {
