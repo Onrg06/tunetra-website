@@ -85,30 +85,42 @@
       margin: 20px 0;
     }
 
-    #songNotificationBox {
-      margin: 20px 0;
-      display: none;
-    }
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.8rem;
+        margin-top: 20px;
+      }
 
-    #songNotification {
-      background: rgba(0, 0, 0, 0.2);
-      padding: 12px 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      max-width: 340px;
-      margin: 0 auto;
-      position: relative;
-    }
+      p {
+        font-size: 1rem;
+      }
 
-    #dismissNotif {
-      position: absolute;
-      right: 10px;
-      top: 10px;
-      border: none;
-      background: transparent;
-      color: white;
-      font-size: 18px;
-      cursor: pointer;
+      .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn, .extra-btn {
+        font-size: 0.95rem;
+        padding: 12px 20px;
+        width: 100%;
+        max-width: 340px;
+        margin: 8px auto;
+        text-align: center;
+      }
+
+      .language-buttons {
+        flex-direction: row;
+        justify-content: center;
+      }
+
+      .button-group {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        margin: 20px auto;
+        width: 100%;
+        max-width: 340px;
+        padding: 10px 0;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
     }
   </style>
 </head>
@@ -120,13 +132,6 @@
 
   <h1 id="welcomeMessage">🎶 Hoş Geldin!</h1>
   <p id="introText">Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!</p>
-
-<div id="songNotificationBox" style="display:none;">
-  <p id="songNotification">
-    <span id="notifText">🎵 Bir arkadaşın seninle bir şarkı paylaştı!</span>
-    <button id="dismissNotif">❌</button>
-  </p>
-</div>
 
   <div class="button-group">
     <a href="profil.html" class="profile-btn" id="btnProfile">👤 Profilim</a>
@@ -149,166 +154,153 @@
   </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  deleteDoc
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc, collection, query, where,
+    getDocs, orderBy, limit, onSnapshot
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-  authDomain: "tunetra-2579b.firebaseapp.com",
-  projectId: "tunetra-2579b",
-  storageBucket: "tunetra-2579b.appspot.com",
-  messagingSenderId: "576238823779",
-  appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+    authDomain: "tunetra-2579b.firebaseapp.com",
+    projectId: "tunetra-2579b",
+    storageBucket: "tunetra-2579b.appspot.com",
+    messagingSenderId: "576238823779",
+    appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+  };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-let currentLang = "tr";
-let currentUID = "";
+  const translations = {
+    tr: {
+      welcome: "🎶 Hoş Geldin, ",
+      intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!",
+      logout: "Çıkış Yap",
+      profile: "👤 Profilim",
+      friends: "🧑‍🤝‍🧑 Arkadaşlarım",
+      messages: "Mesajlarım",
+      feedback: "📮 Dilek & Şikayet Kutusu",
+      announcements: "📢 Duyurular",
+      about: "ℹ️ Hakkımızda",
+      lyrics: "✍️ Sözler / Şiirler",
+      melody: "🎵 Melodi",
+      songs: "🎶 Hazır Şarkılar",
+      friends: "🧑‍🤝‍🧑 Arkadaşlarım",
+      messages: "Mesajlarım",
+    },
+    en: {
+      welcome: "🎶 Welcome, ",
+      intro: "You’re in the right place to create your dream song.<br><br>Share your lyrics or melody, let others collaborate and turn them into music.<br><br>On Tunetra, music is born through collaboration!",
+      logout: "Log Out",
+      profile: "👤 My Profile",
+      friends: "🧑‍🤝‍🧑 My Friends",
+      messages: "My Messages",
+      feedback: "📮 Feedback & Complaints",
+      announcements: "📢 Announcements",
+      about: "ℹ️ About",
+      lyrics: "✍️ Lyrics",
+      melody: "🎵 Melody",
+      songs: "🎶 Ready Songs",
+      friends: "🧑‍🤝‍🧑 My Friends",
+      messages: "My Messages",
+    }
+  };
 
-const translations = {
-  tr: {
-    welcome: "🎶 Hoş Geldin, ",
-    intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!",
-    logout: "Çıkış Yap",
-    profile: "👤 Profilim",
-    friends: "🧑‍🤝‍🧑 Arkadaşlarım",
-    messages: "Mesajlarım",
-    feedback: "📮 Dilek & Şikayet Kutusu",
-    announcements: "📢 Duyurular",
-    about: "ℹ️ Hakkımızda",
-    lyrics: "✍️ Sözler / Şiirler",
-    melody: "🎵 Melodi",
-    songs: "🎶 Hazır Şarkılar",
-    songNotification: "🎵 Bir arkadaşın seninle bir şarkı paylaştı!",
-    close: "Kapat"
-  },
-  en: {
-    welcome: "🎶 Welcome, ",
-    intro: "You’re in the right place to create your dream song.<br><br>Share your lyrics or melody, let others collaborate and turn them into music.<br><br>On Tunetra, music is born through collaboration!",
-    logout: "Log Out",
-    profile: "👤 My Profile",
-    friends: "🧑‍🤝‍🧑 My Friends",
-    messages: "My Messages",
-    feedback: "📮 Feedback & Complaints",
-    announcements: "📢 Announcements",
-    about: "ℹ️ About",
-    lyrics: "✍️ Lyrics",
-    melody: "🎵 Melody",
-    songs: "🎶 Ready Songs",
-    songNotification: "🎵 A friend shared a song with you!",
-    close: "Close"
-  }
-};
+  let currentLang = "tr";
 
-window.setLang = function (lang) {
-  currentLang = lang;
-  updateTexts();
-};
+  window.setLang = function (lang) {
+    currentLang = lang;
+    updateUI();
+  };
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "index.html";  // Kullanıcı yoksa giriş sayfasına yönlendir
-  } else {
-    currentUID = user.uid;
-    await updateTexts();  // Metinleri güncelle
-    listenForNotifications(currentUID);  // Bildirimleri dinle
-  }
-});
-
-async function updateTexts() {
-  const user = auth.currentUser;
-  if (!user) return;
-
-  const docRef = doc(db, "users", user.uid);
-  const userDoc = await getDoc(docRef);
+  async function updateUI() {
+    const user = auth.currentUser;
+    if (!user) return;
 
   if (userDoc.exists()) {
-    const username = userDoc.data().username || "Kullanıcı";
-    const t = translations[currentLang];
+    const docRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(docRef);
 
-    document.getElementById("welcomeMessage").innerHTML = t.welcome + username + "!";
-    document.getElementById("introText").innerHTML = t.intro;
-    document.getElementById("logoutBtn").innerText = t.logout;
-    document.getElementById("btnProfile").innerText = t.profile;
-    document.getElementById("btnFriends").innerText = t.friends;
-    document.getElementById("btnMessages").innerText = `📨 ${t.messages}`;
-    document.getElementById("btnFeedback").innerText = t.feedback;
-    document.getElementById("btnAnnouncements").innerText = t.announcements;
-    document.getElementById("btnAbout").innerText = t.about;
-    document.getElementById("btnLyrics").innerText = t.lyrics;
-    document.getElementById("btnMelody").innerText = t.melody;
-    document.getElementById("btnSongs").innerText = t.songs;
+    const username = userDoc.data().username;
+const role = userDoc.data().role || "user";
+      document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
+      document.getElementById("introText").innerHTML = translations[currentLang].intro;
+      document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
+      document.getElementById("btnProfile").innerText = translations[currentLang].profile;
+      document.getElementById("btnFeedback").innerText = translations[currentLang].feedback;
+      document.getElementById("btnAbout").innerText = translations[currentLang].about;
+      document.getElementById("btnLyrics").innerText = translations[currentLang].lyrics;
+      document.getElementById("btnMelody").innerText = translations[currentLang].melody;
+      document.getElementById("btnSongs").innerText = translations[currentLang].songs;
+      document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
+
+document.getElementById("btnFriends").innerText = translations[currentLang].friends;
+
+document.getElementById("btnMessages").innerText = `📨 ${translations[currentLang].messages}`;
+
+if (role === "admin") {
+  document.getElementById("btnAdmin").style.display = "block";
+    }
   }
-}
 
-function listenForNotifications(uid) {
-  const q = query(
-    collection(db, "notifications"),
-    where("to", "==", uid),
-    orderBy("timestamp", "desc")
-  );
-
-  // Verilerin güncellenmesi anlık (real-time) olarak yapılır
-  onSnapshot(q, (snapshot) => {
-    console.log("Snapshot alındı"); // Bu satır console'a yazdırma işlemi yapar
-    if (!snapshot.empty) {
-      const doc = snapshot.docs[0];
-      const data = doc.data();
-      console.log("Yeni Bildirim Verisi:", data);  // Burada veriyi konsola yazdırıyoruz
-      showNotification(data.message, doc.id);  // Bildirimi ekrana yansıtıyoruz
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      window.location.href = "index.html";
     } else {
-      console.log("Yeni bildirim yok.");
+      updateUI();
+
+      // --- Gerçek Zamanlı Arkadaşlık İstekleri ---
+      onSnapshot(doc(db, "friendRequests", user.uid), (docSnap) => {
+        const count = docSnap.exists() ? (docSnap.data().requests?.length || 0) : 0;
+        const base = translations[currentLang].friends;
+        document.getElementById("btnFriends").innerText = count > 0 ? `${base} (${count})` : base;
+      });
+
+      // --- Gerçek Zamanlı Mesajlar (Kişi bazlı sayım) ---
+      onSnapshot(
+        query(collection(db, "conversations"), where("users", "array-contains", user.uid)),
+        (convoSnap) => {
+          const base = translations[currentLang].messages;
+          const unseenFrom = new Set();
+
+          convoSnap.docs.forEach(convo => {
+            const convoId = convo.id;
+            const messagesRef = collection(db, "conversations", convoId, "messages");
+
+            onSnapshot(
+              query(messagesRef, orderBy("timestamp", "desc"), limit(1)),
+              (msgSnap) => {
+                msgSnap.forEach(doc => {
+                  const msg = doc.data();
+                  if (
+                    msg.sender !== user.uid &&
+                    (!msg.seenBy || !msg.seenBy.includes(user.uid))
+                  ) {
+                    unseenFrom.add(msg.sender); // Sadece 1 kere sayar
+                  }
+                });
+
+                const msgCount = unseenFrom.size;
+                document.getElementById("btnMessages").innerText =
+                  msgCount > 0 ? `📨 ${base} (${msgCount})` : `📨 ${base}`;
+              }
+            );
+          });
+        }
+      );
     }
   });
-}
 
+  window.logout = function () {
+    signOut(auth).then(() => {
+      window.location.href = "index.html";
+    });
+  };
 
-function showNotification(message, docId) {
-  const notifBox = document.getElementById("songNotificationBox");
-  const notifText = document.getElementById("notifText");
-
-  if (notifBox && notifText) {
-    notifText.innerText = message;  // Mesajı güncelliyoruz
-    notifBox.style.display = "block";  // Bildirimi görünür yapıyoruz
-  
-    document.getElementById("dismissNotif").onclick = async () => {
-      try {
-        // Bildirimi Firestore'dan silme
-        await deleteDoc(doc(db, "notifications", docId));
-        notifBox.style.display = "none";  // Bildirimi gizleme
-      } catch (e) {
-        alert("Bildirim silinemedi: " + e.message);
-      }
-    };
-  } else {
-    console.log("Bildirim kutusu veya metin bulunamadı.");
-  }
-}
-
-
-window.logout = function () {
-  signOut(auth).then(() => {
-    window.location.href = "index.html";
+  window.addEventListener("DOMContentLoaded", () => {
+    setLang("tr");
   });
-};
-
-window.addEventListener("DOMContentLoaded", () => {
-  setLang("tr");
-});
 </script>
-</body>
-</html>
