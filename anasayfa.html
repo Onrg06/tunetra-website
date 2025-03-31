@@ -84,15 +84,16 @@
       gap: 10px;
       margin: 20px 0;
     }
-    .dot {
-      display: inline-block;
-      margin-left: 6px;
-      width: 10px;
-      height: 10px;
-      background-color: red;
-      border-radius: 50%;
-      vertical-align: middle;
-      }
+.dot {
+  display: inline-block;
+  margin-left: 6px;
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  border-radius: 50%;
+  vertical-align: middle;
+  box-shadow: 0 0 5px rgba(255, 0, 0, 0.6);
+}
 
     @media (max-width: 768px) {
       h1 {
@@ -147,9 +148,9 @@
   <div class="button-group">
     <a href="profil.html" class="profile-btn" id="btnProfile">👤 Profilim</a>
     <a href="arkadaslar.html" class="friends-btn" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım</a>
-    <a href="mesajlar.html" class="messages-btn" id="btnMessages">
-    📨 Mesajlarım <span id="msgDot" class="dot" style="display: none;"></span>
-    </a>
+<a href="mesajlar.html" class="messages-btn" id="btnMessages">
+  📨 <span id="btnMessagesText">Mesajlarım</span><span id="msgDot" class="dot" style="display: none;"></span>
+</a>
   </div>
 
   <div class="button-group">
@@ -251,7 +252,7 @@
     document.getElementById("btnSongs").innerText = translations[currentLang].songs;
     document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
     document.getElementById("btnFriends").innerText = translations[currentLang].friends;
-    document.getElementById("btnMessages").childNodes[0].textContent = `${translations[currentLang].messages} `;
+    document.getElementById("btnMessagesText").textContent = translations[currentLang].messages;
 
     if (role === "admin") {
       document.getElementById("btnAdmin").style.display = "block";
