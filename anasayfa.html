@@ -308,12 +308,22 @@ onAuthStateChanged(auth, async (user) => {
 
   // Mesajlar butonuna tıklanınca tümünü görüldü yap
 document.getElementById("btnMessages").addEventListener("click", async () => {
+  // Mesajları okundu olarak işaretle
+  const user = auth.currentUser;
+  if (!user) return;
+
+  // Tüm sohbetlerdeki mesajları güncelle
+  const convoQuery = query(collection(db, "conversations"), where("users", "array-contains", user.uid));
+  const convoSnap = await getDocs(convoQuery);
+
   for (const convoDoc of convoSnap.docs) {
     const convoId = convoDoc.id;
     const messagesRef = collection(db, "conversations", convoId, "messages");
 
+    // Son 10 mesajı al
     const msgSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(10)));
 
+    // Her mesajı işaretle
     for (const msgDoc of msgSnap.docs) {
       const msg = msgDoc.data();
       if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
@@ -323,14 +333,15 @@ document.getElementById("btnMessages").addEventListener("click", async () => {
     }
   }
 
-  // 🔴 Kırmızı nokta anasayfadan kaybolsun
+  // 🔴 Kırmızı nokta kaybolmalı
   document.getElementById("msgDot").style.display = "none";
 
-  // ✅ Kullanıcının inboxHasNew alanını da sıfırla
+  // ✅ Kullanıcının inboxHasNew alanını sıfırla
   await updateDoc(doc(db, "users", user.uid), {
     inboxHasNew: false
   });
 });
+
 });
 
 function listenInboxChanges(uid) {
