@@ -74,6 +74,7 @@ body {
   <div id="melodyList"></div>
   <a href="adminpanel.html" class="admin-back-btn">⬅️ Yönetim Paneline Dön</a>
   <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
     import {
       getFirestore, collection, query, orderBy, onSnapshot,
@@ -81,7 +82,7 @@ body {
     } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
     import {
       getAuth, onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
+    } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";    
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -92,6 +93,11 @@ body {
       appId: "1:576238823779:web:b1796f089427e3b6fecb56"
     };
 
+    const supabase = createClient(
+      'https://kqgbdfnqckcgrfizjdgt.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZ2JkZm5xY2tjZ3JmaXpqZGd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5Nzk2NDQsImV4cCI6MjA1ODU1NTY0NH0.oxyfinrgv7AscolwMv6CuTMHBLeNokdERCKH00d1kfo'
+    );
+    
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth();
@@ -141,11 +147,42 @@ body {
       });
     }
 
-    window.deleteSong = async function (id) {
-      if (!confirm("Bu şarkıyı silmek istediğine emin misin?")) return;
-      await deleteDoc(doc(db, "songs", id));
-      document.getElementById(`song-${id}`)?.remove();
-    };
+window.deleteSong = async function (id) {
+  if (!confirm("Bu şarkıyı silmek istediğine emin misin?")) return;
+
+  try {
+    const songRef = doc(db, "songs", id);
+    const songSnap = await getDoc(songRef);
+
+    if (!songSnap.exists()) {
+      alert("Şarkı zaten silinmiş.");
+      return;
+    }
+
+    const data = songSnap.data();
+    const audioUrl = data.audioUrl;
+
+    // Firestore'dan belgeyi sil
+    await deleteDoc(songRef);
+    document.getElementById(`song-${id}`)?.remove();
+
+    // Supabase'den ses dosyasını sil
+    if (audioUrl) {
+      const fileName = audioUrl.split("/").pop().split("?")[0];
+      const { error } = await supabase.storage.from("songs").remove([fileName]);
+
+      if (error) {
+        console.error("Supabase silme hatası:", error.message);
+        alert("Ses dosyası Firestore'dan silindi ama Supabase'den silinemedi.");
+      } else {
+        console.log("Supabase'den ses dosyası silindi:", fileName);
+      }
+    }
+  } catch (e) {
+    console.error("Silme sırasında hata:", e);
+    alert("Silme sırasında bir hata oluştu.");
+  }
+};
 
   </script>
 </body>
