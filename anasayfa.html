@@ -266,6 +266,7 @@ import {
     document.getElementById("btnMessagesText").innerHTML = hasUnseen
    ? `${translations[currentLang].messages} <span class="dot"></span>`
    : translations[currentLang].messages;
+    document.getElementById("msgDot").style.display = "inline-block";
 
     if (role === "admin") {
       document.getElementById("btnAdmin").style.display = "block";
