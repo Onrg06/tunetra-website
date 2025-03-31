@@ -188,7 +188,9 @@ const translations = {
     songs: "🎶 Hazır Şarkılar",
     sharedWithYou: "Sizinle bir şarkı paylaşıldı:",
     sharedSongDeleted: "Bir ortak şarkınız silindi.",
-    close: "Kapat"
+    close: "Kapat",
+    songNotification: "🎵 Bir arkadaşın seninle bir şarkı paylaştı!",
+    songDeletedNotification: "🎶 Bir arkadaşınızla paylaştığınız şarkı silindi!"
   },
   en: {
     welcome: "🎶 Welcome, ",
@@ -205,28 +207,27 @@ const translations = {
     songs: "🎶 Ready Songs",
     sharedWithYou: "A song was shared with you:",
     sharedSongDeleted: "A shared song with your friend was deleted.",
-    close: "Close"
+    close: "Close",
+    songNotification: "🎵 A friend shared a song with you!",
+    songDeletedNotification: "🎶 A song you shared with a friend was deleted!"
   }
 };
 
-// Dil değiştirme fonksiyonu
 window.setLang = function (lang) {
   currentLang = lang;
   updateUI();
 };
 
-// Firebase Authentication state değişimini kontrol et
 onAuthStateChanged(auth, (user) => {
   if (!user) {
-    window.location.href = "index.html"; // Kullanıcı giriş yapmadıysa giriş sayfasına yönlendir
+    window.location.href = "index.html";
   } else {
     currentUID = user.uid;
-    updateUI(); // UI'yi güncelle
-    listenForSharedSongs(user.uid); // Paylaşılan şarkılar için dinleyici başlat
+    updateUI();
+    listenForNotifications(user.uid); // Bildirimleri dinlemeye başla
   }
 });
 
-// UI güncelleme fonksiyonu
 async function updateUI() {
   const user = auth.currentUser;
   if (!user) return;
@@ -236,6 +237,8 @@ async function updateUI() {
 
   if (userDoc.exists()) {
     const username = userDoc.data().username;
+    const role = userDoc.data().role || "user";
+
     document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
     document.getElementById("introText").innerHTML = translations[currentLang].intro;
     document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
@@ -248,66 +251,57 @@ async function updateUI() {
     document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
     document.getElementById("btnFriends").innerText = translations[currentLang].friends;
     document.getElementById("btnMessages").innerText = `📨 ${translations[currentLang].messages}`;
+
+    if (role === "admin") {
+      document.getElementById("btnAdmin").style.display = "block";
+    }
   }
 }
 
-// Firebase'den paylaşılan şarkıları dinle
-function listenForSharedSongs(uid) {
-  const sharedRef = collection(db, "songs");
-  const q = query(sharedRef, where("to", "==", uid));
+function listenForNotifications(uid) {
+  const notifBox = document.getElementById("songNotificationBox");
+  const notifText = document.getElementById("notifText");
+
+  const notifRef = collection(db, "notifications"); 
+  const q = query(notifRef, where("to", "==", uid), orderBy("timestamp", "desc"));
 
   onSnapshot(q, (snapshot) => {
     snapshot.docChanges().forEach(change => {
       if (change.type === "added") {
-        const data = change.doc.data();
-        showNotification(data, change.doc.id);  // Paylaşıldığında bildirim göster
-      }
-      if (change.type === "removed") {
-        const data = change.doc.data();
-        showDeleteNotification(data);  // Silindiğinde bildirim göster
+        const notif = change.doc.data();
+        showNotification(notif);
       }
     });
   });
 }
 
-// Yeni gelen bildirim için gösterim
-function showNotification(data, docId) {
+function showNotification(data) {
   const notifBox = document.getElementById("songNotificationBox");
   const notifText = document.getElementById("notifText");
 
-  notifText.innerHTML = `${translations[currentLang].sharedWithYou} <strong>${data.fromUsername}</strong>`;
-  notifBox.style.display = "block"; // Bildirimi görünür hale getir
+  if (currentLang === 'tr') {
+    notifText.innerHTML = `${translations[currentLang].songNotification} <strong>${data.fromUsername}</strong>`;
+  } else {
+    notifText.innerHTML = `${translations[currentLang].songNotification} <strong>${data.fromUsername}</strong>`;
+  }
+
+  notifBox.style.display = "block";
 
   document.getElementById("dismissNotif").onclick = () => {
-    deleteNotification(docId);
+    deleteNotification(data.id);
   };
 }
 
-// Silinen şarkı için bildirim gösterim
-function showDeleteNotification(data) {
-  const notifBox = document.getElementById("songNotificationBox");
-  const notifText = document.getElementById("notifText");
-
-  notifText.innerHTML = `${translations[currentLang].sharedSongDeleted} <strong>${data.fromUsername}</strong>`;
-  notifBox.style.display = "block"; // Bildirimin görünür hale gelmesi sağlanır
-
-  document.getElementById("dismissNotif").onclick = () => {
-    deleteNotification(data.docId);
-  };
-}
-
-// Bildirimi Firebase'den silme
 async function deleteNotification(docId) {
   try {
-    // Firebase'den bildirim silme
-    await deleteDoc(doc(db, "notifications", docId));  
+    // Bildirimi Firestore'dan silme işlemi
+    await deleteDoc(doc(db, "notifications", docId));
     document.getElementById("songNotificationBox").style.display = "none"; // Bildirimi UI'dan kaldır
   } catch (e) {
-    alert("Silinemedi.");
+    alert("Bildirim silinirken hata oluştu.");
   }
 }
 
-// Çıkış yapma fonksiyonu
 window.logout = function () {
   signOut(auth).then(() => {
     window.location.href = "index.html";
@@ -315,9 +309,10 @@ window.logout = function () {
 };
 
 window.addEventListener("DOMContentLoaded", () => {
-  setLang("tr"); // Sayfa yüklendiğinde Türkçe dilini varsayılan olarak ayarla
+  setLang("tr");
 });
 </script>
+
 </body>
 </html>
 
