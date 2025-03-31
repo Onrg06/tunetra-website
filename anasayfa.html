@@ -7,11 +7,12 @@
   <link rel="icon" type="image/png" href="image.png" />
   <style>
     * {
-      box-sizing: border-box;
-      margin: 0;
+      box-sizing: border-box; 
+      margin: 0; 
       padding: 0;
       font-family: 'Segoe UI', sans-serif;
     }
+
     body {
       background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
       background-size: 400% 400%;
@@ -25,22 +26,26 @@
       text-align: center;
       padding: 20px;
     }
+
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
+
     h1 {
       font-size: 2.5rem;
       margin: 30px 0 10px;
       text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
     }
+
     p {
       font-size: 1.1rem;
       max-width: 600px;
       margin-bottom: 20px;
       padding: 0 10px;
     }
+
     .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn, .extra-btn {
       padding: 12px 20px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
@@ -58,16 +63,19 @@
       display: block;
       text-align: center;
     }
+
     .btn:hover, .profile-btn:hover, .friends-btn:hover, .messages-btn:hover, .lang-btn:hover, .extra-btn:hover {
       transform: scale(1.03);
       background: linear-gradient(to right, #2575fc, #6a11cb);
     }
+
     .language-buttons {
       display: flex;
       justify-content: center;
       gap: 10px;
       margin-top: 10px;
     }
+
     .button-group {
       display: flex;
       flex-direction: row;
@@ -76,14 +84,17 @@
       gap: 10px;
       margin: 20px 0;
     }
+
     @media (max-width: 768px) {
       h1 {
         font-size: 1.8rem;
         margin-top: 20px;
       }
+
       p {
         font-size: 1rem;
       }
+
       .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn, .extra-btn {
         font-size: 0.95rem;
         padding: 12px 20px;
@@ -92,10 +103,12 @@
         margin: 8px auto;
         text-align: center;
       }
+
       .language-buttons {
         flex-direction: row;
         justify-content: center;
       }
+
       .button-group {
         flex-direction: column;
         align-items: center;
@@ -125,13 +138,11 @@
     <a href="arkadaslar.html" class="friends-btn" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım</a>
     <a href="mesajlar.html" class="messages-btn" id="btnMessages">📨 Mesajlarım</a>
   </div>
-
   <div class="button-group">
     <a href="lyrics.html" class="extra-btn" id="btnLyrics">✍️ Sözler / Şiirler</a>
     <a href="melody.html" class="extra-btn" id="btnMelody">🎵 Melodi</a>
     <a href="hazir.html" class="extra-btn" id="btnSongs">🎶 Hazır Şarkılar</a>
   </div>
-
   <div class="button-group">
     <a href="dilek.html" class="extra-btn" id="btnFeedback">📮 Dilek & Şikayet Kutusu</a>
     <a href="duyuru.html" class="extra-btn" id="btnAnnouncements">📢 Duyurular</a>
@@ -145,7 +156,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, collection, query, where,
-  getDocs, orderBy, limit, onSnapshot, updateDoc, arrayUnion
+  getDocs, orderBy, limit, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -157,22 +168,22 @@ const firebaseConfig = {
   appId: "1:576238823779:web:b1796f089427e3b6fecb56"
 };
 
-let unreadMessageSenders = new Set();
-let currentLang = "tr";
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+let currentLang = "tr";
+let unreadSenderUIDs = new Set();
+
 const translations = {
   tr: {
     welcome: "🎶 Hoş Geldin, ",
-    intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!",
+    intro: "Hayalindeki şarkıyı olu olu\u015turmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!",
     logout: "Çıkış Yap",
     profile: "👤 Profilim",
-    friends: "🧑‍🤝‍🧑 Arkadaşlarım",
+    friends: "🢑 Arkadaşlarım",
     messages: "Mesajlarım",
-    feedback: "📮 Dilek & Şikayet Kutusu",
+    feedback: "📬 Dilek & Şikayet Kutusu",
     announcements: "📢 Duyurular",
     about: "ℹ️ Hakkımızda",
     lyrics: "✍️ Sözler / Şiirler",
@@ -181,12 +192,12 @@ const translations = {
   },
   en: {
     welcome: "🎶 Welcome, ",
-    intro: "You’re in the right place to create your dream song.<br><br>Share your lyrics or melody, let others collaborate and turn them into music.<br><br>On Tunetra, music is born through collaboration!",
+    intro: "You're in the right place to create your dream song.<br><br>Share your lyrics or melody, let others collaborate and turn them into music.<br><br>On Tunetra, music is born through collaboration!",
     logout: "Log Out",
     profile: "👤 My Profile",
-    friends: "🧑‍🤝‍🧑 My Friends",
+    friends: "🢑 My Friends",
     messages: "My Messages",
-    feedback: "📮 Feedback & Complaints",
+    feedback: "📬 Feedback & Complaints",
     announcements: "📢 Announcements",
     about: "ℹ️ About",
     lyrics: "✍️ Lyrics / Poems",
@@ -195,19 +206,23 @@ const translations = {
   }
 };
 
-window.setLang = function (lang) {
+function setLang(lang) {
   currentLang = lang;
   updateUI();
-};
+}
+
+window.setLang = setLang;
 
 async function updateUI() {
   const user = auth.currentUser;
   if (!user) return;
   const docRef = doc(db, "users", user.uid);
   const userDoc = await getDoc(docRef);
+
   if (userDoc.exists()) {
     const username = userDoc.data().username;
     const role = userDoc.data().role || "user";
+
     document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
     document.getElementById("introText").innerHTML = translations[currentLang].intro;
     document.getElementById("btnProfile").innerText = translations[currentLang].profile;
@@ -219,7 +234,7 @@ async function updateUI() {
     document.getElementById("btnSongs").innerText = translations[currentLang].songs;
     document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
     document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
-    document.getElementById("btnMessages").innerText = `📨 ${translations[currentLang].messages}`;
+    updateMessagesUI();
 
     if (role === "admin") {
       document.getElementById("btnAdmin").style.display = "block";
@@ -227,118 +242,47 @@ async function updateUI() {
   }
 }
 
-const isOnMessagesPage = window.location.pathname.includes("mesajlar");
+function updateMessagesUI() {
+  const base = translations[currentLang].messages;
+  const count = unreadSenderUIDs.size;
+  const isOnMessagesPage = window.location.pathname.includes("mesajlar");
+  document.getElementById("btnMessages").innerText = count > 0 && !isOnMessagesPage ? `📨 ${base} (${count})` : `📨 ${base}`;
+}
 
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   if (!user) return location.href = "index.html";
+  setLang(currentLang);
 
-  updateUI();
-
+  // Takip et ve bildirimsiz mesaj say
   onSnapshot(
     query(collection(db, "conversations"), where("users", "array-contains", user.uid)),
-    (convoSnap) => {
-      const base = translations[currentLang].messages;
-
-      const checkUnread = convoSnap.docs.map(async (convo) => {
-        const convoId = convo.id;
+    async (snapshot) => {
+      const checks = snapshot.docs.map(async (docSnap) => {
+        const convoId = docSnap.id;
         const messagesRef = collection(db, "conversations", convoId, "messages");
-
-        const latestSnap = await getDocs(
-          query(messagesRef, orderBy("timestamp", "desc"), limit(1))
-        );
-
+        const latestSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(1)));
         if (!latestSnap.empty) {
           const msg = latestSnap.docs[0].data();
-          const otherUser = convo.data().users.find(uid => uid !== user.uid);
-
-          if (
-            msg.sender !== user.uid &&
-            (!msg.seenBy || !msg.seenBy.includes(user.uid))
-          ) {
-            return otherUser;
+          if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
+            const senderUID = msg.sender;
+            return senderUID;
           }
         }
-
         return null;
       });
 
-      Promise.all(checkUnread).then((senders) => {
-        unreadMessageSenders = new Set(senders.filter(Boolean));
-        const count = unreadMessageSenders.size;
-        const finalText = count > 0 && !isOnMessagesPage
-          ? `📨 ${base} (${count})`
-          : `📨 ${base}`;
-        document.getElementById("btnMessages").innerText = finalText;
-      });
+      const senders = (await Promise.all(checks)).filter(Boolean);
+      unreadSenderUIDs = new Set(senders);
+      updateMessagesUI();
     }
   );
-
-  // Butona basınca bildirimi sıfırla
-  document.getElementById("btnMessages").addEventListener("click", async () => {
-    for (const senderUID of unreadMessageSenders) {
-      const convoId = [user.uid, senderUID].sort().join("_");
-      const messagesRef = collection(db, "conversations", convoId, "messages");
-
-      const unreadSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(20)));
-      for (const docSnap of unreadSnap.docs) {
-        const msg = docSnap.data();
-        const id = docSnap.id;
-
-        if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
-          await updateDoc(doc(db, "conversations", convoId, "messages", id), {
-            seenBy: arrayUnion(user.uid)
-          });
-        }
-      }
-    }
-
-    unreadMessageSenders.clear();
-    const base = translations[currentLang].messages;
-    document.getElementById("btnMessages").innerText = `📨 ${base}`;
-  });
-});
-
-      Promise.all(checkUnread).then((senders) => {
-        unreadMessageSenders = new Set(senders.filter(Boolean));
-        const count = unreadMessageSenders.size;
-        const base = translations[currentLang].messages;
-        const finalText = count > 0 && !isOnMessagesPage ? `📨 ${base} (${count})` : `📨 ${base}`;
-        document.getElementById("btnMessages").innerText = finalText;
-      });
-    }
-  );
-
-  document.getElementById("btnMessages").addEventListener("click", async () => {
-    for (const senderUID of unreadMessageSenders) {
-      const convoId = [user.uid, senderUID].sort().join("_");
-      const messagesRef = collection(db, "conversations", convoId, "messages");
-      const unreadSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(20)));
-      for (const docSnap of unreadSnap.docs) {
-        const msg = docSnap.data();
-        const id = docSnap.id;
-        if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
-          await updateDoc(doc(db, "conversations", convoId, "messages", id), {
-            seenBy: arrayUnion(user.uid)
-          });
-        }
-      }
-    }
-    unreadMessageSenders.clear();
-    const base = translations[currentLang].messages;
-    document.getElementById("btnMessages").innerText = `📨 ${base}`;
-  });
 });
 
 window.logout = function () {
-  signOut(auth).then(() => {
-    window.location.href = "index.html";
-  });
+  signOut(auth).then(() => location.href = "index.html");
 };
 
-window.addEventListener("DOMContentLoaded", () => {
-  setLang("tr");
-});
+window.addEventListener("DOMContentLoaded", () => setLang("tr"));
 </script>
-
 </body>
 </html>
