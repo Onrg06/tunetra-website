@@ -358,6 +358,8 @@ async function openChat(fid, el) {
     }
   }
 
+scrollToBottom();
+  
   // ✅ inboxHasNew'i sıfırla (anasayfa kırmızı noktayı anında silsin)
   await updateDoc(doc(db, "users", currentUser.uid), {
     inboxHasNew: false
@@ -383,7 +385,7 @@ if (chatItem) {
     loadedMessageIds.add(msg.id);
     const div = await buildMessageDiv(msg);
     area.appendChild(div);
-    setTimeout(() => area.scrollTop = area.scrollHeight, 100);
+    scrollToBottom();
 
     // Önce seenBy güncelle
     if (!msg.seenBy?.includes(currentUser.uid)) {
@@ -528,6 +530,8 @@ window.sendMessage = async () => {
     await updateDoc(doc(db, "users", selectedFriendId), {
       inboxHasNew: true
     });
+
+    scrollToBottom();
   }
 
   input.value = "";
@@ -617,6 +621,13 @@ async function updateChatListItem(friendId) {
       }
     );
   }
+}
+
+  function scrollToBottom() {
+  const area = document.getElementById("messageArea");
+  setTimeout(() => {
+    area.scrollTop = area.scrollHeight;
+  }, 100);
 }
 
 </script>
