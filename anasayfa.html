@@ -240,90 +240,109 @@
 
   let currentLang = "tr";
 
-  // Set language
-  window.setLang = function (lang) {
-    currentLang = lang;
-    updateUI();
-  };
+ document.getElementById("btnMessages").addEventListener("click", async () => {
+  const user = auth.currentUser;
+  if (!user) return;
 
-  // Update UI
-  async function updateUI(hasUnseen = false) {
-    const user = auth.currentUser;
-    if (!user) return;
+  // Kırmızı noktayı gizle
+  document.getElementById("msgDot").style.display = "none";
 
-    const docRef = doc(db, "users", user.uid);
-    const userDoc = await getDoc(docRef);
-    if (!userDoc.exists()) return;
+  // Firestore'daki inboxHasNew alanını false yap
+  await updateDoc(doc(db, "users", user.uid), {
+    inboxHasNew: false
+  });
+});
 
-    const username = userDoc.data().username;
-    const role = userDoc.data().role || "user";
+function listenInboxChanges(uid) {
+  const userRef = doc(db, "users", uid);
+  onSnapshot(userRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const hasUnseen = data.inboxHasNew === true;
 
-    document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
-    document.getElementById("introText").innerHTML = translations[currentLang].intro;
-    document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
-    document.getElementById("btnProfile").innerText = translations[currentLang].profile;
-    document.getElementById("btnFeedback").innerText = translations[currentLang].feedback;
-    document.getElementById("btnAbout").innerText = translations[currentLang].about;
-    document.getElementById("btnLyrics").innerText = translations[currentLang].lyrics;
-    document.getElementById("btnMelody").innerText = translations[currentLang].melody;
-    document.getElementById("btnSongs").innerText = translations[currentLang].songs;
-    document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
-    document.getElementById("btnFriends").innerText = translations[currentLang].friends;
-    document.getElementById("btnMessagesText").textContent = translations[currentLang].messages;
+      // Kırmızı noktanın görünürlüğünü güncelle
+      const msgDot = document.getElementById("msgDot");
 
-    // Admin control
-    if (role === "admin") {
-      document.getElementById("btnAdmin").style.display = "block";
+      // Eğer yeni mesaj varsa, kırmızı noktayı göster
+      msgDot.style.display = hasUnseen ? "inline-block" : "none";
     }
+  });
+}
 
-    // Show red notification if there are unread messages
-    msgDot.style.display = hasUnseen ? "inline-block" : "none";
-  }
+window.addEventListener("DOMContentLoaded", () => {
+  setLang("tr");
 
-  // Check inbox changes
-  function listenInboxChanges(uid) {
-    const userRef = doc(db, "users", uid);
-    onSnapshot(userRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const hasUnseen = data.inboxHasNew === true;
-        msgDot.style.display = hasUnseen ? "inline-block" : "none";
-      }
-    });
-  }
-
-  // Logout function
-  window.logout = function () {
-    signOut(auth).then(() => {
-      window.location.href = "index.html"; // Redirect after logout
-    });
-  };
-
-  // Listen for auth state change
+  // 🔐 auth kullanıcısı yüklendiğinde listener'ı ekle
   onAuthStateChanged(auth, async (user) => {
-    if (!user) return window.location.href = "index.html"; // If no user, redirect to login
+    if (!user) return window.location.href = "index.html"; // Eğer kullanıcı yoksa giriş sayfasına yönlendir
 
-    listenInboxChanges(user.uid); // Listen for inbox changes
+    // Inbox değişikliklerini dinlemeye başla
+    listenInboxChanges(user.uid);
 
-    // Listen for messages button click
+    // 🔴 Kırmızı nokta tıklama listener'ı
     document.getElementById("btnMessages").addEventListener("click", async () => {
-      // Hide notification dot
-      msgDot.style.display = "none";
+      // Kırmızı noktayı gizle
+      document.getElementById("msgDot").style.display = "none";
 
-      // Set Firestore field inboxHasNew to false
+      // Firestore'daki inboxHasNew alanını false yap
       await updateDoc(doc(db, "users", user.uid), {
         inboxHasNew: false
       });
     });
 
-    // Fetch user data
     const userDoc = await getDoc(doc(db, "users", user.uid));
     let hasUnseen = userDoc.exists() && userDoc.data().inboxHasNew === true;
 
-    // Update UI with unread messages status
+    // UI'yı güncelle
     await updateUI(hasUnseen);
-  });
 
-</script>
+    // Eğer adminse, admin butonunu göster
+    const role = userDoc.exists() ? userDoc.data().role : null;
+    if (role === "admin") {
+      document.getElementById("btnAdmin").style.display = "block";
+    }
+  });
+});
+
+async function updateUI(hasUnseen = false) {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const docRef = doc(db, "users", user.uid);
+  const userDoc = await getDoc(docRef);
+  if (!userDoc.exists()) return;
+
+  const username = userDoc.data().username;
+  const role = userDoc.data().role || "user";
+
+  document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
+  document.getElementById("introText").innerHTML = translations[currentLang].intro;
+  document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
+  document.getElementById("btnProfile").innerText = translations[currentLang].profile;
+  document.getElementById("btnFeedback").innerText = translations[currentLang].feedback;
+  document.getElementById("btnAbout").innerText = translations[currentLang].about;
+  document.getElementById("btnLyrics").innerText = translations[currentLang].lyrics;
+  document.getElementById("btnMelody").innerText = translations[currentLang].melody;
+  document.getElementById("btnSongs").innerText = translations[currentLang].songs;
+  document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
+  document.getElementById("btnFriends").innerText = translations[currentLang].friends;
+  document.getElementById("btnMessagesText").textContent = translations[currentLang].messages;
+
+  // Eğer adminse, admin butonunu göster
+  if (role === "admin") {
+    document.getElementById("btnAdmin").style.display = "block";
+  }
+
+  // Eğer yeni mesaj varsa kırmızı bildirim
+  const msgDot = document.getElementById("msgDot");
+  msgDot.style.display = hasUnseen ? "inline-block" : "none";
+}
+
+// Kullanıcı çıkış yaparsa
+window.logout = function () {
+  signOut(auth).then(() => {
+    window.location.href = "index.html"; // Çıkış yaptıktan sonra anasayfaya yönlendir
+  });
+};
 
 
