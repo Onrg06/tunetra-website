@@ -298,14 +298,13 @@ window.uploadMelodyFull = async function () {
   document.getElementById("friend-name").selectedIndex = 0;
 };
 
-// Bildirim gönderme
 async function sendUploadNotification(friendUID, songTitle) {
   try {
-    // Bildirim verisini hazırla
+    // Bildirim verisini oluştur
     const notificationData = {
-      to: friendUID, // Bildirimi alacak kişinin UID'si
-      message: `${currentUser} bir şarkıyı seninle paylaştı: ${songTitle}`, // Bildirim mesajı
-      timestamp: serverTimestamp() // Zaman damgası ekle
+      to: friendUID,
+      message: `${currentUser} bir şarkıyı seninle paylaştı: ${songTitle}`,
+      timestamp: serverTimestamp() // Zaman damgası ekleyelim
     };
 
     // Bildirimi Firestore'a ekle
@@ -314,9 +313,10 @@ async function sendUploadNotification(friendUID, songTitle) {
 
   } catch (e) {
     console.error("Bildirim eklenirken hata oluştu:", e);  // Hata mesajını yazdır
-    alert("Bildirim eklenirken hata oluştu: " + e.message);
+    alert("Bildirim eklenirken hata oluştu: " + e.message);  // Kullanıcıya hata mesajı göster
   }
 }
+
 
 
 
@@ -350,13 +350,14 @@ window.deleteSong = async function (id) {
     alert(getText("deleted") || "Silme başarılı");
 
     // Bildirim gönder
-    await sendDeleteNotification(id);
+    await sendDeleteNotification(id);  // Şarkı silindikten sonra her iki kullanıcıya bildirim gönder
 
   } catch (err) {
     console.error("Silme hatası:", err);
     alert(getText("deleteError") || "Silinirken hata oluştu");
   }
 };
+
 
 async function sendDeleteNotification(songId) {
   try {
@@ -391,6 +392,7 @@ async function sendDeleteNotification(songId) {
     alert("Bildirim eklenirken hata oluştu: " + e.message);  // Kullanıcıya hata mesajı göster
   }
 }
+
 
 
 document.getElementById("melodyInput").addEventListener("change", function() {
