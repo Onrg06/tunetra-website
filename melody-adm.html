@@ -120,39 +120,47 @@
 
 function loadMelodies() {
   const q = query(collection(db, "melodies"), orderBy("timestamp", "desc"));
-  onSnapshot(q, (snapshot) => {
-    console.log("Snapshot alındı:", snapshot);  // Veriyi konsola yazdıralım
+  
+  // Firebase Firestore'dan melodileri almak
+  onSnapshot(q, async (snapshot) => {
+    console.log("Snapshot alındı:", snapshot);
     list.innerHTML = "";
     const uniqueUploaders = new Set();
 
-    // Veriyi işliyoruz
-    snapshot.forEach(docSnap => {
+    for (const docSnap of snapshot.docs) {
       const d = docSnap.data();
       const docId = docSnap.id;
       const time = d.timestamp?.toDate().toLocaleString() || "";
       uniqueUploaders.add(d.uploaderUID);
 
       const canDelete = isAdmin || d.uploaderUID === currentUID;
+      
+      // Supabase'den ses dosyasının URL'ini almak
+      const { data, error } = await supabase.storage.from('melodies').download(d.audioFileName);
+      if (error) {
+        console.error("Supabase'den ses dosyası alınamadı:", error.message);
+        return;
+      }
+      
+      const audioUrl = URL.createObjectURL(data);  // Ses dosyasını URL'ye dönüştür
 
       list.innerHTML += `
         <div class="melody-item" id="melody-${docId}">
           <p><strong>${d.uploader}</strong> (${time})</p>
-          <audio controls src="${d.audioUrl}"></audio>
+          <audio controls src="${audioUrl}"></audio>
           <h3>${d.title}</h3>
           <p>${d.lyrics.replace(/\\n/g, "<br>")}</p>
           ${canDelete ? `<button class="btn" onclick="deleteMelody('${docId}')">❌ Sil</button>` : ""}
         </div>
       `;
-    });
+    }
 
-    // Yüklenen kullanıcı sayısını güncelle
     countBox.innerText = `Toplam ${uniqueUploaders.size} farklı kullanıcı melodi paylaştı.`;
   }, (error) => {
     console.error("Veri yüklenirken bir hata oluştu:", error);
     countBox.innerText = "Veriler yüklenemedi, lütfen tekrar deneyin.";
   });
 }
-
 
     window.deleteMelody = async function (id) {
       if (!confirm("Bu melodiyi silmek istediğine emin misin?")) return;
