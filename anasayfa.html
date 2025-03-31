@@ -276,51 +276,49 @@ onSnapshot(
     const base = translations[currentLang].messages;
     const unseenFrom = new Set();
 
-    // Her bir conversation için snapshot al
-    convoSnap.docs.forEach(convo => {
-      const convoId = convo.id;
-      const messagesRef = collection(db, "conversations", convoId, "messages");
+// Her bir conversation için snapshot al
+convoSnap.docs.forEach(convo => {
+  const convoId = convo.id;
+  const messagesRef = collection(db, "conversations", convoId, "messages");
 
-      // Son mesajı alıyoruz
-      onSnapshot(
-        query(messagesRef, orderBy("timestamp", "desc"), limit(1)),
-        (msgSnap) => {
-          if (!msgSnap.empty) {
-            const doc = msgSnap.docs[0];  // Sadece son mesajı al
-            const msg = doc.data();
-            if (
-              msg.sender !== user.uid &&
-              (!msg.seenBy || !msg.seenBy.includes(user.uid))
-            ) {
-              unseenFrom.add(msg.sender); // Bu kullanıcıyı sadece 1 kere say
-            }
-          }
-
-          // Mesaj sayısını ve kişi sayısını güncelle
-          const msgCount = unseenFrom.size;
-
-          // Eğer gelen mesaj sayısı varsa, sayıyı göster
-          if (msgCount > 0) {
-            document.getElementById("btnMessages").innerText =
-              `📨 ${base} (${msgCount})`;
-          } else {
-            document.getElementById("btnMessages").innerText =
-              `📨 ${base}`;
-          }
+  // Son mesajı alıyoruz
+  onSnapshot(
+    query(messagesRef, orderBy("timestamp", "desc"), limit(1)),
+    (msgSnap) => {
+      if (!msgSnap.empty) {
+        const doc = msgSnap.docs[0];  // Sadece son mesajı al
+        const msg = doc.data();
+        if (
+          msg.sender !== user.uid &&
+          (!msg.seenBy || !msg.seenBy.includes(user.uid))
+        ) {
+          unseenFrom.add(msg.sender); // Bu kullanıcıyı sadece 1 kere say
         }
-      );
-    });
-  }
-);
+      }
 
+      // Mesaj sayısını ve kişi sayısını güncelle
+      const msgCount = unseenFrom.size;
 
-  window.logout = function () {
-    signOut(auth).then(() => {
-      window.location.href = "index.html";
-    });
-  };
+      // Eğer gelen mesaj sayısı varsa, sayıyı göster
+      if (msgCount > 0) {
+        document.getElementById("btnMessages").innerText =
+          `📨 ${base} (${msgCount})`;
+      } else {
+        document.getElementById("btnMessages").innerText =
+          `📨 ${base}`;
+      }
+    } // onSnapshot callback sonu
+  ); // onSnapshot sonu
+}); // forEach sonu
 
-  window.addEventListener("DOMContentLoaded", () => {
-    setLang("tr");
+window.logout = function () {
+  signOut(auth).then(() => {
+    window.location.href = "index.html";
   });
+};
+
+window.addEventListener("DOMContentLoaded", () => {
+  setLang("tr");
+});
+
 </script>
