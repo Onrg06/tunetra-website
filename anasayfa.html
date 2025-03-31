@@ -256,7 +256,7 @@ onAuthStateChanged(auth, (user) => {
         count > 0 ? `${base} (${count})` : base;
     });
 
-    // ✅ Gerçek zamanlı okunmamış mesajları göster
+    // ✅ Gerçek zamanlı okunmamış mesaj kontrolü
     onSnapshot(
       query(collection(db, "conversations"), where("users", "array-contains", user.uid)),
       (convoSnap) => {
@@ -294,6 +294,7 @@ onAuthStateChanged(auth, (user) => {
     );
   }
 });
+
 
   window.logout = function () {
     signOut(auth).then(() => {
