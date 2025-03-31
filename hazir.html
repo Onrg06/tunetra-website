@@ -210,6 +210,7 @@ function setupRealtimeListener() {
       const d = docSnap.data();
       const docId = docSnap.id;
       const time = d.timestamp?.toDate().toLocaleString() || "";
+      // Yükleyici veya işbirlikçi kimliği ile karşılaştırma yaparak silme yetkisi ver
       const showDelete = currentUID === d.uploaderUID || currentUID === d.collaboratorUID;
 
       list.innerHTML += `
@@ -224,7 +225,6 @@ function setupRealtimeListener() {
     });
   });
 }
-
 
 async function loadFriendsOnly(uid) {
   const snap = await getDoc(doc(db, "friends", uid));
@@ -264,10 +264,7 @@ window.uploadMelodyFull = async function () {
   const cleanName = file.name
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[çğıöşüÇĞİÖŞÜ]/g, c => ({
-      ç: 'c', ğ: 'g', ı: 'i', ö: 'o', ş: 's', ü: 'u',
-      Ç: 'C', Ğ: 'G', İ: 'I', Ö: 'O', Ş: 'S', Ü: 'U'
-    }[c]))
+    .replace(/[çğıöşüÇĞİÖŞÜ]/g, c => (c === 'ç' ? 'c' : c === 'ğ' ? 'g' : c === 'ı' ? 'i' : c === 'ö' ? 'o' : c === 'ş' ? 's' : c === 'ü' ? 'u' : c === 'Ç' ? 'C' : c === 'Ğ' ? 'G' : c === 'İ' ? 'I' : c === 'Ö' ? 'O' : c === 'Ş' ? 'S' : c === 'Ü' ? 'U' : c))
     .replace(/\s+/g, "_")
     .replace(/[^a-zA-Z0-9._-]/g, "");
 
@@ -297,27 +294,6 @@ window.uploadMelodyFull = async function () {
   document.getElementById("friend-name").selectedIndex = 0;
 };
 
-const list = document.getElementById("melodyList");
-const q = query(collection(db, "songs"), orderBy("timestamp", "desc"));
-onSnapshot(q, (snapshot) => {
-  list.innerHTML = "";
-  snapshot.forEach(docSnap => {
-    const d = docSnap.data();
-    const docId = docSnap.id;
-    const time = d.timestamp?.toDate().toLocaleString() || "";
-    const showDelete = currentUID === d.uploaderUID;
-
-    list.innerHTML += `
-      <div class="melody-item" id="song-${docId}">
-        <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong> (${time})</p>
-        <audio controls src="${d.audioUrl}"></audio>
-        <h3>${d.title}</h3>
-        <p>${d.lyrics.replace(/\\n/g, "<br>")}</p>
-        ${showDelete ? `<button class="btn" onclick="deleteSong('${docId}')">❌ Sil</button>` : ""}
-      </div>
-    `;
-  });
-});
 window.deleteSong = async function (id) {
   if (!confirm(getText("confirmDelete") || "Bu şarkıyı silmek istiyor musun?")) return;
 
