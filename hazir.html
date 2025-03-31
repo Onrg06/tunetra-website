@@ -185,6 +185,7 @@ let currentUID = "";
 let currentUser = "Anonim";
 let friendList = [];
 
+// Initialize Firebase
 async function init() {
   onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -201,6 +202,7 @@ async function init() {
   });
 }
 
+// Realtime listener for melodies
 function setupRealtimeListener() {
   const list = document.getElementById("melodyList");
   const q = query(collection(db, "songs"), orderBy("timestamp", "desc"));
@@ -210,7 +212,7 @@ function setupRealtimeListener() {
       const d = docSnap.data();
       const docId = docSnap.id;
       const time = d.timestamp?.toDate().toLocaleString() || "";
-      // Yükleyici veya işbirlikçi kimliği ile karşılaştırma yaparak silme yetkisi ver
+      // Show delete button if current user is uploader or collaborator
       const showDelete = currentUID === d.uploaderUID || currentUID === d.collaboratorUID;
 
       list.innerHTML += `
@@ -226,6 +228,7 @@ function setupRealtimeListener() {
   });
 }
 
+// Load friends for the current user
 async function loadFriendsOnly(uid) {
   const snap = await getDoc(doc(db, "friends", uid));
   const select = document.getElementById("friend-name");
@@ -248,6 +251,7 @@ async function loadFriendsOnly(uid) {
   }
 }
 
+// Upload melody function
 window.uploadMelodyFull = async function () {
   const file = document.getElementById("melodyInput").files[0];
   const title = document.getElementById("song-title").value.trim();
@@ -260,7 +264,7 @@ window.uploadMelodyFull = async function () {
   if (!lyrics) return alert(getText("uploadLyricsEmpty"));
   if (!selectedFriend) return alert(getText("friendInvalid"));
 
-  // Dosya adını güvenli hale getir (Türkçe karakter temizleme)
+  // Clean the filename
   const cleanName = file.name
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -275,7 +279,7 @@ window.uploadMelodyFull = async function () {
 
   const publicUrl = supabase.storage.from(bucket).getPublicUrl(fileName).data.publicUrl;
 
-  // Şarkıyı Firestore'a kaydet
+  // Save song to Firestore
   const songRef = await addDoc(collection(db, "songs"), {
     uploader: currentUser,
     uploaderUID: currentUID,
@@ -287,7 +291,7 @@ window.uploadMelodyFull = async function () {
     timestamp: serverTimestamp()
   });
 
-  // Bildirim gönderme işlemi
+  // Send upload notification
   await sendUploadNotification(selectedFriend.uid, title);
 
   alert(getText("uploadSuccess"));
@@ -298,36 +302,23 @@ window.uploadMelodyFull = async function () {
   document.getElementById("friend-name").selectedIndex = 0;
 };
 
+// Send upload notification
 async function sendUploadNotification(friendUID, songTitle) {
   try {
-    // Bildirim verisini oluştur
     const notificationData = {
       to: friendUID,
       message: `${currentUser} bir şarkıyı seninle paylaştı: ${songTitle}`,
-      timestamp: serverTimestamp() // Zaman damgası ekleyelim
+      timestamp: serverTimestamp()
     };
-
-    // Bildirimi Firestore'a ekle
     const docRef = await addDoc(collection(db, "notifications"), notificationData);
-    console.log("Bildirim başarıyla eklendi:", docRef.id);  // Başarıyla eklenirse bildirimin ID'sini yazdır
-
+    console.log("Bildirim başarıyla eklendi:", docRef.id);
   } catch (e) {
-    console.error("Bildirim eklenirken hata oluştu:", e);  // Hata mesajını yazdır
-    alert("Bildirim eklenirken hata oluştu: " + e.message);  // Kullanıcıya hata mesajı göster
+    console.error("Bildirim eklenirken hata oluştu:", e);
+    alert("Bildirim eklenirken hata oluştu: " + e.message);
   }
 }
 
-
-
-
-  alert(getText("uploadSuccess"));
-  document.getElementById("melodyInput").value = "";
-  document.getElementById("song-title").value = "";
-  document.getElementById("song-lyrics").value = "";
-  document.getElementById("file-name").innerText = "";
-  document.getElementById("friend-name").selectedIndex = 0;
-};
-
+// Delete song function
 window.deleteSong = async function (id) {
   if (!confirm(getText("confirmDelete") || "Bu şarkıyı silmek istiyor musun?")) return;
 
@@ -340,66 +331,62 @@ window.deleteSong = async function (id) {
     const fileUrl = data.audioUrl;
     const fileName = fileUrl.split("/").pop().split("?")[0];
 
-    // Supabase'ten sil
+    // Delete from Supabase
     const { error } = await supabase.storage.from(bucket).remove([fileName]);
     if (error) console.warn("Supabase silme hatası:", error.message);
 
-    // Firestore'dan sil
+    // Delete from Firestore
     await deleteDoc(docRef);
     document.getElementById(`song-${id}`)?.remove();
     alert(getText("deleted") || "Silme başarılı");
 
-    // Bildirim gönder
-    await sendDeleteNotification(id);  // Şarkı silindikten sonra her iki kullanıcıya bildirim gönder
-
+    // Send delete notification
+    await sendDeleteNotification(id);
   } catch (err) {
     console.error("Silme hatası:", err);
     alert(getText("deleteError") || "Silinirken hata oluştu");
   }
 };
 
-
+// Send delete notification
 async function sendDeleteNotification(songId) {
   try {
     const songDoc = await getDoc(doc(db, "songs", songId));
     const songData = songDoc.data();
 
     if (songData) {
-      // Bildirim verisini hazırla
       const notificationDataToCollaborator = {
-        to: songData.collaboratorUID, // Bildirimi alacak olan kişinin UID'si (işbirlikçi)
+        to: songData.collaboratorUID,
         message: `Bir arkadaşınızla paylaştığınız şarkı silindi: ${songData.title}`,
-        timestamp: serverTimestamp() // Zaman damgası ekle
+        timestamp: serverTimestamp()
       };
 
       const notificationDataToUploader = {
-        to: songData.uploaderUID, // Bildirimi alacak olan kişinin UID'si (yükleyen kişi)
+        to: songData.uploaderUID,
         message: `Bir işbirlikçiniz şarkınızı silmiş: ${songData.title}`,
-        timestamp: serverTimestamp() // Zaman damgası ekle
+        timestamp: serverTimestamp()
       };
 
-      // Bildirimi Firestore'a ekle
       const docRefCollaborator = await addDoc(collection(db, "notifications"), notificationDataToCollaborator);
       const docRefUploader = await addDoc(collection(db, "notifications"), notificationDataToUploader);
 
-      console.log("Bildirimler başarıyla eklendi:", docRefCollaborator.id, docRefUploader.id); // Başarıyla eklenirse bildirimin ID'sini yazdır
-
+      console.log("Bildirimler başarıyla eklendi:", docRefCollaborator.id, docRefUploader.id);
     } else {
       console.log("Şarkı bulunamadı.");
     }
   } catch (e) {
-    console.error("Bildirim eklenirken hata oluştu:", e);  // Hata mesajını yazdır
-    alert("Bildirim eklenirken hata oluştu: " + e.message);  // Kullanıcıya hata mesajı göster
+    console.error("Bildirim eklenirken hata oluştu:", e);
+    alert("Bildirim eklenirken hata oluştu: " + e.message);
   }
 }
 
-
-
+// Handle file name display
 document.getElementById("melodyInput").addEventListener("change", function() {
   const file = this.files[0];
   document.getElementById("file-name").innerText = file ? file.name : "";
 });
 
+// Translation texts
 const texts = {
   tr: {
     title: "Melodi Yükle",
@@ -414,7 +401,7 @@ const texts = {
     uploadLyricsEmpty: "Lütfen şarkı sözlerini yazın.",
     friendInvalid: "Lütfen sadece arkadaş listenizden birini seçin.",
     friendPlaceholder: "Arkadaş seç",
-    confirmDelete: "Bu şarkıyı silmek istiyor musunuz?",
+    confirmDelete: "Bu şarkıyı silmek istiyor musun?",
     deleted: "Şarkı başarıyla silindi.",
     deleteError: "Silinirken hata oluştu."
   },
@@ -437,6 +424,7 @@ const texts = {
   }
 };
 
+// Set language for the UI
 window.setLang = function (lang) {
   document.documentElement.lang = lang;
   document.getElementById("title").innerText = texts[lang].title;
@@ -449,12 +437,14 @@ window.setLang = function (lang) {
   document.querySelector("#friend-name option[value='']").textContent = texts[lang].friendPlaceholder;
 };
 
+// Get text based on the current language
 function getText(key) {
   const lang = document.documentElement.lang || "tr";
   return texts[lang][key];
 }
 
-init(); // sayfa yüklendiğinde kullanıcı tanımlansın
+// Initialize the page on load
+init();
 </script>
 </body>
 </html>
