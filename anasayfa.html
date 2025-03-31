@@ -121,12 +121,12 @@
   <h1 id="welcomeMessage">🎶 Hoş Geldin!</h1>
   <p id="introText">Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!</p>
 
-  <div id="songNotificationBox">
-    <p id="songNotification">
-      <span id="notifText">🎵 Bir arkadaşın seninle bir şarkı paylaştı!</span>
-      <button id="dismissNotif">❌</button>
-    </p>
-  </div>
+<div id="songNotificationBox" style="display:none;">
+  <p id="songNotification">
+    <span id="notifText">🎵 Bir arkadaşın seninle bir şarkı paylaştı!</span>
+    <button id="dismissNotif">❌</button>
+  </p>
+</div>
 
   <div class="button-group">
     <a href="profil.html" class="profile-btn" id="btnProfile">👤 Profilim</a>
@@ -221,11 +221,11 @@ window.setLang = function (lang) {
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    window.location.href = "index.html";
+    window.location.href = "index.html";  // Kullanıcı yoksa giriş sayfasına yönlendir
   } else {
     currentUID = user.uid;
-    await updateTexts();
-    listenForNotifications(currentUID);
+    await updateTexts();  // Metinleri güncelle
+    listenForNotifications(currentUID);  // Bildirimleri dinle
   }
 });
 
@@ -258,14 +258,14 @@ async function updateTexts() {
 function listenForNotifications(uid) {
   const q = query(
     collection(db, "notifications"),
-    where("to", "==", uid),  // Bu filtre kullanıcının UID'sine göre bildirimleri çekiyor
-    orderBy("timestamp", "desc")  // Zaman sırasına göre sıralama
+    where("to", "==", uid),
+    orderBy("timestamp", "desc")
   );
 
   // Verilerin güncellenmesi anlık (real-time) olarak yapılır
   onSnapshot(q, (snapshot) => {
+    console.log("Snapshot alındı"); // Bu satır console'a yazdırma işlemi yapar
     if (!snapshot.empty) {
-      // İlk bildirimi alıyoruz
       const doc = snapshot.docs[0];
       const data = doc.data();
       console.log("Yeni Bildirim Verisi:", data);  // Burada veriyi konsola yazdırıyoruz
