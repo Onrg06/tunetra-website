@@ -262,7 +262,7 @@ function listenForNotifications(uid) {
   const notifBox = document.getElementById("songNotificationBox");
   const notifText = document.getElementById("notifText");
 
-  const notifRef = collection(db, "notifications"); 
+  const notifRef = collection(db, "notifications");
   const q = query(notifRef, where("to", "==", uid), orderBy("timestamp", "desc"));
 
   onSnapshot(q, (snapshot) => {
@@ -312,6 +312,7 @@ window.addEventListener("DOMContentLoaded", () => {
   setLang("tr");
 });
 </script>
+
 
 </body>
 </html>
