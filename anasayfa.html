@@ -256,40 +256,50 @@
       });
 
       // Gerçek zamanlı mesaj kontrolü
-      onSnapshot(
-        query(collection(db, "conversations"), where("users", "array-contains", user.uid)),
-        (convoSnap) => {
-          const base = translations[currentLang].messages;
-          const unseenFrom = new Set();
+// Gerçek zamanlı mesaj kontrolü
+onSnapshot(
+  query(collection(db, "conversations"), where("users", "array-contains", user.uid)),
+  (convoSnap) => {
+    const base = translations[currentLang].messages;
 
-          convoSnap.docs.forEach(convo => {
-            const convoId = convo.id;
-            const messagesRef = collection(db, "conversations", convoId, "messages");
+    let unseenCount = 0;
+    const promises = [];
 
-            onSnapshot(
-              query(messagesRef, orderBy("timestamp", "desc"), limit(1)),
-              (msgSnap) => {
-                if (!msgSnap.empty) {
-                  const doc = msgSnap.docs[0];
-                  const msg = doc.data();
-                  if (
-                    msg.sender !== user.uid &&
-                    (!msg.seenBy || !msg.seenBy.includes(user.uid))
-                  ) {
-                    unseenFrom.add(msg.sender);
-                  }
+    convoSnap.docs.forEach(convo => {
+      const convoId = convo.id;
+      const messagesRef = collection(db, "conversations", convoId, "messages");
 
-                  const msgCount = unseenFrom.size;
-                  document.getElementById("btnMessages").innerText =
-                    msgCount > 0 ? `📨 ${base} (${msgCount})` : `📨 ${base}`;
-                }
+      const p = new Promise((resolve) => {
+        onSnapshot(
+          query(messagesRef, orderBy("timestamp", "desc"), limit(1)),
+          (msgSnap) => {
+            if (!msgSnap.empty) {
+              const doc = msgSnap.docs[0];
+              const msg = doc.data();
+
+              if (
+                msg.sender !== user.uid &&
+                (!msg.seenBy || !msg.seenBy.includes(user.uid))
+              ) {
+                unseenCount++;
               }
-            );
-          });
-        }
-      );
-    }
-  });
+            }
+            resolve(); // Her snapshot sonrası promise'i tamamla
+          }
+        );
+      });
+
+      promises.push(p);
+    });
+
+    // Tüm snapshot'lar tamamlandığında mesaj sayısını güncelle
+    Promise.all(promises).then(() => {
+      document.getElementById("btnMessages").innerText =
+        unseenCount > 0 ? `📨 ${base} (${unseenCount})` : `📨 ${base}`;
+    });
+  }
+);
+
 
   window.logout = function () {
     signOut(auth).then(() => {
