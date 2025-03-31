@@ -170,6 +170,7 @@
     appId: "1:576238823779:web:b1796f089427e3b6fecb56"
   };
 
+  let unreadMessageSenders = new Set();
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
@@ -235,6 +236,32 @@
       document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
       document.getElementById("btnFriends").innerText = translations[currentLang].friends;
       document.getElementById("btnMessages").innerText = `📨 ${translations[currentLang].messages}`;
+      document.getElementById("btnMessages").addEventListener("click", async () => {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        for (const senderUID of unreadMessageSenders) {
+          const convoId = [user.uid, senderUID].sort().join("_");
+          const messagesRef = collection(db, "conversations", convoId, "messages");
+
+          const unreadSnap = await getDocs(
+            query(messagesRef, orderBy("timestamp", "desc"), limit(10))
+          );
+
+          for (const docSnap of unreadSnap.docs) {
+            const msg = docSnap.data();
+            const id = docSnap.id;
+            if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
+              await updateDoc(doc(db, "conversations", convoId, "messages", id), {
+                seenBy: arrayUnion(user.uid)
+        });
+      }
+    }
+  }
+
+  unreadMessageSenders.clear();
+  document.getElementById("btnMessages").innerText = `📨 ${translations[currentLang].messages}`;
+});
 
       if (role === "admin") {
         document.getElementById("btnAdmin").style.display = "block";
@@ -284,12 +311,12 @@ onAuthStateChanged(auth, (user) => {
           return null;
         });
 
-        Promise.all(checkUnread).then((senders) => {
-          const unique = [...new Set(senders.filter(Boolean))];
-          const count = unique.length;
-          document.getElementById("btnMessages").innerText =
-            count > 0 ? `📨 ${base} (${count})` : `📨 ${base}`;
-        });
+Promise.all(checkUnread).then((senders) => {
+  unreadMessageSenders = new Set(senders.filter(Boolean));
+  const count = unreadMessageSenders.size;
+  document.getElementById("btnMessages").innerText =
+    count > 0 ? `📨 ${base} (${count})` : `📨 ${base}`;
+});
       }
     );
   }
