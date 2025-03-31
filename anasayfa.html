@@ -260,62 +260,48 @@
   }
 }
 
-onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    window.location.href = "index.html";
-    return;
-  }
+const msgDot = document.getElementById("msgDot");
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return window.location.href = "index.html";
 
   updateUI();
 
-  // 👥 Arkadaş istekleri (çalışıyor)
-  onSnapshot(doc(db, "friendRequests", user.uid), (docSnap) => {
-    const count = docSnap.exists() ? (docSnap.data().requests?.length || 0) : 0;
-    const base = translations[currentLang].friends;
-    document.getElementById("btnFriends").innerText = count > 0 ? `${base} (${count})` : base;
-  });
-
-  // 🔴 Mesaj bildirimi (çalışır ve hızlı)
-  const msgDot = document.getElementById("msgDot");
+  // Konuşmalar sorgusu
   const convoQuery = query(collection(db, "conversations"), where("users", "array-contains", user.uid));
 
-  onSnapshot(convoQuery, (convoSnap) => {
-    const promises = convoSnap.docs.map(async (convoDoc) => {
-      const convoId = convoDoc.id;
-      const messagesRef = collection(db, "conversations", convoId, "messages");
-      const msgSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(1)));
+  const convoSnap = await getDocs(convoQuery);
+  const checks = convoSnap.docs.map(async (convoDoc) => {
+    const convoId = convoDoc.id;
+    const messagesRef = collection(db, "conversations", convoId, "messages");
 
-      const msg = msgSnap.docs[0]?.data();
-      return msg && msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid));
-    });
+    const lastMsgSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(1)));
+    const msg = lastMsgSnap.docs[0]?.data();
 
-    Promise.all(promises).then((results) => {
-      const unseenExists = results.includes(true);
-      msgDot.style.display = unseenExists ? "inline-block" : "none";
-    });
+    return msg && msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid));
   });
 
-  // ✅ Mesajlara tıklanınca görüldü yap
-  document.getElementById("btnMessages").addEventListener("click", async () => {
-    const convoSnap = await getDocs(convoQuery);
+  const results = await Promise.all(checks);
+  const hasUnseen = results.includes(true);
 
+  msgDot.style.display = hasUnseen ? "inline-block" : "none";
+
+  // "Mesajlar" butonuna tıklanınca tümünü görüldü yap
+  document.getElementById("btnMessages").addEventListener("click", async () => {
     for (const convoDoc of convoSnap.docs) {
       const convoId = convoDoc.id;
       const messagesRef = collection(db, "conversations", convoId, "messages");
+
       const msgSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(10)));
 
       for (const msgDoc of msgSnap.docs) {
         const msg = msgDoc.data();
-        if (
-          msg.sender !== user.uid &&
-          (!msg.seenBy || !msg.seenBy.includes(user.uid))
-        ) {
+        if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
           const updatedSeenBy = [...(msg.seenBy || []), user.uid];
-          await msgDoc.ref.update({ seenBy: updatedSeenBy });
+          await updateDoc(msgDoc.ref, { seenBy: updatedSeenBy });
         }
       }
     }
-
     msgDot.style.display = "none";
   });
 });
