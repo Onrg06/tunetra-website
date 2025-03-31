@@ -508,6 +508,7 @@ window.sendMessage = async () => {
   const input = document.getElementById("messageInput");
   const text = input.value.trim();
   const editId = input.dataset.editing;
+
   if (!text || !selectedFriendId || !currentUser) return;
 
   const convoId = getConversationId(currentUser.uid, selectedFriendId);
@@ -523,14 +524,13 @@ window.sendMessage = async () => {
 
     delete input.dataset.editing;
   } else {
-    const msg = {
+    // Sadece veritabanına yaz, DOM'a ekleme
+    await addDoc(msgCol, {
       sender: currentUser.uid,
       text,
       timestamp: serverTimestamp(),
       seenBy: []
-    };
-    await addDoc(msgCol, msg);
-    // ❌ UI'ya burada ekleme YAPMA — timestamp henüz gelmemiştir!
+    });
   }
 
   input.value = "";
