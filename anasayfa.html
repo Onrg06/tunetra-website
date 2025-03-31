@@ -272,12 +272,21 @@ onAuthStateChanged(auth, async (user) => {
   const convoQuery = query(collection(db, "conversations"), where("users", "array-contains", user.uid));
 
   const convoSnap = await getDocs(convoQuery);
-  const checks = convoSnap.docs.map(async (convoDoc) => {
-    const convoId = convoDoc.id;
-    const messagesRef = collection(db, "conversations", convoId, "messages");
+const checks = convoSnap.docs.map(async (convoDoc) => {
+  const convoId = convoDoc.id;
+  const messagesRef = collection(db, "conversations", convoId, "messages");
 
-    const lastMsgSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(1)));
-    const msg = lastMsgSnap.docs[0]?.data();
+  const msgSnap = await getDocs(messagesRef); // tüm mesajları al
+  const messages = msgSnap.docs.map(doc => doc.data()).reverse(); // son mesajlar başta
+
+  for (const msg of messages) {
+    if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
+      return true;
+    }
+  }
+  return false;
+});
+
 
     return msg && msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid));
   });
