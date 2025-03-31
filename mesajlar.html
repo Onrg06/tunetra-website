@@ -264,14 +264,16 @@ async function loadChatList(uid) {
   for (const fid of friends) {
     const fdoc = await getDoc(doc(db, "users", fid));
     if (!fdoc.exists()) continue;
+
     const name = fdoc.data().username;
     const convoId = getConversationId(uid, fid);
     const messagesCol = collection(db, "conversations", convoId, "messages");
-    const lastMsgSnap = await getDocs(
-  query(messagesCol, orderBy("timestamp", "asc"), limitToLast(1))
-);
-    let lastMsg = "", hasNew = false;
 
+    const lastMsgSnap = await getDocs(
+      query(messagesCol, orderBy("timestamp", "asc"), limitToLast(1))
+    );
+
+    let lastMsg = "", hasNew = false;
     if (!lastMsgSnap.empty) {
       const msg = lastMsgSnap.docs[0].data();
       lastMsg = msg.text;
@@ -289,8 +291,37 @@ async function loadChatList(uid) {
 
     div.onclick = () => openChat(fid, div);
     list.appendChild(div);
+
+    // ✅ Her arkadaş için burada dinleyici ekle
+    onSnapshot(
+      query(messagesCol, orderBy("timestamp", "asc"), limitToLast(1)),
+      async (snapshot) => {
+        const doc = snapshot.docs[0];
+        if (!doc) return;
+        const msg = doc.data();
+        const hasNewMsg = !msg.seenBy?.includes(uid);
+
+        const items = document.querySelectorAll(".chat-item");
+        for (const item of items) {
+          if (item.textContent.includes(name)) {
+            const lastMsgDiv = item.querySelector(".last-message");
+            if (lastMsgDiv) lastMsgDiv.textContent = msg.text;
+
+            if (hasNewMsg && !item.querySelector(".notification")) {
+              const notif = document.createElement("div");
+              notif.className = "notification";
+              item.appendChild(notif);
+            }
+
+            if (!hasNewMsg && item.querySelector(".notification")) {
+              item.querySelector(".notification").remove();
+            }
+            break;
+          }
+        }
+      }
+    );
   }
-  await listenForNewMessages(uid, friends);
 }
 
 async function openChat(fid, el) {
