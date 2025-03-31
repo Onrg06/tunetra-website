@@ -249,48 +249,41 @@
       updateUI();
 
       // ✅ Gerçek zamanlı arkadaşlık istekleri
-      onSnapshot(doc(db, "friendRequests", user.uid), (docSnap) => {
-        const count = docSnap.exists() ? (docSnap.data().requests?.length || 0) : 0;
-        const base = translations[currentLang].friends;
-        document.getElementById("btnFriends").innerText = count > 0 ? `${base} (${count})` : base;
-      });
+onSnapshot(
+  query(collection(db, "conversations"), where("users", "array-contains", user.uid)),
+  (convoSnap) => {
+    const base = translations[currentLang].messages;
 
-      // ✅ Kaç kişiden okunmamış mesaj geldi (sadece son mesajlar kontrol edilerek)
-      onSnapshot(
-        query(collection(db, "conversations"), where("users", "array-contains", user.uid)),
-        (convoSnap) => {
-          const base = translations[currentLang].messages;
+    const checkUnread = convoSnap.docs.map(async (convo) => {
+      const convoId = convo.id;
+      const messagesRef = collection(db, "conversations", convoId, "messages");
 
-          const checkUnreadSenders = convoSnap.docs.map(async (convo) => {
-            const convoId = convo.id;
-            const messagesRef = collection(db, "conversations", convoId, "messages");
-
-            const latestMsgSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(1)));
-            if (!latestMsgSnap.empty) {
-              const msg = latestMsgSnap.docs[0].data();
-
-              if (
-                msg.sender !== user.uid &&
-                (!msg.seenBy || !msg.seenBy.includes(user.uid))
-              ) {
-                return msg.sender;
-              }
-            }
-
-            return null;
-          });
-
-          Promise.all(checkUnreadSenders).then((senders) => {
-            const uniqueSenders = [...new Set(senders.filter(Boolean))];
-            const unseenCount = uniqueSenders.length;
-
-            document.getElementById("btnMessages").innerText =
-              unseenCount > 0 ? `📨 ${base} (${unseenCount})` : `📨 ${base}`;
-          });
-        }
+      const latestSnap = await getDocs(
+        query(messagesRef, orderBy("timestamp", "desc"), limit(1))
       );
-    }
-  });
+
+      if (!latestSnap.empty) {
+        const msg = latestSnap.docs[0].data();
+
+        if (
+          msg.sender !== user.uid &&
+          (!msg.seenBy || !msg.seenBy.includes(user.uid))
+        ) {
+          return msg.sender;
+        }
+      }
+
+      return null;
+    });
+
+    Promise.all(checkUnread).then((senders) => {
+      const unique = [...new Set(senders.filter(Boolean))];
+      const count = unique.length;
+      document.getElementById("btnMessages").innerText =
+        count > 0 ? `📨 ${base} (${count})` : `📨 ${base}`;
+    });
+  }
+);
 
   window.logout = function () {
     signOut(auth).then(() => {
