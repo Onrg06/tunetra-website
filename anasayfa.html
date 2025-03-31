@@ -141,158 +141,163 @@
   </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import {
-    getFirestore, doc, getDoc, collection, query, where,
-    getDocs, orderBy, limit, onSnapshot, updateDoc, arrayUnion
-  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, collection, query, where,
+  getDocs, orderBy, limit, onSnapshot, updateDoc, arrayUnion
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-    authDomain: "tunetra-2579b.firebaseapp.com",
-    projectId: "tunetra-2579b",
-    storageBucket: "tunetra-2579b.appspot.com",
-    messagingSenderId: "576238823779",
-    appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+  authDomain: "tunetra-2579b.firebaseapp.com",
+  projectId: "tunetra-2579b",
+  storageBucket: "tunetra-2579b.appspot.com",
+  messagingSenderId: "576238823779",
+  appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+let unreadMessageSenders = new Set();
+let currentLang = "tr";
 
-  let unreadMessageSenders = new Set();
-  let currentLang = "tr";
-  const translations = {
-    tr: {
-      welcome: "🎶 Hoş Geldin, ",
-      intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!",
-      logout: "Çıkış Yap",
-      profile: "👤 Profilim",
-      friends: "🧑‍🤝‍🧑 Arkadaşlarım",
-      messages: "Mesajlarım",
-      feedback: "📮 Dilek & Şikayet Kutusu",
-      announcements: "📢 Duyurular",
-      about: "ℹ️ Hakkımızda",
-      lyrics: "✍️ Sözler / Şiirler",
-      melody: "🎵 Melodi",
-      songs: "🎶 Hazır Şarkılar"
-    },
-    en: {
-      welcome: "🎶 Welcome, ",
-      intro: "You’re in the right place to create your dream song.<br><br>Share your lyrics or melody, let others collaborate and turn them into music.<br><br>On Tunetra, music is born through collaboration!",
-      logout: "Log Out",
-      profile: "👤 My Profile",
-      friends: "🧑‍🤝‍🧑 My Friends",
-      messages: "My Messages",
-      feedback: "📮 Feedback & Complaints",
-      announcements: "📢 Announcements",
-      about: "ℹ️ About",
-      lyrics: "✍️ Lyrics / Poems",
-      melody: "🎵 Melody",
-      songs: "🎶 Ready Songs"
-    }
-  };
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-  window.setLang = function (lang) {
-    currentLang = lang;
-    updateUI();
-  };
+const translations = {
+  tr: {
+    welcome: "🎶 Hoş Geldin, ",
+    intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!",
+    logout: "Çıkış Yap",
+    profile: "👤 Profilim",
+    friends: "🧑‍🤝‍🧑 Arkadaşlarım",
+    messages: "Mesajlarım",
+    feedback: "📮 Dilek & Şikayet Kutusu",
+    announcements: "📢 Duyurular",
+    about: "ℹ️ Hakkımızda",
+    lyrics: "✍️ Sözler / Şiirler",
+    melody: "🎵 Melodi",
+    songs: "🎶 Hazır Şarkılar"
+  },
+  en: {
+    welcome: "🎶 Welcome, ",
+    intro: "You’re in the right place to create your dream song.<br><br>Share your lyrics or melody, let others collaborate and turn them into music.<br><br>On Tunetra, music is born through collaboration!",
+    logout: "Log Out",
+    profile: "👤 My Profile",
+    friends: "🧑‍🤝‍🧑 My Friends",
+    messages: "My Messages",
+    feedback: "📮 Feedback & Complaints",
+    announcements: "📢 Announcements",
+    about: "ℹ️ About",
+    lyrics: "✍️ Lyrics / Poems",
+    melody: "🎵 Melody",
+    songs: "🎶 Ready Songs"
+  }
+};
 
-  async function updateUI() {
-    const user = auth.currentUser;
-    if (!user) return;
-    const docRef = doc(db, "users", user.uid);
-    const userDoc = await getDoc(docRef);
-    if (userDoc.exists()) {
-      const username = userDoc.data().username;
-      const role = userDoc.data().role || "user";
-      document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
-      document.getElementById("introText").innerHTML = translations[currentLang].intro;
-      document.getElementById("btnProfile").innerText = translations[currentLang].profile;
-      document.getElementById("btnFriends").innerText = translations[currentLang].friends;
-      document.getElementById("btnMessages").innerText = `📨 ${translations[currentLang].messages}`;
-      document.getElementById("btnFeedback").innerText = translations[currentLang].feedback;
-      document.getElementById("btnAbout").innerText = translations[currentLang].about;
-      document.getElementById("btnLyrics").innerText = translations[currentLang].lyrics;
-      document.getElementById("btnMelody").innerText = translations[currentLang].melody;
-      document.getElementById("btnSongs").innerText = translations[currentLang].songs;
-      document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
-      document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
-      if (role === "admin") document.getElementById("btnAdmin").style.display = "block";
+window.setLang = function (lang) {
+  currentLang = lang;
+  updateUI();
+};
+
+async function updateUI() {
+  const user = auth.currentUser;
+  if (!user) return;
+  const docRef = doc(db, "users", user.uid);
+  const userDoc = await getDoc(docRef);
+  if (userDoc.exists()) {
+    const username = userDoc.data().username;
+    const role = userDoc.data().role || "user";
+    document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
+    document.getElementById("introText").innerHTML = translations[currentLang].intro;
+    document.getElementById("btnProfile").innerText = translations[currentLang].profile;
+    document.getElementById("btnFriends").innerText = translations[currentLang].friends;
+    document.getElementById("btnFeedback").innerText = translations[currentLang].feedback;
+    document.getElementById("btnAbout").innerText = translations[currentLang].about;
+    document.getElementById("btnLyrics").innerText = translations[currentLang].lyrics;
+    document.getElementById("btnMelody").innerText = translations[currentLang].melody;
+    document.getElementById("btnSongs").innerText = translations[currentLang].songs;
+    document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
+    document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
+    document.getElementById("btnMessages").innerText = `📨 ${translations[currentLang].messages}`;
+
+    if (role === "admin") {
+      document.getElementById("btnAdmin").style.display = "block";
     }
   }
+}
 
-  const isHome = window.location.pathname.includes("anasayfa");
+const isOnMessagesPage = window.location.pathname.includes("mesajlar");
 
-  onAuthStateChanged(auth, (user) => {
-    if (!user) return location.href = "index.html";
-    updateUI();
+onAuthStateChanged(auth, (user) => {
+  if (!user) return location.href = "index.html";
 
-    onSnapshot(doc(db, "friendRequests", user.uid), (docSnap) => {
-      const count = docSnap.exists() ? (docSnap.data().requests?.length || 0) : 0;
-      const base = translations[currentLang].friends;
-      document.getElementById("btnFriends").innerText = count > 0 ? `${base} (${count})` : base;
-    });
+  updateUI();
 
-    onSnapshot(
-      query(collection(db, "conversations"), where("users", "array-contains", user.uid)),
-      (convoSnap) => {
-        const base = translations[currentLang].messages;
-        const checkUnread = convoSnap.docs.map(async (convo) => {
-          const convoId = convo.id;
-          const messagesRef = collection(db, "conversations", convoId, "messages");
-          const latestSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(1)));
-          if (!latestSnap.empty) {
-            const msg = latestSnap.docs[0].data();
-            if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
-              return msg.sender;
-            }
-          }
-          return null;
-        });
+  onSnapshot(doc(db, "friendRequests", user.uid), (docSnap) => {
+    const count = docSnap.exists() ? (docSnap.data().requests?.length || 0) : 0;
+    const base = translations[currentLang].friends;
+    document.getElementById("btnFriends").innerText = count > 0 ? `${base} (${count})` : base;
+  });
 
-        Promise.all(checkUnread).then((senders) => {
-          unreadMessageSenders = new Set(senders.filter(Boolean));
-          const count = unreadMessageSenders.size;
-          const finalText = count > 0 && isHome ? `📨 ${base} (${count})` : `📨 ${base}`;
-          document.getElementById("btnMessages").innerText = finalText;
-        });
-      }
-    );
-
-    document.getElementById("btnMessages").addEventListener("click", async (e) => {
-      e.preventDefault();
-      for (const senderUID of unreadMessageSenders) {
-        const convoId = [user.uid, senderUID].sort().join("_");
+  onSnapshot(
+    query(collection(db, "conversations"), where("users", "array-contains", user.uid)),
+    (convoSnap) => {
+      const base = translations[currentLang].messages;
+      const checkUnread = convoSnap.docs.map(async (convo) => {
+        const convoId = convo.id;
         const messagesRef = collection(db, "conversations", convoId, "messages");
-        const unreadSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(20)));
-        for (const docSnap of unreadSnap.docs) {
-          const msg = docSnap.data();
-          const id = docSnap.id;
+        const latestSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(1)));
+        if (!latestSnap.empty) {
+          const msg = latestSnap.docs[0].data();
           if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
-            await updateDoc(doc(db, "conversations", convoId, "messages", id), {
-              seenBy: arrayUnion(user.uid)
-            });
+            return msg.sender;
           }
         }
+        return null;
+      });
+
+      Promise.all(checkUnread).then((senders) => {
+        unreadMessageSenders = new Set(senders.filter(Boolean));
+        const count = unreadMessageSenders.size;
+        const base = translations[currentLang].messages;
+        const finalText = count > 0 && !isOnMessagesPage ? `📨 ${base} (${count})` : `📨 ${base}`;
+        document.getElementById("btnMessages").innerText = finalText;
+      });
+    }
+  );
+
+  document.getElementById("btnMessages").addEventListener("click", async () => {
+    for (const senderUID of unreadMessageSenders) {
+      const convoId = [user.uid, senderUID].sort().join("_");
+      const messagesRef = collection(db, "conversations", convoId, "messages");
+      const unreadSnap = await getDocs(query(messagesRef, orderBy("timestamp", "desc"), limit(20)));
+      for (const docSnap of unreadSnap.docs) {
+        const msg = docSnap.data();
+        const id = docSnap.id;
+        if (msg.sender !== user.uid && (!msg.seenBy || !msg.seenBy.includes(user.uid))) {
+          await updateDoc(doc(db, "conversations", convoId, "messages", id), {
+            seenBy: arrayUnion(user.uid)
+          });
+        }
       }
-      unreadMessageSenders.clear();
-      const base = translations[currentLang].messages;
-      document.getElementById("btnMessages").innerText = `📨 ${base}`;
-      window.location.href = "mesajlar.html";
-    });
+    }
+    unreadMessageSenders.clear();
+    const base = translations[currentLang].messages;
+    document.getElementById("btnMessages").innerText = `📨 ${base}`;
   });
+});
 
-  window.logout = function () {
-    signOut(auth).then(() => {
-      window.location.href = "index.html";
-    });
-  };
-
-  window.addEventListener("DOMContentLoaded", () => {
-    setLang("tr");
+window.logout = function () {
+  signOut(auth).then(() => {
+    window.location.href = "index.html";
   });
+};
+
+window.addEventListener("DOMContentLoaded", () => {
+  setLang("tr");
+});
 </script>
+
 </body>
 </html>
