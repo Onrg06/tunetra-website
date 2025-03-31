@@ -252,8 +252,10 @@ async function updateUI(hasUnseen = false) {
   const user = auth.currentUser;
   if (!user) return;
 
-  const docRef = doc(db, "users", user.uid);
-  const userDoc = await getDoc(docRef);
+const userDoc = await getDoc(doc(db, "users", user.uid));
+const hasUnseen = userDoc.exists() && userDoc.data().inboxHasNew === true;
+
+await updateUI(hasUnseen); // Noktayı göster
 
   if (userDoc.exists()) {
     const username = userDoc.data().username;
