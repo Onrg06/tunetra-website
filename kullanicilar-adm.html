@@ -62,12 +62,18 @@
     }
 
     /* Yüklenen İçerikler için Mum Bar */
-    .progress-bar-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 15px;
-    }
+/* Yükleme barlarının başlangıç noktalarını eşitlemek için */
+.progress-bar {
+  height: 30px;
+  border-radius: 8px;
+  width: 100%; /* Tam genişlikte olacak */
+  background-color: #444;
+  margin-left: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 
     .progress-bar {
       height: 30px;
