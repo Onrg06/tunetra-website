@@ -84,10 +84,10 @@
   <div id="feedbackList"></div>
   <a href="adminpanel.html" class="admin-back-btn">⬅️ Yönetim Paneline Dön</a>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, query, orderBy, onSnapshot, deleteDoc, doc, getDoc, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, collection, query, orderBy, onSnapshot, deleteDoc, doc, getDoc, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
