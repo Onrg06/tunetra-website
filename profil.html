@@ -388,8 +388,12 @@ window.updatePassword = async () => {
 window.deleteAccount = async () => {
   if (confirm("Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz!")) {
     try {
+      // Giriş yapmış kullanıcıyı yeniden kimlik doğrulaması yapmaya zorla
+      const credential = EmailAuthProvider.credential(currentUser.email, prompt("Şifrenizi girin:"));
+      await reauthenticateWithCredential(currentUser, credential);  // Reauthentication işlemi
+
       // Firestore'dan kullanıcıyı sil
-      await deleteDoc(doc(db, "users", currentUser.uid));  // Burada Firestore'dan silme işlemi yapılır
+      await deleteDoc(doc(db, "users", currentUser.uid));
 
       // Firebase Authentication'dan kullanıcıyı sil
       await deleteUser(currentUser);  // Firebase Authentication'dan kullanıcıyı sil
