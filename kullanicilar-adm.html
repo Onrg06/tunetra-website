@@ -156,124 +156,146 @@
 
   <a href="adminpanel.html" class="admin-back-btn">⬅️ Yönetim Paneline Dön</a>
 
-  <script type="module">
-    // Firebase ile bağlantı
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-      authDomain: "tunetra-2579b.firebaseapp.com",
-      projectId: "tunetra-2579b",
-      storageBucket: "tunetra-2579b.appspot.com",
-      messagingSenderId: "576238823779",
-      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-    };
+  // Firebase Configurasyonu
+  const firebaseConfig = {
+    apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+    authDomain: "tunetra-2579b.firebaseapp.com",
+    projectId: "tunetra-2579b",
+    storageBucket: "tunetra-2579b.appspot.com",
+    messagingSenderId: "576238823779",
+    appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+  // Firebase'i Başlat
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
 
-    let users = [];
-    let lyricsCount = 0, melodyCount = 0, songCount = 0;
+  let users = [];
+  let lyricsCount = 0, melodyCount = 0, songCount = 0;
 
-    // Kullanıcı Bilgilerini Yükle
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return window.location.href = "index.html";
-      
-      loadUsersAndStats();
+  // Kullanıcı Bilgilerini Yükle
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) return window.location.href = "index.html";
+    
+    loadUsersAndStats();
+  });
+
+  async function loadUsersAndStats() {
+    // Kullanıcılar Listesini Yükleyelim
+    const usersSnapshot = await getDocs(collection(db, "users"));
+    usersSnapshot.forEach(doc => {
+      const data = doc.data();
+      users.push({
+        username: data.username,
+        fullName: data.fullName,
+        uid: doc.id
+      });
     });
 
-    async function loadUsersAndStats() {
-      // Kullanıcılar listesi
-      const usersSnapshot = await getDocs(collection(db, "users"));
-      usersSnapshot.forEach(doc => {
-        const data = doc.data();
-        users.push({
-          username: data.username,
-          fullName: data.fullName,
-          uid: doc.id
-        });
-      });
+    // Kullanıcıları Listele
+    displayUsers(users);
 
-      // Kullanıcıları listele
-      displayUsers(users);
+    // Şarkı Sözü, Melodi ve Hazır Şarkı Sayıları
+    const lyricsSnapshot = await getDocs(collection(db, "lyrics"));
+    lyricsCount = lyricsSnapshot.size;
 
-      // Şarkı Sözü, Melodi ve Hazır Şarkı sayıları
-      const lyricsSnapshot = await getDocs(collection(db, "lyrics"));
-      lyricsCount = lyricsSnapshot.size;
+    const melodySnapshot = await getDocs(collection(db, "melodies"));
+    melodyCount = melodySnapshot.size;
 
-      const melodySnapshot = await getDocs(collection(db, "melodies"));
-      melodyCount = melodySnapshot.size;
+    const songsSnapshot = await getDocs(collection(db, "songs"));
+    songCount = songsSnapshot.size;
 
-      const songsSnapshot = await getDocs(collection(db, "songs"));
-      songCount = songsSnapshot.size;
+    // İstatistikleri Güncelle
+    updateStats();
+    
+    // Grafiklerin Güncellenmesi
+    loadUserGrowthData();
+  }
 
-      // İstatistikleri güncelle
-      updateStats();
-      
-      // Grafiklerin Güncellenmesi
-      updateCharts();
+  function displayUsers(users) {
+    const tbody = document.querySelector("#user-list tbody");
+    tbody.innerHTML = "";
+    users.forEach(user => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${user.username}</td>
+          <td>${user.fullName}</td>
+          <td>${user.uid}</td>
+        </tr>
+      `;
+    });
+  }
+
+  function updateStats() {
+    document.getElementById("userCount").textContent = users.length;
+  }
+
+async function loadUserGrowthData() {
+  // 'users' koleksiyonundaki tüm belgeleri alıyoruz
+  const usersSnapshot = await getDocs(collection(db, "users"));
+
+  // Kullanıcıların kayıt tarihlerini alalım
+  let months = Array(12).fill(0);  // Ocak'tan Aralık'a kadar her ay için sayacı başlatıyoruz
+
+  usersSnapshot.forEach(doc => {
+    const data = doc.data();
+    const registrationDate = data.registrationDate?.toDate();  // Firebase Timestamp'i JS Date formatına çeviriyoruz
+
+    if (registrationDate) {
+      const month = registrationDate.getMonth();  // Ayı alıyoruz (0-11 arası)
+      months[month]++;  // İlgili ayın sayacını arttırıyoruz
     }
+  });
 
-    function displayUsers(users) {
-      const tbody = document.querySelector("#user-list tbody");
-      tbody.innerHTML = "";
-      users.forEach(user => {
-        tbody.innerHTML += `
-          <tr>
-            <td>${user.username}</td>
-            <td>${user.fullName}</td>
-            <td>${user.uid}</td>
-          </tr>
-        `;
-      });
-    }
+  // Kullanıcı artışını grafikte göstermek için veriyi kullanıyoruz
+  updateUserGrowthChart(months);
+}
 
-    function updateStats() {
-      document.getElementById("userCount").textContent = users.length;
-    }
-
-function updateCharts() {
+function updateUserGrowthChart(months) {
   const userGrowthChart = new Chart(document.getElementById("userGrowthChart"), {
     type: "line",
     data: {
-      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"], // Zaman dilimleri
+      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], // 12 ay
       datasets: [{
         label: 'Kullanıcı Artışı',
-        data: [1, 2, 3, 4], // 4 kullanıcı olduğuna göre, her ay bir artış olacak
+        data: months, // Ay bazında kullanıcı artışı
         fill: false,
         borderColor: 'rgb(75, 192, 192)',
         tension: 0.1
       }]
     }
   });
-
-  const songsStatsChart = new Chart(document.getElementById("songsStatsChart"), {
-    type: "bar",
-    data: {
-      labels: ["Şarkı Sözü", "Melodi", "Hazır Şarkı"],
-      datasets: [{
-        label: 'Yüklenen Sayılar',
-        data: [lyricsCount, melodyCount, songCount], // Bu veriler sabit kalabilir
-        backgroundColor: ['#ff5733', '#33ff57', '#3357ff'],
-        borderColor: ['#c13a28', '#1f9c28', '#1e6bd3'],
-        borderWidth: 1
-      }]
-    }
-  });
 }
 
-
-    // Arama Çubuğu için Fonksiyon
-    document.getElementById("searchInput").addEventListener("input", function() {
-      const searchText = this.value.toLowerCase();
-      const filteredUsers = users.filter(user => {
-        return user.username.toLowerCase().includes(searchText) || user.fullName.toLowerCase().includes(searchText);
-      });
-      displayUsers(filteredUsers);
+    const songsStatsChart = new Chart(document.getElementById("songsStatsChart"), {
+      type: "bar",
+      data: {
+        labels: ["Şarkı Sözü", "Melodi", "Hazır Şarkı"],
+        datasets: [{
+          label: 'Yüklenen Sayılar',
+          data: [lyricsCount, melodyCount, songCount],
+          backgroundColor: ['#ff5733', '#33ff57', '#3357ff'],
+          borderColor: ['#c13a28', '#1f9c28', '#1e6bd3'],
+          borderWidth: 1
+        }]
+      }
     });
-  </script>
+  }
+
+  // Arama Çubuğu için Fonksiyon
+  document.getElementById("searchInput").addEventListener("input", function() {
+    const searchText = this.value.toLowerCase();
+    const filteredUsers = users.filter(user => {
+      return user.username.toLowerCase().includes(searchText) || user.fullName.toLowerCase().includes(searchText);
+    });
+    displayUsers(filteredUsers);
+  });
+</script>
 </body>
 </html>
