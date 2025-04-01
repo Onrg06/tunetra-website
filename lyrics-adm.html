@@ -1,1 +1,193 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Şarkı Sözleri | Admin</title>
+  <link rel="icon" type="image/png" href="image.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      background: #0a0a0a;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      padding: 30px 20px;
+      min-height: 100vh;
+      text-align: center;
+      background-image: radial-gradient(circle at top left, #6a11cb33 0%, transparent 70%),
+                        radial-gradient(circle at bottom right, #2575fc33 0%, transparent 70%);
+    }
+    .lyrics-item {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      margin: 15px auto;
+      border-radius: 8px;
+      max-width: 600px;
+      text-align: left;
+    }
+    .btn {
+      padding: 10px 18px;
+      background: #ff4e4e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .btn:hover {
+      background: #ff2e2e;
+    }
+    .admin-back-btn {
+      display: inline-block;
+      margin-top: 40px;
+      padding: 12px 20px;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: white;
+      border-radius: 8px;
+      font-weight: bold;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+    .admin-back-btn:hover {
+      background: linear-gradient(to right, #2575fc, #6a11cb);
+    }
+    #uploaderCount {
+      margin: 20px 0;
+      font-weight: bold;
+      color: #c0fffc;
+    }
+    #searchInput {
+      padding: 10px;
+      width: 80%;
+      max-width: 400px;
+      margin: 20px auto;
+      display: block;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎶 Yüklenen Şarkı Sözleri (Admin)</h1>
+  <input type="text" id="searchInput" placeholder="Şarkı sözü ara...">
+  <div id="uploaderCount">Yükleniyor...</div>
+  <div id="lyricsList"></div>
+  <a href="adminpanel.html" class="admin-back-btn">⬅️ Yönetim Paneline Dön</a>
 
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
+    import {
+      getFirestore, collection, query, orderBy, onSnapshot,
+      deleteDoc, doc, getDoc
+    } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+    };
+
+    const supabase = createClient(
+      'https://kqgbdfnqckcgrfizjdgt.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZ2JkZm5xY2tjZ3JmaXpqZGd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5Nzk2NDQsImV4cCI6MjA1ODU1NTY0NH0.oxyfinrgv7AscolwMv6CuTMHBLeNokdERCKH00d1kfo'
+    );
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
+
+    const list = document.getElementById("lyricsList");
+    const countBox = document.getElementById("uploaderCount");
+    const searchInput = document.getElementById("searchInput");
+
+    let currentUID = "";
+    let isAdmin = false;
+    let allLyrics = [];
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return window.location.href = "index.html";
+      currentUID = user.uid;
+      const docSnap = await getDoc(doc(db, "users", user.uid));
+      if (docSnap.exists()) {
+        isAdmin = docSnap.data().role === "admin";
+      }
+      loadLyrics();
+    });
+
+    function loadLyrics() {
+      const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
+      onSnapshot(q, (snapshot) => {
+        allLyrics = [];
+        const uniqueUploaders = new Set();
+
+        snapshot.forEach(docSnap => {
+          const d = docSnap.data();
+          const docId = docSnap.id;
+          const time = d.timestamp?.toDate().toLocaleString() || "";
+          const canDelete = isAdmin || d.uploaderUID === currentUID;
+
+          allLyrics.push({
+            id: docId,
+            title: d.title || "",
+            lyrics: d.lyrics || "",
+            uploader: d.uploader || "",
+            collaborator: d.collaborator || "",
+            timestamp: time,
+            canDelete: canDelete
+          });
+
+          uniqueUploaders.add(d.uploaderUID);
+        });
+
+        countBox.innerText = `Toplam ${uniqueUploaders.size} farklı kullanıcı şarkı sözü yükledi.`;
+        displayLyrics(allLyrics);
+      });
+    }
+
+    function displayLyrics(lyrics) {
+      list.innerHTML = "";
+      lyrics.forEach(lyric => {
+        list.innerHTML += `
+          <div class="lyrics-item" id="lyric-${lyric.id}">
+            <p><strong>${lyric.uploader}</strong> + <strong>${lyric.collaborator}</strong> (${lyric.timestamp})</p>
+            <h3>${lyric.title}</h3>
+            <p>${lyric.lyrics.replace(/\\n/g, "<br>")}</p>
+            ${lyric.canDelete ? `<button class="btn" onclick="deleteLyric('${lyric.id}')">❌ Sil</button>` : ""}
+          </div>
+        `;
+      });
+    }
+
+    searchInput.addEventListener("input", () => {
+      const keyword = searchInput.value.toLowerCase();
+      const filtered = allLyrics.filter(lyric =>
+        lyric.title.toLowerCase().includes(keyword) ||
+        lyric.lyrics.toLowerCase().includes(keyword) ||
+        lyric.uploader.toLowerCase().includes(keyword) ||
+        lyric.collaborator.toLowerCase().includes(keyword)
+      );
+      displayLyrics(filtered);
+    });
+
+    window.deleteLyric = async function (id) {
+      if (!confirm("Bu şarkı sözünü silmek istediğine emin misin?")) return;
+
+      try {
+        const lyricRef = doc(db, "lyrics", id);
+        await deleteDoc(lyricRef);
+        document.getElementById(`lyric-${id}`)?.remove();
+      } catch (e) {
+        console.error("Silme sırasında hata:", e);
+        alert("Silme sırasında bir hata oluştu.");
+      }
+    };
+  </script>
+</body>
+</html>
