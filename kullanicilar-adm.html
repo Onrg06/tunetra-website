@@ -242,7 +242,8 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
         username: data.username,
         fullName: data.fullName,
         uid: doc.id,
-        registrationDate: data.registrationDate
+        registrationDate: data.registrationDate,
+        isDeleted: data.isDeleted || false  // Kullanıcı silinmiş mi kontrolü
       });
     });
 
@@ -343,8 +344,9 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
     userCountSnapshot.forEach(doc => {
       const data = doc.data();
       const registrationDate = data.registrationDate?.toDate();
+      const isDeleted = data.isDeleted || false;
 
-      if (registrationDate) {
+      if (!isDeleted && registrationDate) {
         const dayOfWeek = registrationDate.getDay(); // 0 = Pazar, 1 = Pazartesi, ...
         if (dayOfWeek === 0) dayOfWeek = 7; // Pazar'ı 7'ye eşitle
         dailyCounts[dayOfWeek - 1]++;
@@ -376,7 +378,7 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
       data: {
         labels: ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'],
         datasets: [{
-          label: 'Kullanıcı Sayısı',
+          label: 'Aktif Kullanıcı Sayısı',
           data: dailyCounts,
           fill: false,
           borderColor: '#4e73df',
