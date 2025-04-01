@@ -194,7 +194,8 @@
       users.push({
         username: data.username,
         fullName: data.fullName,
-        uid: doc.id
+        uid: doc.id,
+        registrationDate: data.registrationDate // Kayıt tarihini alıyoruz
       });
     });
 
@@ -233,7 +234,12 @@
   }
 
   function updateStats() {
+    // Kullanıcı sayısını güncelle
     document.getElementById("userCount").textContent = users.length;
+
+    // Şarkı sözü, melodi ve şarkı sayısını grafikte göster
+    songsStatsChart.data.datasets[0].data = [lyricsCount, melodyCount, songCount];
+    songsStatsChart.update();
   }
 
   async function loadUserGrowthData() {
