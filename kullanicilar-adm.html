@@ -95,22 +95,30 @@
       gap: 20px;
     }
 
-    .bottom-left, .bottom-right {
-      background-color: rgba(0, 0, 0, 0.7);
-      padding: 20px;
-      border-radius: 8px;
-      flex: 1;
-    }
+/* Tabloyu içeren div'leri ortalamak için */
+.bottom-left, .bottom-right {
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 20px;
+  border-radius: 8px;
+  flex: 1;
+  display: flex;
+  justify-content: center; /* Ortalar */
+  align-items: center;     /* Dikeyde ortalar */
+  overflow-x: auto;        /* Geniş tablolarda kaydırma çubuğu ekler */
+}
 
-    #user-list {
-      width: 100%;
-      border-collapse: collapse;
-    }
+/* Tabloların kendi stilini ayarlamak */
+#user-list {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 auto; /* Tabloyu ortalar */
+}
 
-    #user-list th, #user-list td {
-      padding: 12px;
-      border: 1px solid #444;
-    }
+#user-list th, #user-list td {
+  padding: 12px;
+  border: 1px solid #444;
+  text-align: center;  /* İçeriği ortalar */
+}
 
     .search-input {
       padding: 10px;
