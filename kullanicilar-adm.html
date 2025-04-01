@@ -62,12 +62,19 @@
     }
 
     /* Yüklenen İçerikler için Mum Bar */
+    .progress-bar-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 15px;
+    }
+
     .progress-bar {
       height: 30px;
       border-radius: 8px;
-      margin-top: 15px;
       width: 100%;
       background-color: #444;
+      margin-left: 10px;
     }
     .progress-bar span {
       display: block;
@@ -170,14 +177,26 @@
         </div>
         <div>
           <h2>📈 Yüklenen İçerikler</h2>
-          <div class="progress-bar">
-            <span id="lyricsProgress" style="width: 0%; background-color: #ff5733;"></span> <!-- Şarkı Sözü -->
+          <div class="progress-bar-container">
+            <span>Şarkı Sözü</span>
+            <div class="progress-bar">
+              <span id="lyricsProgress" style="width: 0%; background-color: #ff5733;"></span> <!-- Şarkı Sözü -->
+            </div>
+            <span id="lyricsCount">0</span>
           </div>
-          <div class="progress-bar">
-            <span id="melodyProgress" style="width: 0%; background-color: #33ff57;"></span> <!-- Melodi -->
+          <div class="progress-bar-container">
+            <span>Melodi</span>
+            <div class="progress-bar">
+              <span id="melodyProgress" style="width: 0%; background-color: #33ff57;"></span> <!-- Melodi -->
+            </div>
+            <span id="melodyCount">0</span>
           </div>
-          <div class="progress-bar">
-            <span id="songProgress" style="width: 0%; background-color: #3357ff;"></span> <!-- Hazır Şarkı -->
+          <div class="progress-bar-container">
+            <span>Hazır Şarkı</span>
+            <div class="progress-bar">
+              <span id="songProgress" style="width: 0%; background-color: #3357ff;"></span> <!-- Hazır Şarkı -->
+            </div>
+            <span id="songCount">0</span>
           </div>
         </div>
       </div>
@@ -326,11 +345,20 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
     const melodyProgress = document.getElementById('melodyProgress');
     const songProgress = document.getElementById('songProgress');
 
+    const lyricsCountSpan = document.getElementById('lyricsCount');
+    const melodyCountSpan = document.getElementById('melodyCount');
+    const songCountSpan = document.getElementById('songCount');
+
     // Her içerik türü için toplam içerik sayısını ve toplam içerik sayısını ayarlayalım
     const totalContent = lyricsCount + melodyCount + songCount;
     lyricsProgress.style.width = `${(lyricsCount / totalContent) * 100}%`;
     melodyProgress.style.width = `${(melodyCount / totalContent) * 100}%`;
     songProgress.style.width = `${(songCount / totalContent) * 100}%`;
+
+    // İçerik sayıları
+    lyricsCountSpan.textContent = lyricsCount;
+    melodyCountSpan.textContent = melodyCount;
+    songCountSpan.textContent = songCount;
   }
 
   async function loadUserGrowthData() {
