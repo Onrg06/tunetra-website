@@ -5,54 +5,161 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kullanıcılar & İstatistikler | Admin</title>
   <link rel="icon" type="image/png" href="image.png" />
-  <link rel="stylesheet" href="styles.css">
+  
+  <!-- CSS Kodları Buraya Ekleniyor -->
+  <style>
+    /* Genel Stil */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #1c1c1c;
+      color: white;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Üst Kısım */
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .top-left, .top-right {
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 20px;
+      border-radius: 8px;
+      flex: 1;
+      text-align: center;
+    }
+
+    h2 {
+      margin-bottom: 15px;
+    }
+
+    canvas {
+      max-width: 100%;
+    }
+
+    /* Alt Kısım */
+    .bottom-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .bottom-left, .bottom-right {
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 20px;
+      border-radius: 8px;
+      flex: 1;
+    }
+
+    #user-list {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    #user-list th, #user-list td {
+      padding: 12px;
+      border: 1px solid #444;
+    }
+
+    .search-input {
+      padding: 10px;
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 400px;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
+    }
+
+    /* Buton Tasarımı */
+    .admin-back-btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 20px;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: white;
+      border-radius: 8px;
+      font-weight: bold;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+
+    .admin-back-btn:hover {
+      background: linear-gradient(to right, #2575fc, #6a11cb);
+    }
+
+    /* Mobil Uyumlu */
+    @media (max-width: 768px) {
+      .top-row, .bottom-row {
+        flex-direction: column;
+      }
+
+      .top-left, .top-right, .bottom-left, .bottom-right {
+        flex: 1 1 100%;
+      }
+    }
+  </style>
+  
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Grafikler için Chart.js -->
 </head>
 <body>
-  <h1>📊 Kullanıcılar & İstatistikler (Admin)</h1>
-
-  <!-- Grafikler için Kapsayıcı -->
-  <div id="charts-container">
-    <canvas id="userGrowthChart"></canvas>
-    <canvas id="songsStatsChart"></canvas>
-  </div>
-
-  <!-- Kullanıcı Listesi -->
-  <h2>Siteye Kayıtlı Kullanıcılar</h2>
-  <table id="user-list">
-    <thead>
-      <tr>
-        <th>Kullanıcı Adı</th>
-        <th>İsim Soyisim</th>
-        <th>UID</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Kullanıcılar buraya yüklenecek -->
-    </tbody>
-  </table>
-
-  <!-- İstatistikler -->
-  <div id="stats-container">
-    <div class="stat-item">
-      <h3>Toplam Şarkı Sözü Sayısı</h3>
-      <p id="lyricsCount">0</p>
+  <div class="container">
+    <!-- Üst Kısım - Sol ve Sağ Bölümler -->
+    <div class="top-row">
+      <!-- Sol Üst: Kullanıcı Sayısı -->
+      <div class="top-left">
+        <h2>💼 Toplam Kullanıcı Sayısı</h2>
+        <p id="userCount">0</p>
+      </div>
+      <!-- Sağ Üst: Kullanıcı Artışı Grafik -->
+      <div class="top-right">
+        <h2>📊 Kullanıcı Artışı</h2>
+        <canvas id="userGrowthChart"></canvas>
+      </div>
     </div>
-    <div class="stat-item">
-      <h3>Toplam Melodi Sayısı</h3>
-      <p id="melodyCount">0</p>
-    </div>
-    <div class="stat-item">
-      <h3>Toplam Hazır Şarkı Sayısı</h3>
-      <p id="songCount">0</p>
+
+    <!-- Alt Kısım - Sol ve Sağ Bölümler -->
+    <div class="bottom-row">
+      <!-- Sol Alt: Yüklenen İçerikler -->
+      <div class="bottom-left">
+        <h2>📈 Yüklenen İçerikler</h2>
+        <canvas id="songsStatsChart"></canvas>
+      </div>
+      <!-- Sağ Alt: Kullanıcı Bilgileri -->
+      <div class="bottom-right">
+        <h2>👥 Kullanıcı Bilgileri</h2>
+        <input type="text" id="searchInput" placeholder="Kullanıcı adı veya isimle ara..." class="search-input">
+        <table id="user-list">
+          <thead>
+            <tr>
+              <th>Kullanıcı Adı</th>
+              <th>İsim Soyisim</th>
+              <th>UID</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Kullanıcılar buraya yüklenecek -->
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
   <a href="adminpanel.html" class="admin-back-btn">⬅️ Yönetim Paneline Dön</a>
 
   <script type="module">
+    // Firebase ile bağlantı
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, query, orderBy, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -68,10 +175,10 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // Kullanıcılar ve İstatistikler
     let users = [];
     let lyricsCount = 0, melodyCount = 0, songCount = 0;
 
+    // Kullanıcı Bilgilerini Yükle
     onAuthStateChanged(auth, async (user) => {
       if (!user) return window.location.href = "index.html";
       
@@ -125,19 +232,17 @@
     }
 
     function updateStats() {
-      document.getElementById("lyricsCount").textContent = lyricsCount;
-      document.getElementById("melodyCount").textContent = melodyCount;
-      document.getElementById("songCount").textContent = songCount;
+      document.getElementById("userCount").textContent = users.length;
     }
 
     function updateCharts() {
       const userGrowthChart = new Chart(document.getElementById("userGrowthChart"), {
         type: "line",
         data: {
-          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"], // Zaman dilimleri
+          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"], 
           datasets: [{
             label: 'Kullanıcı Artışı',
-            data: [20, 40, 60, 80, 100, 120, 150], // Örnek veri (firebase üzerinden dinamik olarak alınabilir)
+            data: [20, 40, 60, 80, 100, 120, 150], 
             fill: false,
             borderColor: 'rgb(75, 192, 192)',
             tension: 0.1
@@ -159,6 +264,15 @@
         }
       });
     }
+
+    // Arama Çubuğu için Fonksiyon
+    document.getElementById("searchInput").addEventListener("input", function() {
+      const searchText = this.value.toLowerCase();
+      const filteredUsers = users.filter(user => {
+        return user.username.toLowerCase().includes(searchText) || user.fullName.toLowerCase().includes(searchText);
+      });
+      displayUsers(filteredUsers);
+    });
   </script>
 </body>
 </html>
