@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dilek & Şikayetler | Admin</title>
+  <link rel="icon" type="image/png" href="image.png" />
+  <style>
+    body {
+      background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      text-align: center;
+      padding: 20px;
+    }
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .feedback-item {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      max-width: 600px;
+      text-align: left;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .btn {
+      padding: 10px 18px;
+      background: #ff4e4e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #ff2e2e;
+    }
+    .admin-back-btn {
+      display: inline-block;
+      margin-top: 40px;
+      padding: 12px 20px;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: white;
+      border-radius: 8px;
+      font-weight: bold;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+    .admin-back-btn:hover {
+      background: linear-gradient(to right, #2575fc, #6a11cb);
+    }
+    #feedbackList {
+      margin-top: 20px;
+    }
+    #searchInput {
+      padding: 10px;
+      width: 80%;
+      max-width: 400px;
+      margin: 20px auto;
+      display: block;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>📮 Dilek & Şikayetler (Admin)</h1>
+  <input type="text" id="searchInput" placeholder="Kullanıcı, şikayet veya dilek ara...">
+  <div id="feedbackList"></div>
+  <a href="adminpanel.html" class="admin-back-btn">⬅️ Yönetim Paneline Dön</a>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, query, orderBy, onSnapshot, deleteDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const list = document.getElementById("feedbackList");
+    const searchInput = document.getElementById("searchInput");
+
+    let currentUID = "";
+    let isAdmin = false;
+    let allFeedback = [];
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return window.location.href = "index.html";
+      currentUID = user.uid;
+      const docSnap = await getDoc(doc(db, "users", user.uid));
+      if (docSnap.exists()) {
+        isAdmin = docSnap.data().role === "admin";
+      }
+      loadFeedback();
+    });
+
+    function loadFeedback() {
+      const q = query(collection(db, "feedback"), orderBy("timestamp", "desc"));
+      onSnapshot(q, (snapshot) => {
+        allFeedback = [];
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const docId = docSnap.id;
+          const time = data.timestamp?.toDate().toLocaleString() || "";
+
+          allFeedback.push({
+            id: docId,
+            text: data.text || "",
+            username: data.username || "Bilinmiyor",
+            timestamp: time,
+            uid: data.uid || "Bilinmiyor",
+          });
+
+        });
+
+        displayFeedback(allFeedback);
+      });
+    }
+
+    function displayFeedback(feedback) {
+      list.innerHTML = "";
+      feedback.forEach(fb => {
+        list.innerHTML += `
+          <div class="feedback-item" id="feedback-${fb.id}">
+            <p><strong>${fb.username}</strong> (${fb.timestamp})</p>
+            <p>${fb.text}</p>
+            ${isAdmin ? `<button class="btn" onclick="deleteFeedback('${fb.id}')">❌ Sil</button>` : ""}
+          </div>
+        `;
+      });
+    }
+
+    searchInput.addEventListener("input", () => {
+      const keyword = searchInput.value.toLowerCase();
+      const filtered = allFeedback.filter(fb =>
+        fb.text.toLowerCase().includes(keyword) ||
+        fb.username.toLowerCase().includes(keyword)
+      );
+      displayFeedback(filtered);
+    });
+
+    window.deleteFeedback = async function (id) {
+      if (!confirm("Bu dilek/şikayeti silmek istediğine emin misin?")) return;
+
+      try {
+        const feedbackRef = doc(db, "feedback", id);
+        await deleteDoc(feedbackRef);
+        document.getElementById(`feedback-${id}`)?.remove();
+      } catch (e) {
+        console.error("Silme sırasında hata:", e);
+        alert("Silme sırasında bir hata oluştu.");
+      }
+    };
+  </script>
+</body>
+</html>
