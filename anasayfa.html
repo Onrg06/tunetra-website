@@ -187,7 +187,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -202,7 +202,7 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  let msgDot = document.getElementById("msgDot");
+  let msgDot;
 
   const translations = {
     tr: {
@@ -262,16 +262,16 @@
     if (inboxHasNew) {
       // Eğer yeni bir mesaj varsa, kırmızı nokta ekleyelim
       if (!msgDot) {
-        const newMsgDot = document.createElement("span");
-        newMsgDot.id = "msgDot";
-        newMsgDot.classList.add("dot");
-        document.getElementById("btnMessages").appendChild(newMsgDot);
+        msgDot = document.createElement("span");
+        msgDot.id = "msgDot";
+        msgDot.classList.add("dot");
+        document.getElementById("btnMessages").appendChild(msgDot);
       }
     } else {
       // Yeni mesaj yoksa kırmızı nokta DOM'dan kaldırılacak
       if (msgDot) {
         msgDot.remove();
-        msgDot = null; // Sıfırlıyoruz
+        msgDot = null; // msgDot'u sıfırlıyoruz
       }
     }
   }
@@ -313,10 +313,10 @@
         // Eğer yeni mesaj varsa, kırmızı nokta ekleyelim
         if (inboxHasNew) {
           if (!msgDot) {
-            const newMsgDot = document.createElement("span");
-            newMsgDot.id = "msgDot";
-            newMsgDot.classList.add("dot");
-            document.getElementById("btnMessages").appendChild(newMsgDot);
+            msgDot = document.createElement("span");
+            msgDot.id = "msgDot";
+            msgDot.classList.add("dot");
+            document.getElementById("btnMessages").appendChild(msgDot);
           }
         } else {
           // Yeni mesaj yoksa, kırmızı nokta DOM'dan kaldırılsın
