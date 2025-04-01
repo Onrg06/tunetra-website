@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Hakkımızda ve İntro Yazısı Düzenle | TuneTRa Admin</title>
   <style>
+    /* Genel stil tanımları */
     body {
       background-color: #000;
       color: white;
@@ -14,21 +15,18 @@
       flex-direction: column;
       align-items: center;
     }
-
     h1 {
       font-size: 2.5rem;
       color: #ffcc70;
       margin-bottom: 10px;
       text-align: center;
     }
-
     .subtext {
       font-size: 1rem;
       color: #ccc;
       margin-bottom: 30px;
       text-align: center;
     }
-
     textarea {
       width: 100%;
       max-width: 800px;
@@ -43,7 +41,6 @@
       color: white;
       margin-bottom: 20px;
     }
-
     .btn {
       background: linear-gradient(to right, #ff66c4, #ffcc70);
       color: #000;
@@ -55,12 +52,10 @@
       cursor: pointer;
       transition: transform 0.2s, background 0.3s;
     }
-
     .btn:hover {
       transform: scale(1.05);
       background: linear-gradient(to right, #ffcc70, #ff66c4);
     }
-
     #status {
       margin-top: 15px;
       font-size: 1rem;
@@ -69,22 +64,27 @@
   </style>
 </head>
 <body>
-  <h1>Hakkımızda Düzenle</h1>
+  <h1>Hakkımızda ve İntro Yazısı Düzenle</h1>
   <div class="subtext">Her iki dilde de metni düzenleyebilirsiniz.</div>
-
-  <textarea id="textTR" placeholder="Türkçe Hakkımızda Metni"></textarea>
-  <textarea id="textEN" placeholder="English About Text"></textarea>
-
+  
+  <!-- Hakkımızda ve Intro yazıları için metin alanları -->
+  <textarea id="textTR" placeholder="Türkçe Hakkımızda ve Intro Metni"></textarea>
+  <textarea id="textEN" placeholder="English About & Intro Text"></textarea>
+  
   <button class="btn" onclick="saveAbout()">Kaydet</button>
+  
+  <!-- Yönetim paneline dönme butonu -->
   <a href="adminpanel.html" class="btn" style="margin-top: 25px; text-decoration: none;">⬅️ Yönetim Paneline Dön</a>
+  
   <div id="status"></div>
-
+  
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import {
       getFirestore, doc, getDoc, setDoc
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
+    
+    // Firebase yapılandırması
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
       authDomain: "tunetra-2579b.firebaseapp.com",
@@ -93,15 +93,16 @@
       messagingSenderId: "576238823779",
       appId: "1:576238823779:web:b1796f089427e3b6fecb56"
     };
-
+    
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const aboutRef = doc(db, "siteSettings", "aboutPage");
-
+    
     const trText = document.getElementById("textTR");
     const enText = document.getElementById("textEN");
     const status = document.getElementById("status");
-
+    
+    // Metni Firebase'ten yükleme
     async function loadAbout() {
       const docSnap = await getDoc(aboutRef);
       if (docSnap.exists()) {
@@ -110,25 +111,27 @@
         enText.value = data.textEN || "";
       }
     }
-
+    
+    // Metni Firebase'e kaydetme
     async function saveAbout() {
       const tr = trText.value.trim();
       const en = enText.value.trim();
+      
       if (!tr || !en) {
         status.innerText = "Her iki dil de boş bırakılamaz.";
         status.style.color = "orange";
         return;
       }
-
+      
       await setDoc(aboutRef, {
         textTR: tr,
         textEN: en
       });
-
-      status.innerText = "Hakkımızda metinleri başarıyla güncellendi!";
+      
+      status.innerText = "Hakkımızda ve Intro metinleri başarıyla güncellendi!";
       status.style.color = "lightgreen";
     }
-
+    
     loadAbout();
     window.saveAbout = saveAbout;
   </script>
