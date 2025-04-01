@@ -285,7 +285,7 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
 
   function updateStats() {
     document.getElementById("userCount").textContent = users.length;
-    document.getElementById("complaintCount").textContent = complaintCount;  // Dilek ve şikayet sayısını güncelle
+    document.getElementById("complaintCount").textContent = complaintCount;
     songsStatsChart.data.datasets[0].data = [lyricsCount, melodyCount, songCount];
     songsStatsChart.update();
   }
