@@ -169,38 +169,20 @@ searchInput.addEventListener("input", async () => {
   const keyword = searchInput.value.toLowerCase();  // Arama kelimesini küçük harfe çeviriyoruz
   console.log("Arama kelimesi:", keyword);  // Konsola arama kelimesini yazdırıyoruz
 
-  // Kullanıcı adını aramak için
-  const userRef = query(collection(db, "users"), where("username", "==", keyword));  // Kullanıcı adıyla sorgulama
-  const userSnap = await getDocs(userRef);  // Kullanıcıları çekiyoruz
+  // Arama metninin sadece uid'ye ait olup olmadığını kontrol et
+  const filteredByUid = allFeedback.filter(fb => fb.uid.toLowerCase().includes(keyword));  // uid'yi küçük harfe çeviriyoruz ve kontrol ediyoruz
 
-  // Eğer kullanıcı adı eşleşmesi varsa, uid'yi alalım
-  let userUid = "";
-  if (!userSnap.empty) {
-    userSnap.forEach(doc => {
-      userUid = doc.id;  // Kullanıcı id'sini (uid) alıyoruz
-    });
-  }
-
-  // Dilek/şikayet metni üzerinde de arama yapalım
+  // Ayrıca dilek/şikayet metni üzerinden de arama yapalım
   const filteredByText = allFeedback.filter(fb => {
     return fb.text.toLowerCase().includes(keyword);  // Metin içinde arama yapıyoruz
   });
 
-  // Eğer kullanıcı adı aranıyorsa, uid'ye göre filtreleme yapıyoruz
-  let filteredFeedback = [];
-  if (userUid) {
-    filteredFeedback = allFeedback.filter(fb => fb.uid === userUid);  // Kullanıcıya ait şikayetleri filtreliyoruz
-  }
+  // Filtrelenmiş sonuçları birleştiriyoruz (uid veya metin eşleşmesi)
+  const finalFilteredFeedback = [...filteredByUid, ...filteredByText];
 
-  // Eğer her iki arama yapılacaksa (hem metin hem de kullanıcı), iki filtreyi birleştiriyoruz
-  const finalFilteredFeedback = filteredFeedback.length > 0 ? filteredFeedback : filteredByText;
-
-  displayFeedback(finalFilteredFeedback);  // Filtrelenmiş sonuçları göster
+  // Filtrelenmiş sonuçları göster
+  displayFeedback(finalFilteredFeedback);
 });
-
-
-
-
 
     window.deleteFeedback = async function (id) {
       if (!confirm("Bu dilek/şikayeti silmek istediğine emin misin?")) return;
