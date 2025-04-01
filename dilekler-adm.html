@@ -7,27 +7,19 @@
   <link rel="icon" type="image/png" href="image.png" />
   <style>
     body {
-      background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
-      background-size: 400% 400%;
-      animation: gradientShift 15s ease infinite;
-      color: white;
+      background: #0a0a0a;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      padding: 30px 20px;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
       text-align: center;
-      padding: 20px;
-    }
-    @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+      background-image: radial-gradient(circle at top left, #6a11cb33 0%, transparent 70%),
+                        radial-gradient(circle at bottom right, #2575fc33 0%, transparent 70%);
     }
     .feedback-item {
-      background-color: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.1);
       padding: 15px;
-      margin-bottom: 15px;
+      margin: 15px auto;
       border-radius: 8px;
       max-width: 600px;
       text-align: left;
@@ -116,17 +108,22 @@
 
     function loadFeedback() {
       const q = query(collection(db, "feedback"), orderBy("timestamp", "desc"));
-      onSnapshot(q, (snapshot) => {
+      onSnapshot(q, async (snapshot) => {
         allFeedback = [];
-        snapshot.forEach(docSnap => {
+        snapshot.forEach(async (docSnap) => {
           const data = docSnap.data();
           const docId = docSnap.id;
           const time = data.timestamp?.toDate().toLocaleString() || "";
 
+          // Kullanıcının username bilgisini almak için UID'yi kullanıyoruz
+          const userDocRef = doc(db, "users", data.uid);
+          const userSnap = await getDoc(userDocRef);
+          const username = userSnap.exists() ? userSnap.data().username : "Bilinmiyor";
+
           allFeedback.push({
             id: docId,
             text: data.text || "",
-            username: data.username || "Bilinmiyor",
+            username: username,  // UID üzerinden username alıyoruz
             timestamp: time,
             uid: data.uid || "Bilinmiyor",
           });
