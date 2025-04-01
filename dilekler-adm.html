@@ -84,10 +84,10 @@
   <div id="feedbackList"></div>
   <a href="adminpanel.html" class="admin-back-btn">⬅️ Yönetim Paneline Dön</a>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, collection, query, orderBy, onSnapshot, deleteDoc, doc, getDoc, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, query, orderBy, onSnapshot, deleteDoc, doc, getDoc, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -191,6 +191,8 @@ searchInput.addEventListener("input", async () => {
 });
 
 
+
+
     window.deleteFeedback = async function (id) {
       if (!confirm("Bu dilek/şikayeti silmek istediğine emin misin?")) return;
 
@@ -205,4 +207,4 @@ searchInput.addEventListener("input", async () => {
     };
   </script>
 </body>
-</html>
+</html> burada alınan uid nin username ile karşılaştırılıp arama çubuğuna username yazıldığı zaman eşleşen uid nin gönderdiği dilek şikayet karşıma çıkmalı ama olmuyor  
