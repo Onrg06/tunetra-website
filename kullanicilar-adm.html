@@ -242,37 +242,40 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
   }
 
   // Kullanıcıyı silme işlemi
-  async function deleteUserFromFirestore(uid) {
-    if (confirm("Bu kullanıcıyı silmek istediğinizden emin misiniz?")) {
-      try {
-        // Firestore'dan kullanıcıyı sil
-        await deleteDoc(doc(db, "users", uid));
+async function deleteUserFromFirestore(uid) {
+  if (confirm("Bu kullanıcıyı silmek istediğinizden emin misiniz?")) {
+    try {
+      // Firebase Authentication'dan yeniden kimlik doğrulaması yapma
+      const credential = EmailAuthProvider.credential(currentUser.email, prompt("Şifrenizi girin:"));
+      await reauthenticateWithCredential(currentUser, credential);  // Reauthentication işlemi
 
-        // Firebase Authentication'dan kullanıcıyı sil
-        const userAuth = await auth.getUser(uid);  // Kullanıcıyı Firebase Authentication'dan al
-        await deleteUser(userAuth);  // Kullanıcıyı Firebase Authentication'dan sil
+      // Firestore'dan kullanıcıyı sil
+      await deleteDoc(doc(db, "users", uid));
 
-        // Kullanıcıyı Array'den çıkar
-        users = users.filter(user => user.uid !== uid);
+      // Firebase Authentication'dan kullanıcıyı sil
+      await deleteUser(currentUser);  // Kullanıcıyı Firebase Authentication'dan sil
 
-        // Kullanıcı sayısını güncelle
-        updateStats();
+      // Kullanıcıyı Array'den çıkar
+      users = users.filter(user => user.uid !== uid);
 
-        // Grafik verilerini güncelle
-        loadUserGrowthData();
+      // Kullanıcı sayısını güncelle
+      updateStats();
 
-        // Kullanıcı silindiği mesajı
-        alert("Kullanıcı başarıyla silindi.");
+      // Grafik verilerini güncelle
+      loadUserGrowthData();
 
-        // Kullanıcılar listesini yeniden yükleyin
-        displayUsers(users);  // Kullanıcılar listesini güncelle
+      // Kullanıcı silindiği mesajı
+      alert("Kullanıcı başarıyla silindi.");
 
-      } catch (error) {
-        console.error("Kullanıcı silinirken hata oluştu:", error);
-        alert("Bir hata oluştu. Lütfen tekrar deneyin.");
-      }
+      // Kullanıcılar listesini yeniden yükleyin
+      displayUsers(users);  // Kullanıcılar listesini güncelle
+
+    } catch (error) {
+      console.error("Kullanıcı silinirken hata oluştu:", error);
+      alert("Bir hata oluştu. Lütfen tekrar deneyin.");
     }
   }
+}
 
   function updateStats() {
     document.getElementById("userCount").textContent = users.length;
