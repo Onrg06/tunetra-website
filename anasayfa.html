@@ -271,7 +271,7 @@
     }
   }
 
-  // Mesajlar tıklandığında inboxHasNew sıfırlanacak
+  // Mesajlar tıklandığında inboxHasNew sıfırlanacak ve kırmızı nokta gizlenecek
   document.getElementById("btnMessages").addEventListener("click", async () => {
     const user = auth.currentUser;
     if (!user) return;
@@ -283,13 +283,31 @@
     msgDot.style.display = "none"; // Kırmızı nokta gizlendi
   });
 
-  // Set inboxHasNew
+  // Firebase'deki inboxHasNew değerini güncelle
   async function setInboxHasNew(uid, value) {
     const userRef = doc(db, "users", uid);
     await updateDoc(userRef, {
       inboxHasNew: value // Yeni mesaj varsa true, okunduysa false
     });
   }
+
+  // Sayfa yüklendiğinde inboxHasNew değerine göre kırmızı nokta durumu güncellenmeli
+  window.addEventListener("DOMContentLoaded", () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const docRef = doc(db, "users", user.uid);
+    getDoc(docRef).then((docSnap) => {
+      if (docSnap.exists()) {
+        const inboxHasNew = docSnap.data().inboxHasNew || false;
+
+        const msgDot = document.getElementById("msgDot");
+
+        // Eğer yeni mesaj varsa, kırmızı nokta gösterilecek
+        msgDot.style.display = inboxHasNew ? "inline-block" : "none";
+      }
+    });
+  });
 
   // Kullanıcı çıkışı
   window.logout = function () {
