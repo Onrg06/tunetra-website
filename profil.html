@@ -410,7 +410,6 @@ window.deleteAccount = async () => {
     } catch (error) {
       // Hata oluşursa, hata mesajını konsola yazdır ve kullanıcıya bildir
       console.error("Hesap silinirken hata oluştu:", error);
-      let msg = "Bir hata oluştu. Hesabınız silinemedi.";
 
       // Hata koduna göre mesajı özelleştirelim
       if (error.code === "auth/requires-recent-login") {
