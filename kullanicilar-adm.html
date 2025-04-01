@@ -314,16 +314,12 @@ function displayUsers(users) {
 async function deleteUser(uid) {
   if (confirm("Bu kullanıcıyı silmek istediğinizden emin misiniz?")) {
     try {
-      // Kullanıcıyı Firestore'dan sil
+      // Firestore'dan kullanıcıyı sil
       await deleteDoc(doc(db, "users", uid));
 
       // Firebase Authentication'dan kullanıcıyı sil
-      const userRef = await getDoc(doc(db, "users", uid));
-      if (userRef.exists()) {
-        const user = userRef.data();
-        const userAuth = await getAuth().getUser(uid);
-        await deleteUser(userAuth);
-      }
+      const userAuth = await getAuth().getUserByEmail(uid); // Kullanıcıyı email ile alın
+      await deleteUser(userAuth); // Kullanıcıyı sil
 
       // Kullanıcıyı Array'den çıkar
       users = users.filter(user => user.uid !== uid);
@@ -336,6 +332,10 @@ async function deleteUser(uid) {
 
       // Kullanıcı silindiği mesajı
       alert("Kullanıcı silindi.");
+      
+      // Kullanıcılar listesini güncelle
+      displayUsers(users);  // Kullanıcılar listesini güncelle
+
     } catch (error) {
       console.error("Kullanıcı silinirken hata oluştu:", error);
       alert("Bir hata oluştu. Lütfen tekrar deneyin.");
