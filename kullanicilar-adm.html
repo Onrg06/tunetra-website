@@ -6,7 +6,6 @@
   <title>Kullanıcılar & İstatistikler | Admin</title>
   <link rel="icon" type="image/png" href="image.png" />
   
-  <!-- CSS Kodları Buraya Ekleniyor -->
   <style>
     /* Genel Stil */
     body {
@@ -128,45 +127,38 @@
 </head>
 <body>
   <div class="container">
-    <!-- Üst Kısım - Sol ve Sağ Bölümler -->
     <div class="top-row">
-      <!-- Sol Üst: Kullanıcı Sayısı -->
       <div class="top-left">
         <h2>💼 Toplam Kullanıcı Sayısı</h2>
         <p id="userCount">0</p>
       </div>
-      <!-- Sağ Üst: Kullanıcı Artışı Grafik -->
       <div class="top-right">
         <h2>📊 Kullanıcı Artışı</h2>
         <canvas id="userGrowthChart"></canvas>
       </div>
     </div>
 
-    <!-- Alt Kısım - Sol ve Sağ Bölümler -->
     <div class="bottom-row">
-      <!-- Sol Alt: Yüklenen İçerikler -->
       <div class="bottom-left">
         <h2>📈 Yüklenen İçerikler</h2>
         <canvas id="songsStatsChart"></canvas>
       </div>
-      <!-- Sağ Alt: Kullanıcı Bilgileri -->
       <div class="bottom-right">
         <h2>👥 Kullanıcı Bilgileri</h2>
         <input type="text" id="searchInput" placeholder="Kullanıcı adı veya isimle ara..." class="search-input">
-<!-- Kullanıcılar Tablosu ve Silme Butonu -->
-<table id="user-list">
-  <thead>
-    <tr>
-      <th>Kullanıcı Adı</th>
-      <th>İsim Soyisim</th>
-      <th>UID</th>
-      <th>Sil</th> <!-- Silme Butonu Eklendi -->
-    </tr>
-  </thead>
-  <tbody>
-    <!-- Kullanıcılar buraya yüklenecek -->
-  </tbody>
-</table>
+        <table id="user-list">
+          <thead>
+            <tr>
+              <th>Kullanıcı Adı</th>
+              <th>İsim Soyisim</th>
+              <th>UID</th>
+              <th>Sil</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Kullanıcılar buraya yüklenecek -->
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -176,9 +168,8 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getAuth, deleteUser, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-  // Firebase Configurasyonu
   const firebaseConfig = {
     apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
     authDomain: "tunetra-2579b.firebaseapp.com",
@@ -188,7 +179,6 @@
     appId: "1:576238823779:web:b1796f089427e3b6fecb56"
   };
 
-  // Firebase'i Başlat
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const auth = getAuth(app);
@@ -196,15 +186,12 @@
   let users = [];
   let lyricsCount = 0, melodyCount = 0, songCount = 0;
 
-  // Kullanıcı Bilgilerini Yükle
   onAuthStateChanged(auth, async (user) => {
     if (!user) return window.location.href = "index.html";
-    
     loadUsersAndStats();
   });
 
   async function loadUsersAndStats() {
-    // Kullanıcılar Listesini Yükleyelim
     const usersSnapshot = await getDocs(collection(db, "users"));
     usersSnapshot.forEach(doc => {
       const data = doc.data();
@@ -212,14 +199,12 @@
         username: data.username,
         fullName: data.fullName,
         uid: doc.id,
-        registrationDate: data.registrationDate // Kayıt tarihini alıyoruz
+        registrationDate: data.registrationDate
       });
     });
 
-    // Kullanıcıları Listele
     displayUsers(users);
 
-    // Şarkı Sözü, Melodi ve Hazır Şarkı Sayıları
     const lyricsSnapshot = await getDocs(collection(db, "lyrics"));
     lyricsCount = lyricsSnapshot.size;
 
@@ -229,55 +214,72 @@
     const songsSnapshot = await getDocs(collection(db, "songs"));
     songCount = songsSnapshot.size;
 
-    // İstatistikleri Güncelle
     updateStats();
-    
-    // Grafiklerin Güncellenmesi
     loadUserGrowthData();
   }
 
-function displayUsers(users) {
-  const tbody = document.querySelector("#user-list tbody");
-  tbody.innerHTML = "";
-  users.forEach(user => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${user.username}</td>
-        <td>${user.fullName}</td>
-        <td>${user.uid}</td>
-        <td><button class="delete-btn" onclick="deleteUser('${user.uid}')">Sil</button></td>
-      </tr>
-    `;
-  });
-}
+  function displayUsers(users) {
+    const tbody = document.querySelector("#user-list tbody");
+    tbody.innerHTML = "";
+    users.forEach(user => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${user.username}</td>
+          <td>${user.fullName}</td>
+          <td>${user.uid}</td>
+          <td><button class="delete-btn" data-uid="${user.uid}">Sil</button></td>
+        </tr>
+      `;
+    });
+
+    const deleteButtons = document.querySelectorAll('.delete-btn');
+    deleteButtons.forEach(button => {
+      button.addEventListener('click', (event) => {
+        const uid = event.target.getAttribute('data-uid');
+        deleteUser(uid);
+      });
+    });
+  }
+
+  async function deleteUser(uid) {
+    if (confirm("Bu kullanıcıyı silmek istediğinizden emin misiniz?")) {
+      try {
+        await deleteDoc(doc(db, "users", uid));
+        const userAuth = await getAuth().getUser(uid);
+        await deleteUser(userAuth);
+
+        users = users.filter(user => user.uid !== uid);
+        updateStats();
+        loadUserGrowthData();
+        alert("Kullanıcı başarıyla silindi.");
+        displayUsers(users);
+      } catch (error) {
+        console.error("Kullanıcı silinirken hata oluştu:", error);
+        alert("Bir hata oluştu. Lütfen tekrar deneyin.");
+      }
+    }
+  }
 
   function updateStats() {
-    // Kullanıcı sayısını güncelle
     document.getElementById("userCount").textContent = users.length;
-
-    // Şarkı sözü, melodi ve şarkı sayısını grafikte göster
     songsStatsChart.data.datasets[0].data = [lyricsCount, melodyCount, songCount];
     songsStatsChart.update();
   }
 
   async function loadUserGrowthData() {
-    // 'users' koleksiyonundaki tüm belgeleri alıyoruz
     const usersSnapshot = await getDocs(collection(db, "users"));
-
-    // Kullanıcıların kayıt tarihlerini alalım
-    let months = Array(12).fill(0);  // Ocak'tan Aralık'a kadar her ay için sayacı başlatıyoruz
+    let months = Array(12).fill(0);
 
     usersSnapshot.forEach(doc => {
       const data = doc.data();
-      const registrationDate = data.registrationDate?.toDate();  // Firebase Timestamp'i JS Date formatına çeviriyoruz
+      const registrationDate = data.registrationDate?.toDate();
 
       if (registrationDate) {
-        const month = registrationDate.getMonth();  // Ayı alıyoruz (0-11 arası)
-        months[month]++;  // İlgili ayın sayacını arttırıyoruz
+        const month = registrationDate.getMonth();
+        months[month]++;
       }
     });
 
-    // Kullanıcı artışını grafikte göstermek için veriyi kullanıyoruz
     updateUserGrowthChart(months);
   }
 
@@ -285,10 +287,10 @@ function displayUsers(users) {
     const userGrowthChart = new Chart(document.getElementById("userGrowthChart"), {
       type: "line",
       data: {
-        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], // 12 ay
+        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
         datasets: [{
           label: 'Kullanıcı Artışı',
-          data: months, // Ay bazında kullanıcı artışı
+          data: months,
           fill: false,
           borderColor: 'rgb(75, 192, 192)',
           tension: 0.1
@@ -311,65 +313,6 @@ function displayUsers(users) {
     }
   });
 
-async function displayUsers(users) {
-  const tbody = document.querySelector("#user-list tbody");
-  tbody.innerHTML = "";
-
-  users.forEach(user => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${user.username}</td>
-        <td>${user.fullName}</td>
-        <td>${user.uid}</td>
-        <td><button class="delete-btn" data-uid="${user.uid}">Sil</button></td>
-      </tr>
-    `;
-  });
-
-  // Event listener'ları ekleyin
-  const deleteButtons = document.querySelectorAll('.delete-btn');
-  deleteButtons.forEach(button => {
-    button.addEventListener('click', (event) => {
-      const uid = event.target.getAttribute('data-uid');
-      deleteUser(uid);
-    });
-  });
-}
-
-async function deleteUser(uid) {
-  if (confirm("Bu kullanıcıyı silmek istediğinizden emin misiniz?")) {
-    try {
-      // Firestore'dan kullanıcıyı sil
-      await deleteDoc(doc(db, "users", uid));
-
-      // Firebase Authentication'dan kullanıcıyı sil
-      const userAuth = await getAuth().getUser(uid);
-      await deleteUser(userAuth); // Firebase'den kullanıcıyı sil
-
-      // Kullanıcıyı Array'den çıkar
-      users = users.filter(user => user.uid !== uid);
-
-      // Kullanıcı sayısını güncelle
-      updateStats();  // Kullanıcı sayısını güncelle
-
-      // Grafik verilerini güncelle
-      loadUserGrowthData();  // Kullanıcı artış verilerini güncelle
-
-      // Kullanıcı silindiği mesajı
-      alert("Kullanıcı başarıyla silindi.");
-
-      // Kullanıcılar listesini yeniden yükleyin
-      displayUsers(users);  // Kullanıcılar listesini güncelle
-
-    } catch (error) {
-      console.error("Kullanıcı silinirken hata oluştu:", error);
-      alert("Bir hata oluştu. Lütfen tekrar deneyin.");
-    }
-  }
-}
-
-
-  // Arama Çubuğu için Fonksiyon
   document.getElementById("searchInput").addEventListener("input", function() {
     const searchText = this.value.toLowerCase();
     const filteredUsers = users.filter(user => {
