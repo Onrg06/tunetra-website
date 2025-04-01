@@ -29,7 +29,7 @@
       gap: 20px;
     }
 
-    .top-left, .top-right {
+    .top-left, .top-right, .top-middle {
       background-color: rgba(0, 0, 0, 0.7);
       padding: 20px;
       border-radius: 8px;
@@ -132,6 +132,10 @@
         <h2>💼 Toplam Kullanıcı Sayısı</h2>
         <p id="userCount">0</p>
       </div>
+      <div class="top-middle">
+        <h2>📝 Toplam Dilek-Şikayet Sayısı</h2>
+        <p id="complaintCount">0</p>
+      </div>
       <div class="top-right">
         <h2>📊 Kullanıcı Artışı</h2>
         <canvas id="userGrowthChart"></canvas>
@@ -184,7 +188,7 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
   const auth = getAuth(app);
 
   let users = [];
-  let lyricsCount = 0, melodyCount = 0, songCount = 0;
+  let lyricsCount = 0, melodyCount = 0, songCount = 0, complaintCount = 0;
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) return window.location.href = "index.html";
@@ -213,6 +217,9 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
 
     const songsSnapshot = await getDocs(collection(db, "songs"));
     songCount = songsSnapshot.size;
+
+    const complaintsSnapshot = await getDocs(collection(db, "complaints")); // Yeni eklenen kod
+    complaintCount = complaintsSnapshot.size; // Dilek ve şikayet sayısını alıyoruz
 
     updateStats();
     loadUserGrowthData();
@@ -269,13 +276,14 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
 
       } catch (error) {
         console.error("Kullanıcı silinirken hata oluştu:", error);
-        alert("Kullanıcı başarıyla silindi,lütfen sayfayı yenileyin.");
+        alert("Kullanıcı silinirken hata oluştu.");
       }
     }
   }
 
   function updateStats() {
     document.getElementById("userCount").textContent = users.length;
+    document.getElementById("complaintCount").textContent = complaintCount;  // Dilek ve şikayet sayısını güncelle
     songsStatsChart.data.datasets[0].data = [lyricsCount, melodyCount, songCount];
     songsStatsChart.update();
   }
