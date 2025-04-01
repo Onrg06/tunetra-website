@@ -29,7 +29,7 @@
       gap: 20px;
     }
 
-    .top-left, .top-middle, .top-right {
+    .top-left {
       background-color: rgba(0, 0, 0, 0.7);
       padding: 20px;
       border-radius: 8px;
@@ -37,12 +37,47 @@
       text-align: center;
     }
 
+    .top-middle, .top-right {
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 20px;
+      border-radius: 8px;
+      flex: 1;
+    }
+
+    .top-middle {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .top-middle div {
+      margin-bottom: 10px;
+    }
+
+    .top-right {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
     h2 {
       margin-bottom: 15px;
     }
 
-    canvas {
-      max-width: 100%;
+    /* Yüklenen İçerikler için Mum Bar */
+    .progress-bar {
+      height: 30px;
+      border-radius: 8px;
+      background-color: #4e73df;
+      margin-top: 15px;
+    }
+    .progress-bar span {
+      display: block;
+      height: 100%;
+      border-radius: 8px;
+      background-color: #ff5733;
     }
 
     /* Alt Kısım */
@@ -122,26 +157,13 @@
       }
     }
 
-    /* Yüklenen İçerikler için Mum Bar */
-    .progress-bar {
-      height: 30px;
-      border-radius: 8px;
-      background-color: #4e73df;
-      margin-top: 15px;
-    }
-    .progress-bar span {
-      display: block;
-      height: 100%;
-      border-radius: 8px;
-      background-color: #ff5733;
-    }
-
     /* Kullanıcı Bilgileri - Büyük Sayılar */
     .big-number {
       font-size: 32px;
       font-weight: bold;
       color: #ff5733;
     }
+
   </style>
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Grafikler için Chart.js -->
@@ -302,7 +324,7 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
     // Yüklenen içerikler progress bar
     const contentProgress = document.getElementById('contentProgress');
     const totalContent = lyricsCount + melodyCount + songCount;
-    const progress = (totalContent / 100) * 100; // 100'ü değiştirebilirsiniz
+    const progress = (totalContent / 100) * 100; 
     contentProgress.style.width = `${progress}%`;
   }
 
