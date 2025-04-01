@@ -235,35 +235,36 @@
       document.getElementById("userCount").textContent = users.length;
     }
 
-    function updateCharts() {
-      const userGrowthChart = new Chart(document.getElementById("userGrowthChart"), {
-        type: "line",
-        data: {
-          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"], 
-          datasets: [{
-            label: 'Kullanıcı Artışı',
-            data: [20, 40, 60, 80, 100, 120, 150], 
-            fill: false,
-            borderColor: 'rgb(75, 192, 192)',
-            tension: 0.1
-          }]
-        }
-      });
-
-      const songsStatsChart = new Chart(document.getElementById("songsStatsChart"), {
-        type: "bar",
-        data: {
-          labels: ["Şarkı Sözü", "Melodi", "Hazır Şarkı"],
-          datasets: [{
-            label: 'Yüklenen Sayılar',
-            data: [lyricsCount, melodyCount, songCount],
-            backgroundColor: ['#ff5733', '#33ff57', '#3357ff'],
-            borderColor: ['#c13a28', '#1f9c28', '#1e6bd3'],
-            borderWidth: 1
-          }]
-        }
-      });
+function updateCharts() {
+  const userGrowthChart = new Chart(document.getElementById("userGrowthChart"), {
+    type: "line",
+    data: {
+      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"], // Zaman dilimleri
+      datasets: [{
+        label: 'Kullanıcı Artışı',
+        data: [1, 2, 3, 4], // 4 kullanıcı olduğuna göre, her ay bir artış olacak
+        fill: false,
+        borderColor: 'rgb(75, 192, 192)',
+        tension: 0.1
+      }]
     }
+  });
+
+  const songsStatsChart = new Chart(document.getElementById("songsStatsChart"), {
+    type: "bar",
+    data: {
+      labels: ["Şarkı Sözü", "Melodi", "Hazır Şarkı"],
+      datasets: [{
+        label: 'Yüklenen Sayılar',
+        data: [lyricsCount, melodyCount, songCount], // Bu veriler sabit kalabilir
+        backgroundColor: ['#ff5733', '#33ff57', '#3357ff'],
+        borderColor: ['#c13a28', '#1f9c28', '#1e6bd3'],
+        borderWidth: 1
+      }]
+    }
+  });
+}
+
 
     // Arama Çubuğu için Fonksiyon
     document.getElementById("searchInput").addEventListener("input", function() {
