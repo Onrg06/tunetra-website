@@ -238,13 +238,14 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
     const usersSnapshot = await getDocs(collection(db, "users"));
     usersSnapshot.forEach(doc => {
       const data = doc.data();
-      users.push({
-        username: data.username,
-        fullName: data.fullName,
-        uid: doc.id,
-        registrationDate: data.registrationDate,
-        isDeleted: data.isDeleted || false  // Kullanıcı silinmiş mi kontrolü
-      });
+      if (!data.isDeleted) {  // Silinmemiş kullanıcıları alıyoruz
+        users.push({
+          username: data.username,
+          fullName: data.fullName,
+          uid: doc.id,
+          registrationDate: data.registrationDate
+        });
+      }
     });
 
     displayUsers(users);
