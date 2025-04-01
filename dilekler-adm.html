@@ -7,19 +7,27 @@
   <link rel="icon" type="image/png" href="image.png" />
   <style>
     body {
-      background: #0a0a0a;
-      font-family: 'Segoe UI', sans-serif;
-      color: #fff;
-      padding: 30px 20px;
+      background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      color: white;
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
       text-align: center;
-      background-image: radial-gradient(circle at top left, #6a11cb33 0%, transparent 70%),
-                        radial-gradient(circle at bottom right, #2575fc33 0%, transparent 70%);
+      padding: 20px;
+    }
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
     .feedback-item {
-      background: rgba(255, 255, 255, 0.1);
+      background-color: rgba(255, 255, 255, 0.1);
       padding: 15px;
-      margin: 15px auto;
+      margin-bottom: 15px;
       border-radius: 8px;
       max-width: 600px;
       text-align: left;
@@ -96,54 +104,39 @@
     let isAdmin = false;
     let allFeedback = [];
 
-    // Admin kontrolü
     onAuthStateChanged(auth, async (user) => {
-      if (!user) return window.location.href = "index.html";  // Admin olmayan kullanıcıyı yönlendir
+      if (!user) return window.location.href = "index.html";
       currentUID = user.uid;
       const docSnap = await getDoc(doc(db, "users", user.uid));
       if (docSnap.exists()) {
-        isAdmin = docSnap.data().role === "admin";  // Kullanıcı admin mi?
+        isAdmin = docSnap.data().role === "admin";
       }
-      if (!isAdmin) return window.location.href = "index.html";  // Admin değilse yönlendir
-      loadFeedback();  // Admin paneli verilerini yükle
+      loadFeedback();
     });
 
-    // Şikayet ve dilekleri Firestore'dan yükleme
-    async function loadFeedback() {
+    function loadFeedback() {
       const q = query(collection(db, "feedback"), orderBy("timestamp", "desc"));
-      onSnapshot(q, async (snapshot) => {
+      onSnapshot(q, (snapshot) => {
         allFeedback = [];
-        snapshot.forEach(async (docSnap) => {
+        snapshot.forEach(docSnap => {
           const data = docSnap.data();
           const docId = docSnap.id;
           const time = data.timestamp?.toDate().toLocaleString() || "";
 
-          // Kullanıcının username bilgisini almak için UID'yi kullanıyoruz
-          const userDocRef = doc(db, "users", data.uid);
-          const userSnap = await getDoc(userDocRef);
-
-          let username = "Bilinmiyor"; // Varsayılan olarak "Bilinmiyor"
-          if (userSnap.exists()) {
-            username = userSnap.data().username;
-          }
-
           allFeedback.push({
             id: docId,
             text: data.text || "",
-            username: username,  // UID üzerinden username alıyoruz
+            username: data.username || "Bilinmiyor",
             timestamp: time,
             uid: data.uid || "Bilinmiyor",
           });
+
         });
 
-        // Verileri ekrana basmadan önce kontrol ediyoruz
-        console.log("Tüm Dilek ve Şikayetler: ", allFeedback);
-
-        displayFeedback(allFeedback);  // Şikayetleri ve dilekleri ekrana yazdır
+        displayFeedback(allFeedback);
       });
     }
 
-    // Şikayet ve dilekleri listeleme fonksiyonu
     function displayFeedback(feedback) {
       list.innerHTML = "";
       feedback.forEach(fb => {
@@ -157,24 +150,22 @@
       });
     }
 
-    // Arama işlevi
     searchInput.addEventListener("input", () => {
       const keyword = searchInput.value.toLowerCase();
       const filtered = allFeedback.filter(fb =>
         fb.text.toLowerCase().includes(keyword) ||
         fb.username.toLowerCase().includes(keyword)
       );
-      displayFeedback(filtered);  // Arama sonuçlarını ekrana basıyoruz
+      displayFeedback(filtered);
     });
 
-    // Şikayet silme fonksiyonu
     window.deleteFeedback = async function (id) {
       if (!confirm("Bu dilek/şikayeti silmek istediğine emin misin?")) return;
 
       try {
         const feedbackRef = doc(db, "feedback", id);
-        await deleteDoc(feedbackRef);  // Şikayet verisini Firestore'dan silme
-        document.getElementById(`feedback-${id}`)?.remove();  // UI'dan da kaldırma
+        await deleteDoc(feedbackRef);
+        document.getElementById(`feedback-${id}`)?.remove();
       } catch (e) {
         console.error("Silme sırasında hata:", e);
         alert("Silme sırasında bir hata oluştu.");
