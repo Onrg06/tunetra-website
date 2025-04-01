@@ -187,7 +187,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -202,38 +202,7 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  let msgDot = document.getElementById("msgDot");
-
-  const translations = {
-    tr: {
-      welcome: "🎶 Hoş Geldin, ",
-      intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!",
-      logout: "Çıkış Yap",
-      profile: "👤 Profilim",
-      friends: "🧑‍🤝‍🧑 Arkadaşlarım",
-      messages: "Mesajlarım",
-      feedback: "📮 Dilek & Şikayet Kutusu",
-      announcements: "📢 Duyurular",
-      about: "ℹ️ Hakkımızda",
-      lyrics: "✍️ Sözler / Şiirler",
-      melody: "🎵 Melodi",
-      songs: "🎶 Hazır Şarkılar"
-    },
-    en: {
-      welcome: "🎶 Welcome, ",
-      intro: "You’re in the right place to create your dream song.<br><br>Share your lyrics or melody, let others collaborate and turn them into music.<br><br>On Tunetra, music is born through collaboration!",
-      logout: "Log Out",
-      profile: "👤 My Profile",
-      friends: "🧑‍🤝‍🧑 My Friends",
-      messages: "My Messages",
-      feedback: "📮 Feedback & Complaints",
-      announcements: "📢 Announcements",
-      about: "ℹ️ About",
-      lyrics: "✍️ Lyrics",
-      melody: "🎵 Melody",
-      songs: "🎶 Ready Songs"
-    }
-  };
+  const msgDot = document.getElementById("msgDot");
 
   let currentLang = "tr";
 
@@ -257,30 +226,25 @@
 
     // UI'yı güncelle
     document.getElementById("welcomeMessage").innerHTML = "🎶 Hoş Geldin, " + username + "!";
-    document.getElementById("introText").innerHTML = translations[currentLang].intro;
-    document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
-    document.getElementById("btnProfile").innerText = translations[currentLang].profile;
-    document.getElementById("btnFriends").innerText = translations[currentLang].friends;
-    document.getElementById("btnMessagesText").innerText = translations[currentLang].messages;
 
     // Kırmızı nokta kontrolü
     if (inboxHasNew) {
+      // Eğer yeni bir mesaj varsa, kırmızı nokta ekleyelim
       if (!msgDot) {
-        msgDot = document.createElement("span");
-        msgDot.id = "msgDot";
-        msgDot.classList.add("dot");
-        document.getElementById("btnMessages").appendChild(msgDot);
+        const newMsgDot = document.createElement("span");
+        newMsgDot.id = "msgDot";
+        newMsgDot.classList.add("dot");
+        document.getElementById("btnMessages").appendChild(newMsgDot);
       }
-      msgDot.style.display = "inline-block"; // Kırmızı nokta gösterilecek
     } else {
+      // Yeni mesaj yoksa kırmızı nokta DOM'dan kaldırılacak
       if (msgDot) {
-        msgDot.remove(); // Kırmızı noktayı DOM'dan kaldır
-        msgDot = null; // msgDot'u sıfırla
+        msgDot.remove();
       }
     }
   }
 
-  // Mesajlar tıklandığında inboxHasNew sıfırlanacak ve kırmızı nokta DOM'dan kaldırılacak
+  // Mesajlar butonuna tıklandığında, inboxHasNew sıfırlanacak ve kırmızı nokta DOM'dan kaldırılacak
   document.getElementById("btnMessages").addEventListener("click", async () => {
     const user = auth.currentUser;
     if (!user) return;
@@ -289,9 +253,9 @@
     await setInboxHasNew(user.uid, false);
 
     // Kırmızı noktayı DOM'dan tamamen kaldır
+    const msgDot = document.getElementById("msgDot");
     if (msgDot) {
-      msgDot.remove(); // msgDot'u DOM'dan kaldırıyoruz
-      msgDot = null; // msgDot değişkenini sıfırlıyoruz
+      msgDot.remove(); // Kırmızı noktayı DOM'dan kaldırıyoruz
     }
   });
 
@@ -313,19 +277,18 @@
       if (docSnap.exists()) {
         const inboxHasNew = docSnap.data().inboxHasNew || false;
 
-        // Eğer yeni mesaj varsa, kırmızı nokta oluşturulacak
+        // Eğer yeni mesaj varsa, kırmızı nokta ekleyelim
         if (inboxHasNew) {
           if (!msgDot) {
-            msgDot = document.createElement("span");
-            msgDot.id = "msgDot";
-            msgDot.classList.add("dot");
-            document.getElementById("btnMessages").appendChild(msgDot);
+            const newMsgDot = document.createElement("span");
+            newMsgDot.id = "msgDot";
+            newMsgDot.classList.add("dot");
+            document.getElementById("btnMessages").appendChild(newMsgDot);
           }
-          msgDot.style.display = "inline-block"; // Kırmızı nokta gösterilecek
         } else {
+          // Yeni mesaj yoksa, kırmızı nokta DOM'dan kaldırılsın
           if (msgDot) {
-            msgDot.remove(); // Kırmızı noktayı DOM'dan kaldır
-            msgDot = null; // msgDot'u sıfırla
+            msgDot.remove();
           }
         }
       }
