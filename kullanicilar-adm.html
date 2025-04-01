@@ -311,15 +311,16 @@ function displayUsers(users) {
     }
   });
 
+// Silme Fonksiyonu (Admin Paneli)
 async function deleteUser(uid) {
   if (confirm("Bu kullanıcıyı silmek istediğinizden emin misiniz?")) {
     try {
-      // Firestore'dan kullanıcıyı sil
+      // Kullanıcıyı Firestore'dan sil
       await deleteDoc(doc(db, "users", uid));
 
       // Firebase Authentication'dan kullanıcıyı sil
-      const userAuth = await getAuth().getUserByEmail(uid); // Kullanıcıyı email ile alın
-      await deleteUser(userAuth); // Kullanıcıyı sil
+      const userAuth = await getAuth().getUser(uid);  // uid ile kullanıcıyı alın
+      await deleteUser(userAuth);  // Firebase'den kullanıcıyı sil
 
       // Kullanıcıyı Array'den çıkar
       users = users.filter(user => user.uid !== uid);
@@ -331,14 +332,14 @@ async function deleteUser(uid) {
       loadUserGrowthData();  // Kullanıcı artış verilerini güncelle
 
       // Kullanıcı silindiği mesajı
-      alert("Kullanıcı silindi.");
-      
-      // Kullanıcılar listesini güncelle
+      showMessage("Kullanıcı başarıyla silindi.", "success");
+
+      // Kullanıcılar listesini yeniden yükleyin
       displayUsers(users);  // Kullanıcılar listesini güncelle
 
     } catch (error) {
       console.error("Kullanıcı silinirken hata oluştu:", error);
-      alert("Bir hata oluştu. Lütfen tekrar deneyin.");
+      showMessage("Bir hata oluştu. Lütfen tekrar deneyin.", "error");
     }
   }
 }
