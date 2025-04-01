@@ -236,57 +236,56 @@
     document.getElementById("userCount").textContent = users.length;
   }
 
-async function loadUserGrowthData() {
-  // 'users' koleksiyonundaki tüm belgeleri alıyoruz
-  const usersSnapshot = await getDocs(collection(db, "users"));
+  async function loadUserGrowthData() {
+    // 'users' koleksiyonundaki tüm belgeleri alıyoruz
+    const usersSnapshot = await getDocs(collection(db, "users"));
 
-  // Kullanıcıların kayıt tarihlerini alalım
-  let months = Array(12).fill(0);  // Ocak'tan Aralık'a kadar her ay için sayacı başlatıyoruz
+    // Kullanıcıların kayıt tarihlerini alalım
+    let months = Array(12).fill(0);  // Ocak'tan Aralık'a kadar her ay için sayacı başlatıyoruz
 
-  usersSnapshot.forEach(doc => {
-    const data = doc.data();
-    const registrationDate = data.registrationDate?.toDate();  // Firebase Timestamp'i JS Date formatına çeviriyoruz
+    usersSnapshot.forEach(doc => {
+      const data = doc.data();
+      const registrationDate = data.registrationDate?.toDate();  // Firebase Timestamp'i JS Date formatına çeviriyoruz
 
-    if (registrationDate) {
-      const month = registrationDate.getMonth();  // Ayı alıyoruz (0-11 arası)
-      months[month]++;  // İlgili ayın sayacını arttırıyoruz
-    }
-  });
+      if (registrationDate) {
+        const month = registrationDate.getMonth();  // Ayı alıyoruz (0-11 arası)
+        months[month]++;  // İlgili ayın sayacını arttırıyoruz
+      }
+    });
 
-  // Kullanıcı artışını grafikte göstermek için veriyi kullanıyoruz
-  updateUserGrowthChart(months);
-}
+    // Kullanıcı artışını grafikte göstermek için veriyi kullanıyoruz
+    updateUserGrowthChart(months);
+  }
 
-function updateUserGrowthChart(months) {
-  const userGrowthChart = new Chart(document.getElementById("userGrowthChart"), {
-    type: "line",
-    data: {
-      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], // 12 ay
-      datasets: [{
-        label: 'Kullanıcı Artışı',
-        data: months, // Ay bazında kullanıcı artışı
-        fill: false,
-        borderColor: 'rgb(75, 192, 192)',
-        tension: 0.1
-      }]
-    }
-  });
-}
-
-    const songsStatsChart = new Chart(document.getElementById("songsStatsChart"), {
-      type: "bar",
+  function updateUserGrowthChart(months) {
+    const userGrowthChart = new Chart(document.getElementById("userGrowthChart"), {
+      type: "line",
       data: {
-        labels: ["Şarkı Sözü", "Melodi", "Hazır Şarkı"],
+        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], // 12 ay
         datasets: [{
-          label: 'Yüklenen Sayılar',
-          data: [lyricsCount, melodyCount, songCount],
-          backgroundColor: ['#ff5733', '#33ff57', '#3357ff'],
-          borderColor: ['#c13a28', '#1f9c28', '#1e6bd3'],
-          borderWidth: 1
+          label: 'Kullanıcı Artışı',
+          data: months, // Ay bazında kullanıcı artışı
+          fill: false,
+          borderColor: 'rgb(75, 192, 192)',
+          tension: 0.1
         }]
       }
     });
   }
+
+  const songsStatsChart = new Chart(document.getElementById("songsStatsChart"), {
+    type: "bar",
+    data: {
+      labels: ["Şarkı Sözü", "Melodi", "Hazır Şarkı"],
+      datasets: [{
+        label: 'Yüklenen Sayılar',
+        data: [lyricsCount, melodyCount, songCount],
+        backgroundColor: ['#ff5733', '#33ff57', '#3357ff'],
+        borderColor: ['#c13a28', '#1f9c28', '#1e6bd3'],
+        borderWidth: 1
+      }]
+    }
+  });
 
   // Arama Çubuğu için Fonksiyon
   document.getElementById("searchInput").addEventListener("input", function() {
