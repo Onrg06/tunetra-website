@@ -262,6 +262,7 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
 
     updateStats();
     loadUserGrowthData();
+    loadUserCountData();  // Kullanıcı sayısı grafiği verisini yükle
   }
 
   function displayUsers(users) {
@@ -314,7 +315,7 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
     // Yüklenen içerikler progress bar
     const contentProgress = document.getElementById('contentProgress');
     const totalContent = lyricsCount + melodyCount + songCount;
-    const progress = (totalContent / 100) * 100; // 100'ü değiştirebilirsiniz
+    const progress = (totalContent / 100) * 100; 
     contentProgress.style.width = `${progress}%`;
   }
 
@@ -333,7 +334,23 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
     });
 
     updateUserGrowthChart(months);
-    updateUserCountChart();
+  }
+
+  async function loadUserCountData() {
+    const userCountSnapshot = await getDocs(collection(db, "users"));
+    const dailyCounts = Array(7).fill(0);  // Pazartesi - Pazar
+
+    userCountSnapshot.forEach(doc => {
+      const data = doc.data();
+      const registrationDate = data.registrationDate?.toDate();
+
+      if (registrationDate) {
+        const dayOfWeek = registrationDate.getDay(); // 0 = Pazar, 1 = Pazartesi, ...
+        dailyCounts[dayOfWeek]++;
+      }
+    });
+
+    updateUserCountChart(dailyCounts);
   }
 
   function updateUserGrowthChart(months) {
@@ -352,14 +369,14 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
     });
   }
 
-  function updateUserCountChart() {
+  function updateUserCountChart(dailyCounts) {
     const userCountChart = new Chart(document.getElementById("userCountChart"), {
-      type: "scatter",
+      type: "bar",
       data: {
-        labels: ['Toplam Kullanıcı'],
+        labels: ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'],
         datasets: [{
           label: 'Kullanıcı Sayısı',
-          data: [{ x: new Date(), y: users.length }],
+          data: dailyCounts,
           backgroundColor: '#4e73df',
           borderColor: '#2e59d9',
           borderWidth: 1
