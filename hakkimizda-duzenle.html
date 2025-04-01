@@ -71,15 +71,14 @@
   <h2>Hakkımızda Metni</h2>
   <textarea id="textTR" placeholder="Türkçe Hakkımızda Metni"></textarea>
   <textarea id="textEN" placeholder="English About Text"></textarea>
+  <button class="btn" onclick="saveAbout()">Hakkımızda Kaydet</button>
   
   <h2>Intro Yazısı</h2>
   <!-- Intro yazısı düzenleme alanı -->
   <textarea id="introTR" placeholder="Türkçe Intro Yazısı"></textarea>
   <textarea id="introEN" placeholder="English Intro Text"></textarea>
+  <button class="btn" onclick="saveIntro()">Intro Yazısı Kaydet</button>
   
-  <button class="btn" onclick="saveAbout()">Kaydet</button>
-  
-  <!-- Yönetim paneline dönme butonu -->
   <a href="adminpanel.html" class="btn" style="margin-top: 25px; text-decoration: none;">⬅️ Yönetim Paneline Dön</a>
   
   <div id="status"></div>
@@ -102,53 +101,81 @@
     
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const aboutRef = doc(db, "siteSettings", "aboutPage");
     
-    // Metin alanlarını almak
+    const aboutRef = doc(db, "siteSettings", "aboutPage");
+    const introRef = doc(db, "siteSettings", "introPage");
+    
     const trText = document.getElementById("textTR");
     const enText = document.getElementById("textEN");
     const introTRText = document.getElementById("introTR");
     const introENText = document.getElementById("introEN");
     const status = document.getElementById("status");
     
-    // Metni Firebase'ten yükleme
+    // Hakkımızda metnini Firebase'ten yükleme
     async function loadAbout() {
       const docSnap = await getDoc(aboutRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
         trText.value = data.textTR || "";
         enText.value = data.textEN || "";
+      }
+    }
+
+    // Intro metnini Firebase'ten yükleme
+    async function loadIntro() {
+      const docSnap = await getDoc(introRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
         introTRText.value = data.introTR || "";
         introENText.value = data.introEN || "";
       }
     }
-    
-    // Metni Firebase'e kaydetme
+
+    // Hakkımızda metnini Firebase'e kaydetme
     async function saveAbout() {
       const tr = trText.value.trim();
       const en = enText.value.trim();
-      const introTR = introTRText.value.trim();
-      const introEN = introENText.value.trim();
       
-      if (!tr || !en || !introTR || !introEN) {
-        status.innerText = "Her iki dilde de metinler boş bırakılamaz.";
+      if (!tr || !en) {
+        status.innerText = "Her iki dilde de Hakkımızda metni boş bırakılamaz.";
         status.style.color = "orange";
         return;
       }
       
       await setDoc(aboutRef, {
         textTR: tr,
-        textEN: en,
+        textEN: en
+      });
+      
+      status.innerText = "Hakkımızda metni başarıyla güncellendi!";
+      status.style.color = "lightgreen";
+    }
+
+    // Intro yazısını Firebase'e kaydetme
+    async function saveIntro() {
+      const introTR = introTRText.value.trim();
+      const introEN = introENText.value.trim();
+      
+      if (!introTR || !introEN) {
+        status.innerText = "Her iki dilde de Intro yazısı boş bırakılamaz.";
+        status.style.color = "orange";
+        return;
+      }
+      
+      await setDoc(introRef, {
         introTR: introTR,
         introEN: introEN
       });
       
-      status.innerText = "Hakkımızda ve Intro metinleri başarıyla güncellendi!";
+      status.innerText = "Intro yazısı başarıyla güncellendi!";
       status.style.color = "lightgreen";
     }
-    
+
     loadAbout();
+    loadIntro();
+
     window.saveAbout = saveAbout;
+    window.saveIntro = saveIntro;
   </script>
 </body>
 </html>
