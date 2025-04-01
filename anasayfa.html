@@ -44,7 +44,10 @@ p {
   max-width: 600px;
   margin-bottom: 20px;
   padding: 0 10px;
-  white-space: pre-line;
+  white-space: normal; /* Satır atlamasını sağlayan özellik */
+  word-wrap: break-word; /* Uzun kelimelerin satıra kaymasını sağlar */
+  overflow-wrap: break-word; /* Diğer kelimelerin satıra kaymasını sağlar */
+}
 
     .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn, .extra-btn {
       padding: 12px 20px;
