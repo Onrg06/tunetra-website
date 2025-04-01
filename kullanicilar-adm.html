@@ -262,7 +262,7 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
     const songsSnapshot = await getDocs(collection(db, "songs"));
     songCount = songsSnapshot.size;
 
-    const complaintsSnapshot = await getDocs(collection(db, "complaints"));
+    const complaintsSnapshot = await getDocs(collection(db, "feedback"));
     complaintCount = complaintsSnapshot.size;
 
     updateStats();
@@ -304,11 +304,11 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
         updateStats();
         loadUserGrowthData();
 
-        alert("Kullanıcı başarıyla silindi, lütfen sayfayı yenileyin.");
+        alert("Kullanıcı başarıyla silindi, lütfen sayfayı yenileyin ve firebase'den silin.");
         displayUsers(users);  
       } catch (error) {
         console.error("Kullanıcı silinirken hata oluştu:", error);
-        alert("Kullanıcı başarıyla silindi, lütfen sayfayı yenileyin.");
+        alert("Kullanıcı başarıyla silindi, lütfen sayfayı yenileyin ve firebase'den silin.");
       }
     }
   }
