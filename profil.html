@@ -385,20 +385,30 @@ window.updatePassword = async () => {
 };
 
 
-    window.deleteAccount = async () => {
-      if (confirm("Silmek istediğine emin misin?")) {
-        await deleteUser(currentUser);
-        showMessage(translations[currentLang].deleted);
-        location.href = "index.html";
+window.deleteAccount = async () => {
+  if (confirm("Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz!")) {
+    try {
+      // Firestore'dan kullanıcıyı sil
+      await deleteDoc(doc(db, "users", currentUser.uid));
+      
+      // Firebase Authentication'dan kullanıcıyı sil
+      await deleteUser(currentUser);  // Firebase Authentication'dan kullanıcının silinmesi
+
+      // Kullanıcı başarıyla silindi mesajı
+      showMessage(translations[currentLang].deleted, "success");
+      
+      // Kullanıcıyı çıkış yaparak ana sayfaya yönlendir
+      location.href = "index.html";  // Ana sayfaya yönlendir
+    } catch (error) {
+      console.error("Hesap silinirken hata oluştu:", error);
+      let msg = "Bir hata oluştu. Hesabınız silinemedi.";
+      if (error.code === "auth/requires-recent-login") {
+        msg = "Bu işlemi yapabilmek için tekrar giriş yapmanız gerekiyor.";
       }
+      showMessage(msg, "error");
     }
-
-    window.goHome = () => location.href = "anasayfa.html";
-    window.goToMyCreations = () => location.href = "yaptiklarim.html";
-
-    window.addEventListener("DOMContentLoaded", () => {
-      changeLang(currentLang);
-    });
+  }
+}
   </script>
 </body>
 </html>
