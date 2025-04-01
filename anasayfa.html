@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TuneTRa | Ana Sayfa</title>
-  <link rel="icon" type="image/png" href="image.png" />
   <style>
     * {
       box-sizing: border-box; 
@@ -63,22 +62,6 @@
       display: block;
       text-align: center;
     }
-    .messages-btn {
-     position: relative;
-     }
-
-    #msgDot {
-  position: absolute;
-  top: 8px;
-  right: 12px;
-  width: 10px;
-  height: 10px;
-  background-color: red;
-  border-radius: 50%;
-  box-shadow: 0 0 6px rgba(255, 0, 0, 0.6);
-  display: none;
-  z-index: 9999;
-}
 
     .btn:hover, .profile-btn:hover, .friends-btn:hover, .messages-btn:hover, .lang-btn:hover, .extra-btn:hover {
       transform: scale(1.03);
@@ -100,16 +83,6 @@
       gap: 10px;
       margin: 20px 0;
     }
-.dot {
-  display: inline-block;
-  margin-left: 6px;
-  width: 10px;
-  height: 10px;
-  background-color: red;
-  border-radius: 50%;
-  vertical-align: middle;
-  box-shadow: 0 0 5px rgba(255, 0, 0, 0.6);
-}
 
     @media (max-width: 768px) {
       h1 {
@@ -147,8 +120,6 @@
         background: rgba(255, 255, 255, 0.05);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
       }
-}
-
     }
   </style>
 </head>
@@ -164,10 +135,7 @@
   <div class="button-group">
     <a href="profil.html" class="profile-btn" id="btnProfile">👤 Profilim</a>
     <a href="arkadaslar.html" class="friends-btn" id="btnFriends">🧑‍🤝‍🧑 Arkadaşlarım</a>
-<a href="mesajlar.html" class="messages-btn" id="btnMessages">
-  📨 <span id="btnMessagesText">Mesajlarım</span>
-  <span id="msgDot" class="dot" style="display: none;"></span>
-</a>
+    <a href="mesajlar.html" class="messages-btn" id="btnMessages">📨 Mesajlarım (0)</a>
   </div>
 
   <div class="button-group">
@@ -180,169 +148,137 @@
     <a href="dilek.html" class="extra-btn" id="btnFeedback">📮 Dilek & Şikayet Kutusu</a>
     <a href="duyuru.html" class="extra-btn" id="btnAnnouncements">📢 Duyurular</a>
     <a href="hakkimizda.html" class="extra-btn" id="btnAbout">ℹ️ Hakkımızda</a>
-    <a href="adminpanel.html" class="extra-btn" id="btnAdmin" style="display: none;">⚙️ Yönetim Paneline Git</a>
     <a href="index.html" class="btn" onclick="logout()" id="logoutBtn">Çıkış Yap</a>
   </div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-    authDomain: "tunetra-2579b.firebaseapp.com",
-    projectId: "tunetra-2579b",
-    storageBucket: "tunetra-2579b.appspot.com",
-    messagingSenderId: "576238823779",
-    appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
+      authDomain: "tunetra-2579b.firebaseapp.com",
+      projectId: "tunetra-2579b",
+      storageBucket: "tunetra-2579b.appspot.com",
+      messagingSenderId: "576238823779",
+      appId: "1:576238823779:web:b1796f089427e3b6fecb56"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-  let msgDot;
-
-  const translations = {
-    tr: {
-      welcome: "🎶 Hoş Geldin, ",
-      intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!",
-      logout: "Çıkış Yap",
-      profile: "👤 Profilim",
-      friends: "🧑‍🤝‍🧑 Arkadaşlarım",
-      messages: "Mesajlarım",
-      feedback: "📮 Dilek & Şikayet Kutusu",
-      announcements: "📢 Duyurular",
-      about: "ℹ️ Hakkımızda",
-      lyrics: "✍️ Sözler / Şiirler",
-      melody: "🎵 Melodi",
-      songs: "🎶 Hazır Şarkılar"
-    },
-    en: {
-      welcome: "🎶 Welcome, ",
-      intro: "You’re in the right place to create your dream song.<br><br>Share your lyrics or melody, let others collaborate and turn them into music.<br><br>On Tunetra, music is born through collaboration!",
-      logout: "Log Out",
-      profile: "👤 My Profile",
-      friends: "🧑‍🤝‍🧑 My Friends",
-      messages: "My Messages",
-      feedback: "📮 Feedback & Complaints",
-      announcements: "📢 Announcements",
-      about: "ℹ️ About",
-      lyrics: "✍️ Lyrics",
-      melody: "🎵 Melody",
-      songs: "🎶 Ready Songs"
-    }
-  };
-
-  let currentLang = "tr";
-
-  // Dil ayarlarını güncelle
-  window.setLang = function (lang) {
-    currentLang = lang;
-    updateUI();
-  };
-
-  // UI güncelleme fonksiyonu
-  async function updateUI() {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    const docRef = doc(db, "users", user.uid);
-    const userDoc = await getDoc(docRef);
-    if (!userDoc.exists()) return;
-
-    const username = userDoc.data().username;
-    const inboxHasNew = userDoc.data().inboxHasNew || false; // Yeni mesaj var mı?
-
-    // UI'yı güncelle
-    document.getElementById("welcomeMessage").innerHTML = "🎶 Hoş Geldin, " + username + "!";
-
-    // Kırmızı nokta kontrolü
-    if (inboxHasNew) {
-      // Eğer yeni bir mesaj varsa, kırmızı nokta ekleyelim
-      if (!msgDot) {
-        msgDot = document.createElement("span");
-        msgDot.id = "msgDot";
-        msgDot.classList.add("dot");
-        document.getElementById("btnMessages").appendChild(msgDot);
+    const translations = {
+      tr: {
+        welcome: "🎶 Hoş Geldin, ",
+        intro: "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!</p>",
+        logout: "Çıkış Yap",
+        profile: "👤 Profilim",
+        friends: "🧑‍🤝‍🧑 Arkadaşlarım",
+        messages: "Mesajlarım",
+        feedback: "📮 Dilek & Şikayet Kutusu",
+        announcements: "📢 Duyurular",
+        about: "ℹ️ Hakkımızda",
+        lyrics: "✍️ Sözler / Şiirler",
+        melody: "🎵 Melodi",
+        songs: "🎶 Hazır Şarkılar"
+      },
+      en: {
+        welcome: "🎶 Welcome, ",
+        intro: "You’re in the right place to create your dream song.<br><br>Share your lyrics or melody, let others collaborate and turn them into music.<br><br>On Tunetra, music is born through collaboration!",
+        logout: "Log Out",
+        profile: "👤 My Profile",
+        friends: "🧑‍🤝‍🧑 My Friends",
+        messages: "My Messages",
+        feedback: "📮 Feedback & Complaints",
+        announcements: "📢 Announcements",
+        about: "ℹ️ About",
+        lyrics: "✍️ Lyrics",
+        melody: "🎵 Melody",
+        songs: "🎶 Ready Songs"
       }
-    } else {
-      // Yeni mesaj yoksa kırmızı nokta DOM'dan kaldırılacak
-      if (msgDot) {
-        msgDot.remove();
-        msgDot = null; // msgDot'u sıfırlıyoruz
-      }
-    }
-  }
+    };
 
-  // Mesajlar butonuna tıklandığında, inboxHasNew sıfırlanacak ve kırmızı nokta DOM'dan kaldırılacak
-  document.getElementById("btnMessages").addEventListener("click", async () => {
-    const user = auth.currentUser;
-    if (!user) return;
+    let currentLang = "tr";
 
-    // Mesajlar sayfasına gidildiğinde inboxHasNew alanını false yap
-    await setInboxHasNew(user.uid, false);
+    window.setLang = function(lang) {
+      currentLang = lang;
+      updateUI();
+    };
 
-    // Kırmızı noktayı DOM'dan tamamen kaldır
-    if (msgDot) {
-      msgDot.remove(); // Kırmızı noktayı DOM'dan kaldırıyoruz
-      msgDot = null; // msgDot'u sıfırlıyoruz
-    }
-  });
+    function updateUI() {
+      const user = auth.currentUser;
+      if (!user) return;
 
-  // Firebase'deki inboxHasNew değerini güncelle
-  async function setInboxHasNew(uid, value) {
-    const userRef = doc(db, "users", uid);
-    await updateDoc(userRef, {
-      inboxHasNew: value // Yeni mesaj varsa true, okunduysa false
-    });
-  }
-
-  // Sayfa yüklendiğinde inboxHasNew değerine göre kırmızı nokta durumu güncellenmeli
-  window.addEventListener("DOMContentLoaded", () => {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    const docRef = doc(db, "users", user.uid);
-    getDoc(docRef).then((docSnap) => {
-      if (docSnap.exists()) {
-        const inboxHasNew = docSnap.data().inboxHasNew || false;
-
-        // Eğer yeni mesaj varsa, kırmızı nokta ekleyelim
-        if (inboxHasNew) {
-          if (!msgDot) {
-            msgDot = document.createElement("span");
-            msgDot.id = "msgDot";
-            msgDot.classList.add("dot");
-            document.getElementById("btnMessages").appendChild(msgDot);
-          }
-        } else {
-          // Yeni mesaj yoksa, kırmızı nokta DOM'dan kaldırılsın
-          if (msgDot) {
-            msgDot.remove();
-            msgDot = null; // Sıfırlıyoruz
-          }
+      const docRef = doc(db, "users", user.uid);
+      getDoc(docRef).then(userDoc => {
+        if (userDoc.exists()) {
+          const username = userDoc.data().username;
+          document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
+          document.getElementById("introText").innerHTML = translations[currentLang].intro;
+          document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
+          document.getElementById("btnProfile").innerText = translations[currentLang].profile;
+          document.getElementById("btnFeedback").innerText = translations[currentLang].feedback;
+          document.getElementById("btnAbout").innerText = translations[currentLang].about;
+          document.getElementById("btnLyrics").innerText = translations[currentLang].lyrics;
+          document.getElementById("btnMelody").innerText = translations[currentLang].melody;
+          document.getElementById("btnSongs").innerText = translations[currentLang].songs;
+          document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
         }
+      });
+
+      const requestRef = doc(db, "friendRequests", user.uid);
+      getDoc(requestRef).then(requestSnap => {
+        let count = 0;
+        if (requestSnap.exists()) {
+          const data = requestSnap.data();
+          count = data.requests?.length || 0;
+        }
+        const friendsBase = translations[currentLang].friends;
+        document.getElementById("btnFriends").innerText = `${friendsBase} (${count})`;
+      });
+
+      const convoQuery = query(
+        collection(db, "conversations"),
+        where("users", "array-contains", user.uid)
+      );
+
+      onSnapshot(convoQuery, (snapshot) => {
+        let msgCount = 0;
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          const messages = data.messages || [];
+          const hasUnread = messages.some(m =>
+            m.sender !== user.uid &&
+            (!m.seenBy || !m.seenBy.includes(user.uid))
+          );
+          if (hasUnread) {
+            msgCount++;
+          }
+        });
+        const messagesBase = translations[currentLang].messages;
+        document.getElementById("btnMessages").innerText = `📨 ${messagesBase} (${msgCount})`;
+      });
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+      } else {
+        updateUI();
       }
     });
-  });
 
-  // Kullanıcı çıkışı
-  window.logout = function () {
-    signOut(auth).then(() => {
-      window.location.href = "index.html"; 
+    window.logout = function() {
+      signOut(auth).then(() => {
+        window.location.href = "index.html";
+      });
+    };
+
+    window.addEventListener("DOMContentLoaded", () => {
+      setLang("tr");
     });
-  };
-
-  window.addEventListener("DOMContentLoaded", () => {
-    setLang("tr");
-
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return window.location.href = "index.html"; // Eğer kullanıcı yoksa giriş sayfasına yönlendir
-
-      await updateUI();
-    });
-  });
-</script>
-
+  </script>
+</body>
+</html>
