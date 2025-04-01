@@ -5,22 +5,15 @@
   <title>Hazır Şarkılar | Admin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-body {
-  background: #0a0a0a;
-  font-family: 'Segoe UI', sans-serif;
-  color: #fff;
-  padding: 30px 20px;
-  min-height: 100vh;
-  text-align: center;
-  background-image: radial-gradient(circle at top left, #6a11cb33 0%, transparent 70%),
-                    radial-gradient(circle at bottom right, #2575fc33 0%, transparent 70%);
-}
-
-
-    @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    body {
+      background: #0a0a0a;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      padding: 30px 20px;
+      min-height: 100vh;
+      text-align: center;
+      background-image: radial-gradient(circle at top left, #6a11cb33 0%, transparent 70%),
+                        radial-gradient(circle at bottom right, #2575fc33 0%, transparent 70%);
     }
     .melody-item {
       background: rgba(255, 255, 255, 0.1);
@@ -47,32 +40,43 @@ body {
       background: #ff2e2e;
     }
     .admin-back-btn {
-  display: inline-block;
-  margin-top: 40px;
-  padding: 12px 20px;
-  background: linear-gradient(to right, #6a11cb, #2575fc);
-  color: white;
-  border-radius: 8px;
-  font-weight: bold;
-  text-decoration: none;
-  transition: 0.3s;
-}
-.admin-back-btn:hover {
-  background: linear-gradient(to right, #2575fc, #6a11cb);
-}
-
+      display: inline-block;
+      margin-top: 40px;
+      padding: 12px 20px;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: white;
+      border-radius: 8px;
+      font-weight: bold;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+    .admin-back-btn:hover {
+      background: linear-gradient(to right, #2575fc, #6a11cb);
+    }
     #uploaderCount {
       margin: 20px 0;
       font-weight: bold;
       color: #c0fffc;
     }
+    #searchInput {
+      padding: 10px;
+      width: 80%;
+      max-width: 400px;
+      margin: 20px auto;
+      display: block;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
   <h1>🎶 Yüklenen Şarkılar (Admin)</h1>
+  <input type="text" id="searchInput" placeholder="Şarkı ara...">
   <div id="uploaderCount">Yükleniyor...</div>
   <div id="melodyList"></div>
   <a href="adminpanel.html" class="admin-back-btn">⬅️ Yönetim Paneline Dön</a>
+
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
@@ -82,7 +86,7 @@ body {
     } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
     import {
       getAuth, onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";    
+    } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -97,16 +101,18 @@ body {
       'https://kqgbdfnqckcgrfizjdgt.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZ2JkZm5xY2tjZ3JmaXpqZGd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5Nzk2NDQsImV4cCI6MjA1ODU1NTY0NH0.oxyfinrgv7AscolwMv6CuTMHBLeNokdERCKH00d1kfo'
     );
-    
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth();
 
     const list = document.getElementById("melodyList");
     const countBox = document.getElementById("uploaderCount");
+    const searchInput = document.getElementById("searchInput");
 
     let currentUID = "";
     let isAdmin = false;
+    let allSongs = [];
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) return window.location.href = "index.html";
@@ -121,69 +127,89 @@ body {
     function loadSongs() {
       const q = query(collection(db, "songs"), orderBy("timestamp", "desc"));
       onSnapshot(q, (snapshot) => {
-        list.innerHTML = "";
+        allSongs = [];
         const uniqueUploaders = new Set();
 
         snapshot.forEach(docSnap => {
           const d = docSnap.data();
           const docId = docSnap.id;
           const time = d.timestamp?.toDate().toLocaleString() || "";
-          uniqueUploaders.add(d.uploaderUID);
-
           const canDelete = isAdmin || d.uploaderUID === currentUID;
 
-          list.innerHTML += `
-            <div class="melody-item" id="song-${docId}">
-              <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong> (${time})</p>
-              <audio controls src="${d.audioUrl}"></audio>
-              <h3>${d.title}</h3>
-              <p>${d.lyrics.replace(/\\n/g, "<br>")}</p>
-              ${canDelete ? `<button class="btn" onclick="deleteSong('${docId}')">❌ Sil</button>` : ""}
-            </div>
-          `;
+          allSongs.push({
+            id: docId,
+            title: d.title || "",
+            lyrics: d.lyrics || "",
+            uploader: d.uploader || "",
+            collaborator: d.collaborator || "",
+            audioUrl: d.audioUrl || "",
+            timestamp: time,
+            canDelete: canDelete
+          });
+
+          uniqueUploaders.add(d.uploaderUID);
         });
 
         countBox.innerText = `Toplam ${uniqueUploaders.size} farklı kullanıcı şarkı yükledi.`;
+        displaySongs(allSongs);
       });
     }
 
-window.deleteSong = async function (id) {
-  if (!confirm("Bu şarkıyı silmek istediğine emin misin?")) return;
-
-  try {
-    const songRef = doc(db, "songs", id);
-    const songSnap = await getDoc(songRef);
-
-    if (!songSnap.exists()) {
-      alert("Şarkı zaten silinmiş.");
-      return;
+    function displaySongs(songs) {
+      list.innerHTML = "";
+      songs.forEach(song => {
+        list.innerHTML += `
+          <div class="melody-item" id="song-${song.id}">
+            <p><strong>${song.uploader}</strong> + <strong>${song.collaborator}</strong> (${song.timestamp})</p>
+            <audio controls src="${song.audioUrl}"></audio>
+            <h3>${song.title}</h3>
+            <p>${song.lyrics.replace(/\\n/g, "<br>")}</p>
+            ${song.canDelete ? `<button class="btn" onclick="deleteSong('${song.id}', '${song.audioUrl}')">❌ Sil</button>` : ""}
+          </div>
+        `;
+      });
     }
 
-    const data = songSnap.data();
-    const audioUrl = data.audioUrl;
+    searchInput.addEventListener("input", () => {
+      const keyword = searchInput.value.toLowerCase();
+      const filtered = allSongs.filter(song =>
+        song.title.toLowerCase().includes(keyword) ||
+        song.lyrics.toLowerCase().includes(keyword) ||
+        song.uploader.toLowerCase().includes(keyword) ||
+        song.collaborator.toLowerCase().includes(keyword)
+      );
+      displaySongs(filtered);
+    });
 
-    // Firestore'dan belgeyi sil
-    await deleteDoc(songRef);
-    document.getElementById(`song-${id}`)?.remove();
+    window.deleteSong = async function (id, audioUrl) {
+      if (!confirm("Bu şarkıyı silmek istediğine emin misin?")) return;
 
-    // Supabase'den ses dosyasını sil
-    if (audioUrl) {
-      const fileName = audioUrl.split("/").pop().split("?")[0];
-      const { error } = await supabase.storage.from("songs").remove([fileName]);
+      try {
+        const songRef = doc(db, "songs", id);
+        const songSnap = await getDoc(songRef);
 
-      if (error) {
-        console.error("Supabase silme hatası:", error.message);
-        alert("Ses dosyası Firestore'dan silindi ama Supabase'den silinemedi.");
-      } else {
-        console.log("Supabase'den ses dosyası silindi:", fileName);
+        if (!songSnap.exists()) {
+          alert("Şarkı zaten silinmiş.");
+          return;
+        }
+
+        await deleteDoc(songRef);
+        document.getElementById(`song-${id}`)?.remove();
+
+        const fileName = audioUrl ? audioUrl.split("/").pop().split("?")[0] : null;
+        if (fileName) {
+          const { error } = await supabase.storage.from("songs").remove([fileName]);
+
+          if (error) {
+            console.error("Supabase silme hatası:", error.message);
+            alert("Ses dosyası Firestore'dan silindi ama Supabase'den silinemedi.");
+          }
+        }
+      } catch (e) {
+        console.error("Silme sırasında hata:", e);
+        alert("Silme sırasında bir hata oluştu.");
       }
-    }
-  } catch (e) {
-    console.error("Silme sırasında hata:", e);
-    alert("Silme sırasında bir hata oluştu.");
-  }
-};
-
+    };
   </script>
 </body>
 </html>
