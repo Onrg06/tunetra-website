@@ -128,7 +128,7 @@ function loadFeedback() {
       const docId = docSnap.id;
       const time = data.timestamp?.toDate().toLocaleString() || "";
 
-      // Kullanıcı adı verisini doğru şekilde al
+      // Kullanıcı adı verisini almak için 'users' koleksiyonunu sorguluyoruz
       const username = data.username || "Bilinmiyor"; // Eğer veri yoksa, "Bilinmiyor" yazalım
 
       allFeedback.push({
@@ -147,11 +147,17 @@ function loadFeedback() {
 
 function displayFeedback(feedback) {
   list.innerHTML = "";  // Listeyi temizliyoruz
-  feedback.forEach(fb => {
+  feedback.forEach(async (fb) => {
+    // Kullanıcı adını almak için 'users' koleksiyonunu sorguluyoruz (fb.uid üzerinden)
+    const userRef = doc(db, "users", fb.uid);
+    const userSnap = await getDoc(userRef);  // Kullanıcı verisini alıyoruz
+
+    const username = userSnap.exists() ? userSnap.data().username : "Bilinmiyor";  // Eğer kullanıcı adı varsa, onu alıyoruz; yoksa "Bilinmiyor" yazıyoruz
+
     // Her bir feedback öğesini listeye ekliyoruz
     list.innerHTML += `
       <div class="feedback-item" id="feedback-${fb.id}">
-        <p><strong>${fb.username}</strong> (${fb.timestamp})</p>
+        <p><strong>${username}</strong> (${fb.timestamp})</p>
         <p>${fb.text}</p>
         ${isAdmin ? `<button class="btn" onclick="deleteFeedback('${fb.id}')">❌ Sil</button>` : ""}
       </div>
