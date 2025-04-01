@@ -202,7 +202,8 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  let msgDot;
+  let currentLang = "tr";
+  let msgDot = null;
 
   const translations = {
     tr: {
@@ -235,113 +236,75 @@
     }
   };
 
-  let currentLang = "tr";
-
-  // Dil ayarlarını güncelle
+  // Dil değiştirme fonksiyonu
   window.setLang = function (lang) {
     currentLang = lang;
-    updateUI();
+    if (auth.currentUser) updateUI(auth.currentUser);
   };
 
-  // UI güncelleme fonksiyonu
-  async function updateUI() {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    const docRef = doc(db, "users", user.uid);
-    const userDoc = await getDoc(docRef);
-    if (!userDoc.exists()) return;
-
-    const username = userDoc.data().username;
-    const inboxHasNew = userDoc.data().inboxHasNew || false; // Yeni mesaj var mı?
-
-    // UI'yı güncelle
-    document.getElementById("welcomeMessage").innerHTML = "🎶 Hoş Geldin, " + username + "!";
-
-    // Kırmızı nokta kontrolü
-    if (inboxHasNew) {
-      // Eğer yeni bir mesaj varsa, kırmızı nokta ekleyelim
+  // Bildirim noktasını göster/gizle
+  function updateMsgDot(visible) {
+    const container = document.getElementById("btnMessages");
+    if (visible) {
       if (!msgDot) {
         msgDot = document.createElement("span");
         msgDot.id = "msgDot";
         msgDot.classList.add("dot");
-        document.getElementById("btnMessages").appendChild(msgDot);
+        container.appendChild(msgDot);
       }
     } else {
-      // Yeni mesaj yoksa kırmızı nokta DOM'dan kaldırılacak
       if (msgDot) {
         msgDot.remove();
-        msgDot = null; // msgDot'u sıfırlıyoruz
+        msgDot = null;
       }
     }
   }
 
-  // Mesajlar butonuna tıklandığında, inboxHasNew sıfırlanacak ve kırmızı nokta DOM'dan kaldırılacak
+  // UI güncelleme
+  async function updateUI(user) {
+    const docRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) return;
+
+    const data = docSnap.data();
+    const langData = translations[currentLang];
+
+    document.getElementById("welcomeMessage").innerHTML = langData.welcome + data.username + "!";
+    document.getElementById("introText").innerHTML = langData.intro;
+
+    document.getElementById("btnProfile").innerText = langData.profile;
+    document.getElementById("btnFriends").innerText = langData.friends;
+    document.getElementById("btnMessagesText").innerText = langData.messages;
+    document.getElementById("btnFeedback").innerText = langData.feedback;
+    document.getElementById("btnAnnouncements").innerText = langData.announcements;
+    document.getElementById("btnAbout").innerText = langData.about;
+    document.getElementById("btnLyrics").innerText = langData.lyrics;
+    document.getElementById("btnMelody").innerText = langData.melody;
+    document.getElementById("btnSongs").innerText = langData.songs;
+    document.getElementById("logoutBtn").innerText = langData.logout;
+
+    updateMsgDot(data.inboxHasNew === true);
+  }
+
+  // Giriş kontrolü ve arayüz başlatma
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) return window.location.href = "index.html";
+    await updateUI(user);
+  });
+
+  // Mesajlara tıklanınca kırmızı nokta sıfırlanır
   document.getElementById("btnMessages").addEventListener("click", async () => {
     const user = auth.currentUser;
     if (!user) return;
 
-    // Mesajlar sayfasına gidildiğinde inboxHasNew alanını false yap
-    await setInboxHasNew(user.uid, false);
-
-    // Kırmızı noktayı DOM'dan tamamen kaldır
-    if (msgDot) {
-      msgDot.remove(); // Kırmızı noktayı DOM'dan kaldırıyoruz
-      msgDot = null; // msgDot'u sıfırlıyoruz
-    }
+    await updateDoc(doc(db, "users", user.uid), { inboxHasNew: false });
+    updateMsgDot(false);
   });
 
-  // Firebase'deki inboxHasNew değerini güncelle
-  async function setInboxHasNew(uid, value) {
-    const userRef = doc(db, "users", uid);
-    await updateDoc(userRef, {
-      inboxHasNew: value // Yeni mesaj varsa true, okunduysa false
-    });
-  }
-
-  // Sayfa yüklendiğinde inboxHasNew değerine göre kırmızı nokta durumu güncellenmeli
-  window.addEventListener("DOMContentLoaded", () => {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    const docRef = doc(db, "users", user.uid);
-    getDoc(docRef).then((docSnap) => {
-      if (docSnap.exists()) {
-        const inboxHasNew = docSnap.data().inboxHasNew || false;
-
-        // Eğer yeni mesaj varsa, kırmızı nokta ekleyelim
-        if (inboxHasNew) {
-          if (!msgDot) {
-            msgDot = document.createElement("span");
-            msgDot.id = "msgDot";
-            msgDot.classList.add("dot");
-            document.getElementById("btnMessages").appendChild(msgDot);
-          }
-        } else {
-          // Yeni mesaj yoksa, kırmızı nokta DOM'dan kaldırılsın
-          if (msgDot) {
-            msgDot.remove();
-            msgDot = null; // Sıfırlıyoruz
-          }
-        }
-      }
-    });
-  });
-
-  // Kullanıcı çıkışı
+  // Çıkış yap
   window.logout = function () {
     signOut(auth).then(() => {
-      window.location.href = "index.html"; 
+      window.location.href = "index.html";
     });
   };
-
-  window.addEventListener("DOMContentLoaded", () => {
-    setLang("tr");
-
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return window.location.href = "index.html"; // Eğer kullanıcı yoksa giriş sayfasına yönlendir
-
-      await updateUI();
-    });
-  });
 </script>
