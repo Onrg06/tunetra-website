@@ -172,12 +172,15 @@ searchInput.addEventListener("input", () => {
 
   // Filtreleme işlemi
   const filtered = allFeedback.filter(fb => {
-    const isUsernameMatch = fb.username.toLowerCase().includes(keyword);  // Kullanıcı adı üzerinde arama yapıyoruz
-    return isUsernameMatch;  // Kullanıcı adı eşleşiyorsa gösteriyoruz
+    // Kullanıcı adı üzerinde arama yapıyoruz veya uid üzerinde arama yapıyoruz
+    const isUsernameMatch = fb.username.toLowerCase().includes(keyword);
+    const isUidMatch = fb.uid.toLowerCase().includes(keyword);  // UID'yi de kontrol et
+    return isUsernameMatch || isUidMatch;  // Eğer kullanıcı adı ya da uid eşleşiyorsa gösteriyoruz
   });
 
   displayFeedback(filtered);  // Filtrelenmiş sonuçları göster
 });
+
 
 
     window.deleteFeedback = async function (id) {
