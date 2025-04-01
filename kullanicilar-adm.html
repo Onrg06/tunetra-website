@@ -22,7 +22,7 @@
       gap: 20px;
     }
 
-    /* Üst Kısım - Sol Kısım 3'e Bölünecek */
+    /* Üst Kısım */
     .top-row {
       display: flex;
       justify-content: space-between;
@@ -35,6 +35,13 @@
       border-radius: 8px;
       flex: 1;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .top-left div {
+      margin-bottom: 10px;
     }
 
     .top-middle, .top-right {
@@ -44,26 +51,14 @@
       flex: 1;
     }
 
-    .top-middle {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .top-middle div {
-      margin-bottom: 10px;
-    }
-
-    .top-right {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
     h2 {
       margin-bottom: 15px;
+    }
+
+    .big-number {
+      font-size: 32px;
+      font-weight: bold;
+      color: #ff5733;
     }
 
     /* Yüklenen İçerikler için Mum Bar */
@@ -157,13 +152,6 @@
       }
     }
 
-    /* Kullanıcı Bilgileri - Büyük Sayılar */
-    .big-number {
-      font-size: 32px;
-      font-weight: bold;
-      color: #ff5733;
-    }
-
   </style>
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Grafikler için Chart.js -->
@@ -172,29 +160,33 @@
   <div class="container">
     <div class="top-row">
       <div class="top-left">
-        <h2>💼 Toplam Kullanıcı Sayısı</h2>
-        <p class="big-number" id="userCount">0</p>
-        <canvas id="userCountChart"></canvas>
+        <div>
+          <h2>💼 Toplam Kullanıcı Sayısı</h2>
+          <p class="big-number" id="userCount">0</p>
+        </div>
+        <div>
+          <h2>📝 Toplam Dilek-Şikayet Sayısı</h2>
+          <p class="big-number" id="complaintCount">0</p>
+        </div>
+        <div>
+          <h2>📈 Yüklenen İçerikler</h2>
+          <div class="progress-bar">
+            <span id="contentProgress" style="width: 50%;"></span> <!-- Burada bar yüzdesi ayarlanacak -->
+          </div>
+        </div>
       </div>
       <div class="top-middle">
-        <h2>📝 Toplam Dilek-Şikayet Sayısı</h2>
-        <p class="big-number" id="complaintCount">0</p>
-        <canvas id="complaintCountChart"></canvas>
-      </div>
-      <div class="top-right">
         <h2>📊 Kullanıcı Artışı</h2>
         <canvas id="userGrowthChart"></canvas>
+      </div>
+      <div class="top-right">
+        <h2>📉 Kullanıcı Sayısı Grafiği</h2>
+        <canvas id="userCountChart"></canvas>
       </div>
     </div>
 
     <div class="bottom-row">
       <div class="bottom-left">
-        <h2>📈 Yüklenen İçerikler</h2>
-        <div class="progress-bar">
-          <span id="contentProgress" style="width: 60%;"></span> <!-- Burada bar yüzdesi ayarlanacak -->
-        </div>
-      </div>
-      <div class="bottom-right">
         <h2>👥 Kullanıcı Bilgileri</h2>
         <input type="text" id="searchInput" placeholder="Kullanıcı adı veya isimle ara..." class="search-input">
         <table id="user-list">
@@ -318,13 +310,11 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
   function updateStats() {
     document.getElementById("userCount").textContent = users.length;
     document.getElementById("complaintCount").textContent = complaintCount;
-    songsStatsChart.data.datasets[0].data = [lyricsCount, melodyCount, songCount];
-    songsStatsChart.update();
 
     // Yüklenen içerikler progress bar
     const contentProgress = document.getElementById('contentProgress');
     const totalContent = lyricsCount + melodyCount + songCount;
-    const progress = (totalContent / 100) * 100; 
+    const progress = (totalContent / 100) * 100; // 100'ü değiştirebilirsiniz
     contentProgress.style.width = `${progress}%`;
   }
 
@@ -378,27 +368,6 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
     });
   }
 
-  const songsStatsChart = new Chart(document.getElementById("songsStatsChart"), {
-    type: "bar",
-    data: {
-      labels: ["Şarkı Sözü", "Melodi", "Hazır Şarkı"],
-      datasets: [{
-        label: 'Yüklenen Sayılar',
-        data: [lyricsCount, melodyCount, songCount],
-        backgroundColor: ['#ff5733', '#33ff57', '#3357ff'],
-        borderColor: ['#c13a28', '#1f9c28', '#1e6bd3'],
-        borderWidth: 1
-      }]
-    }
-  });
-
-  document.getElementById("searchInput").addEventListener("input", function() {
-    const searchText = this.value.toLowerCase();
-    const filteredUsers = users.filter(user => {
-      return user.username.toLowerCase().includes(searchText) || user.fullName.toLowerCase().includes(searchText);
-    });
-    displayUsers(filteredUsers);
-  });
 </script>
 </body>
 </html>
