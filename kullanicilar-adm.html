@@ -170,82 +170,26 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getAuth, onAuthStateChanged, deleteUser, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-    authDomain: "tunetra-2579b.firebaseapp.com",
-    projectId: "tunetra-2579b",
-    storageBucket: "tunetra-2579b.appspot.com",
-    messagingSenderId: "576238823779",
-    appId: "1:576238823779:web:b1796f089427e3b6fecb56"
-  };
+// Firebase Authentication ve Firestore yapılandırması
+const auth = getAuth();
+const db = getFirestore();
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth(app);
+let currentUser = null;  // currentUser'ı burada tanımlıyoruz
 
-  let users = [];
-  let lyricsCount = 0, melodyCount = 0, songCount = 0;
-
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) return window.location.href = "index.html";
-    loadUsersAndStats();
-  });
-
-  async function loadUsersAndStats() {
-    const usersSnapshot = await getDocs(collection(db, "users"));
-    usersSnapshot.forEach(doc => {
-      const data = doc.data();
-      users.push({
-        username: data.username,
-        fullName: data.fullName,
-        uid: doc.id,
-        registrationDate: data.registrationDate
-      });
-    });
-
-    displayUsers(users);
-
-    const lyricsSnapshot = await getDocs(collection(db, "lyrics"));
-    lyricsCount = lyricsSnapshot.size;
-
-    const melodySnapshot = await getDocs(collection(db, "melodies"));
-    melodyCount = melodySnapshot.size;
-
-    const songsSnapshot = await getDocs(collection(db, "songs"));
-    songCount = songsSnapshot.size;
-
-    updateStats();
-    loadUserGrowthData();
+// Giriş yapan kullanıcıyı takip ediyoruz
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUser = user;  // Giriş yapan kullanıcıyı currentUser'a atıyoruz
+  } else {
+    window.location.href = "index.html";  // Kullanıcı giriş yapmamışsa, giriş sayfasına yönlendir
   }
+});
 
-  function displayUsers(users) {
-    const tbody = document.querySelector("#user-list tbody");
-    tbody.innerHTML = "";
-    users.forEach(user => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${user.username}</td>
-          <td>${user.fullName}</td>
-          <td>${user.uid}</td>
-          <td><button class="delete-btn" data-uid="${user.uid}">Sil</button></td>
-        </tr>
-      `;
-    });
-
-    const deleteButtons = document.querySelectorAll('.delete-btn');
-    deleteButtons.forEach(button => {
-      button.addEventListener('click', (event) => {
-        const uid = event.target.getAttribute('data-uid');
-        deleteUserFromFirestore(uid);
-      });
-    });
-  }
-
-  // Kullanıcıyı silme işlemi
+// Kullanıcıyı silme fonksiyonu
 async function deleteUserFromFirestore(uid) {
   if (confirm("Bu kullanıcıyı silmek istediğinizden emin misiniz?")) {
     try {
-      // Firebase Authentication'dan yeniden kimlik doğrulaması yapma
+      // Kullanıcının yeniden kimliğini doğrulama (reauthenticate)
       const credential = EmailAuthProvider.credential(currentUser.email, prompt("Şifrenizi girin:"));
       await reauthenticateWithCredential(currentUser, credential);  // Reauthentication işlemi
 
@@ -253,7 +197,7 @@ async function deleteUserFromFirestore(uid) {
       await deleteDoc(doc(db, "users", uid));
 
       // Firebase Authentication'dan kullanıcıyı sil
-      await deleteUser(currentUser);  // Kullanıcıyı Firebase Authentication'dan sil
+      await deleteUser(currentUser);  // currentUser'ı Firebase Authentication'dan sil
 
       // Kullanıcıyı Array'den çıkar
       users = users.filter(user => user.uid !== uid);
@@ -277,66 +221,86 @@ async function deleteUserFromFirestore(uid) {
   }
 }
 
-  function updateStats() {
-    document.getElementById("userCount").textContent = users.length;
-    songsStatsChart.data.datasets[0].data = [lyricsCount, melodyCount, songCount];
-    songsStatsChart.update();
-  }
+// Kullanıcılar listesini güncelleyen fonksiyon
+function displayUsers(users) {
+  const tbody = document.querySelector("#user-list tbody");
+  tbody.innerHTML = "";
+  users.forEach(user => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${user.username}</td>
+        <td>${user.fullName}</td>
+        <td>${user.uid}</td>
+        <td><button class="delete-btn" data-uid="${user.uid}">Sil</button></td>
+      </tr>
+    `;
+  });
 
-  async function loadUserGrowthData() {
-    const usersSnapshot = await getDocs(collection(db, "users"));
-    let months = Array(12).fill(0);
-
-    usersSnapshot.forEach(doc => {
-      const data = doc.data();
-      const registrationDate = data.registrationDate?.toDate();
-
-      if (registrationDate) {
-        const month = registrationDate.getMonth();
-        months[month]++;
-      }
+  const deleteButtons = document.querySelectorAll('.delete-btn');
+  deleteButtons.forEach(button => {
+    button.addEventListener('click', (event) => {
+      const uid = event.target.getAttribute('data-uid');
+      deleteUserFromFirestore(uid);
     });
+  });
+}
 
-    updateUserGrowthChart(months);
-  }
+// Kullanıcı istatistiklerini güncelleyen fonksiyon
+function updateStats() {
+  document.getElementById("userCount").textContent = users.length;
+  songsStatsChart.data.datasets[0].data = [lyricsCount, melodyCount, songCount];
+  songsStatsChart.update();
+}
 
-  function updateUserGrowthChart(months) {
-    const userGrowthChart = new Chart(document.getElementById("userGrowthChart"), {
-      type: "line",
-      data: {
-        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-        datasets: [{
-          label: 'Kullanıcı Artışı',
-          data: months,
-          fill: false,
-          borderColor: 'rgb(75, 192, 192)',
-          tension: 0.1
-        }]
-      }
-    });
-  }
+// Kullanıcı artışı verilerini yükleme fonksiyonu
+async function loadUserGrowthData() {
+  const usersSnapshot = await getDocs(collection(db, "users"));
+  let months = Array(12).fill(0);
 
-  const songsStatsChart = new Chart(document.getElementById("songsStatsChart"), {
-    type: "bar",
-    data: {
-      labels: ["Şarkı Sözü", "Melodi", "Hazır Şarkı"],
-      datasets: [{
-        label: 'Yüklenen Sayılar',
-        data: [lyricsCount, melodyCount, songCount],
-        backgroundColor: ['#ff5733', '#33ff57', '#3357ff'],
-        borderColor: ['#c13a28', '#1f9c28', '#1e6bd3'],
-        borderWidth: 1
-      }]
+  usersSnapshot.forEach(doc => {
+    const data = doc.data();
+    const registrationDate = data.registrationDate?.toDate();
+
+    if (registrationDate) {
+      const month = registrationDate.getMonth();
+      months[month]++;
     }
   });
 
-  document.getElementById("searchInput").addEventListener("input", function() {
-    const searchText = this.value.toLowerCase();
-    const filteredUsers = users.filter(user => {
-      return user.username.toLowerCase().includes(searchText) || user.fullName.toLowerCase().includes(searchText);
-    });
-    displayUsers(filteredUsers);
+  updateUserGrowthChart(months);
+}
+
+// Kullanıcı artışını grafikte güncelleyen fonksiyon
+function updateUserGrowthChart(months) {
+  const userGrowthChart = new Chart(document.getElementById("userGrowthChart"), {
+    type: "line",
+    data: {
+      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      datasets: [{
+        label: 'Kullanıcı Artışı',
+        data: months,
+        fill: false,
+        borderColor: 'rgb(75, 192, 192)',
+        tension: 0.1
+      }]
+    }
   });
+}
+
+const songsStatsChart = new Chart(document.getElementById("songsStatsChart"), {
+  type: "bar",
+  data: {
+    labels: ["Şarkı Sözü", "Melodi", "Hazır Şarkı"],
+    datasets: [{
+      label: 'Yüklenen Sayılar',
+      data: [lyricsCount, melodyCount, songCount],
+      backgroundColor: ['#ff5733', '#33ff57', '#3357ff'],
+      borderColor: ['#c13a28', '#1f9c28', '#1e6bd3'],
+      borderWidth: 1
+    }]
+  }
+});
 </script>
 </body>
 </html>
+
