@@ -22,14 +22,14 @@
       gap: 20px;
     }
 
-    /* Üst Kısım */
+    /* Üst Kısım - Sol Kısım 3'e Bölünecek */
     .top-row {
       display: flex;
       justify-content: space-between;
       gap: 20px;
     }
 
-    .top-left, .top-right, .top-middle {
+    .top-left, .top-middle, .top-right {
       background-color: rgba(0, 0, 0, 0.7);
       padding: 20px;
       border-radius: 8px;
@@ -117,7 +117,7 @@
         flex-direction: column;
       }
 
-      .top-left, .top-right, .bottom-left, .bottom-right {
+      .top-left, .top-middle, .top-right, .bottom-left, .bottom-right {
         flex: 1 1 100%;
       }
     }
@@ -131,10 +131,12 @@
       <div class="top-left">
         <h2>💼 Toplam Kullanıcı Sayısı</h2>
         <p id="userCount">0</p>
+        <canvas id="userCountChart"></canvas>
       </div>
       <div class="top-middle">
         <h2>📝 Toplam Dilek-Şikayet Sayısı</h2>
         <p id="complaintCount">0</p>
+        <canvas id="complaintCountChart"></canvas>
       </div>
       <div class="top-right">
         <h2>📊 Kullanıcı Artışı</h2>
@@ -171,7 +173,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, deleteUser, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -303,8 +305,10 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
     });
 
     updateUserGrowthChart(months);
+    updateUserCountChart(); // Yeni grafik güncellemesi
   }
 
+  // Kullanıcı artışı grafiği
   function updateUserGrowthChart(months) {
     const userGrowthChart = new Chart(document.getElementById("userGrowthChart"), {
       type: "line",
@@ -316,6 +320,23 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
           fill: false,
           borderColor: 'rgb(75, 192, 192)',
           tension: 0.1
+        }]
+      }
+    });
+  }
+
+  // Kullanıcı sayısı grafiği
+  function updateUserCountChart() {
+    const userCountChart = new Chart(document.getElementById("userCountChart"), {
+      type: "bar",
+      data: {
+        labels: ['Toplam Kullanıcı'],
+        datasets: [{
+          label: 'Kullanıcı Sayısı',
+          data: [users.length],
+          backgroundColor: '#4e73df',
+          borderColor: '#2e59d9',
+          borderWidth: 1
         }]
       }
     });
