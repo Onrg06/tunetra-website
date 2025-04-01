@@ -178,21 +178,21 @@
         <div>
           <h2>📈 Yüklenen İçerikler</h2>
           <div class="progress-bar-container">
-            <span> Söz/şiir ||</span>
+            <span>Söz/şiir</span>
             <div class="progress-bar">
               <span id="lyricsProgress" style="width: 0%; background-color: #ff5733;"></span> <!-- Şarkı Sözü -->
             </div>
             <span id="lyricsCount">0</span>
           </div>
           <div class="progress-bar-container">
-            <span>  Melodi  ||</span>
+            <span>Melodi||</span>
             <div class="progress-bar">
               <span id="melodyProgress" style="width: 0%; background-color: #33ff57;"></span> <!-- Melodi -->
             </div>
             <span id="melodyCount">0</span>
           </div>
           <div class="progress-bar-container">
-            <span>   Şarkı  ||</span>
+            <span>Şarkılar||</span>
             <div class="progress-bar">
               <span id="songProgress" style="width: 0%; background-color: #3357ff;"></span> <!-- Hazır Şarkı -->
             </div>
@@ -334,33 +334,41 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
     }
   }
 
-  function updateStats() {
-    // Kullanıcı sayısını güncelle
-    document.getElementById("userCount").textContent = users.length;
-    // Şikayet sayısını güncelle
-    document.getElementById("complaintCount").textContent = complaintCount;
+function updateStats() {
+  // Kullanıcı sayısını güncelle
+  document.getElementById("userCount").textContent = users.length;
+  
+  // Şikayet sayısını güncelle
+  document.getElementById("complaintCount").textContent = complaintCount;
 
-    // Yüklenen içerikler için mum barları
-    const lyricsProgress = document.getElementById('lyricsProgress');
-    const melodyProgress = document.getElementById('melodyProgress');
-    const songProgress = document.getElementById('songProgress');
+  // Yüklenen içerikler için mum barları
+  const lyricsProgress = document.getElementById('lyricsProgress');
+  const melodyProgress = document.getElementById('melodyProgress');
+  const songProgress = document.getElementById('songProgress');
 
-    const lyricsCountSpan = document.getElementById('lyricsCount');
-    const melodyCountSpan = document.getElementById('melodyCount');
-    const songCountSpan = document.getElementById('songCount');
+  const lyricsCountSpan = document.getElementById('lyricsCount');
+  const melodyCountSpan = document.getElementById('melodyCount');
+  const songCountSpan = document.getElementById('songCount');
 
-    // Her içerik türü için toplam içerik sayısını ve toplam içerik sayısını ayarlayalım
-    const totalContent = lyricsCount + melodyCount + songCount;
-    lyricsProgress.style.width = `${(lyricsCount / totalContent) * 100}%`;
-    melodyProgress.style.width = `${(melodyCount / totalContent) * 100}%`;
-    songProgress.style.width = `${(songCount / totalContent) * 100}%`;
+  // Her içerik türü için toplam içerik sayısını ve toplam içerik sayısını ayarlayalım
+  const totalContent = lyricsCount + melodyCount + songCount;
 
-    // İçerik sayıları
-    lyricsCountSpan.textContent = lyricsCount;
-    melodyCountSpan.textContent = melodyCount;
-    songCountSpan.textContent = songCount;
-  }
+  // İçerik türlerinin yüzdelerini hesapla
+  const lyricsPercentage = totalContent > 0 ? (lyricsCount / totalContent) * 100 : 0;
+  const melodyPercentage = totalContent > 0 ? (melodyCount / totalContent) * 100 : 0;
+  const songPercentage = totalContent > 0 ? (songCount / totalContent) * 100 : 0;
 
+  // Barların genişliğini ayarla
+  lyricsProgress.style.width = `${lyricsPercentage}%`;
+  melodyProgress.style.width = `${melodyPercentage}%`;
+  songProgress.style.width = `${songPercentage}%`;
+
+  // İçerik sayıları
+  lyricsCountSpan.textContent = lyricsCount;
+  melodyCountSpan.textContent = melodyCount;
+  songCountSpan.textContent = songCount;
+}
+    
   async function loadUserGrowthData() {
     const usersSnapshot = await getDocs(collection(db, "users"));
     let months = Array(12).fill(0);
