@@ -169,7 +169,7 @@ searchInput.addEventListener("input", async () => {
   const keyword = searchInput.value.toLowerCase();  // Arama kelimesini küçük harfe çeviriyoruz
   console.log("Arama kelimesi:", keyword);  // Konsola arama kelimesini yazdırıyoruz
 
-  // Arama yaparken, admin'in girdiği kullanıcı adına göre uid'yi bulalım
+  // Kullanıcı adını aramak için
   const userRef = query(collection(db, "users"), where("username", "==", keyword));  // Kullanıcı adıyla sorgulama
   const userSnap = await getDocs(userRef);  // Kullanıcıları çekiyoruz
 
@@ -181,14 +181,23 @@ searchInput.addEventListener("input", async () => {
     });
   }
 
-  // Eğer uid bulunursa, bu uid'ye ait olan şikayetleri filtrele
+  // Dilek/şikayet metni üzerinde de arama yapalım
+  const filteredByText = allFeedback.filter(fb => {
+    return fb.text.toLowerCase().includes(keyword);  // Metin içinde arama yapıyoruz
+  });
+
+  // Eğer kullanıcı adı aranıyorsa, uid'ye göre filtreleme yapıyoruz
+  let filteredFeedback = [];
   if (userUid) {
-    const filtered = allFeedback.filter(fb => fb.uid === userUid);  // uid'yi karşılaştırıyoruz
-    displayFeedback(filtered);  // Filtrelenmiş sonuçları göster
-  } else {
-    displayFeedback([]);  // Eğer kullanıcı bulunamazsa, listeyi temizle
+    filteredFeedback = allFeedback.filter(fb => fb.uid === userUid);  // Kullanıcıya ait şikayetleri filtreliyoruz
   }
+
+  // Eğer her iki arama yapılacaksa (hem metin hem de kullanıcı), iki filtreyi birleştiriyoruz
+  const finalFilteredFeedback = filteredFeedback.length > 0 ? filteredFeedback : filteredByText;
+
+  displayFeedback(finalFilteredFeedback);  // Filtrelenmiş sonuçları göster
 });
+
 
 
 
