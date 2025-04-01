@@ -65,14 +65,12 @@
     .progress-bar {
       height: 30px;
       border-radius: 8px;
-      background-color: #4e73df;
       margin-top: 15px;
     }
     .progress-bar span {
       display: block;
       height: 100%;
       border-radius: 8px;
-      background-color: #ff5733;
     }
 
     /* Alt Kısım */
@@ -171,7 +169,13 @@
         <div>
           <h2>📈 Yüklenen İçerikler</h2>
           <div class="progress-bar">
-            <span id="contentProgress" style="width: 50%;"></span> <!-- Burada bar yüzdesi ayarlanacak -->
+            <span id="lyricsProgress" style="width: 0%; background-color: #ff5733;"></span> <!-- Şarkı Sözü -->
+          </div>
+          <div class="progress-bar">
+            <span id="melodyProgress" style="width: 0%; background-color: #33ff57;"></span> <!-- Melodi -->
+          </div>
+          <div class="progress-bar">
+            <span id="songProgress" style="width: 0%; background-color: #3357ff;"></span> <!-- Şarkılar -->
           </div>
         </div>
       </div>
@@ -207,8 +211,7 @@
   </div>
 
   <a href="adminpanel.html" class="admin-back-btn">⬅️ Yönetim Paneline Dön</a>
-
-<script type="module">
+  <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -311,14 +314,21 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
   }
 
   function updateStats() {
+    // Kullanıcı sayısını güncelle
     document.getElementById("userCount").textContent = users.length;
+    // Şikayet sayısını güncelle
     document.getElementById("complaintCount").textContent = complaintCount;
 
-    // Yüklenen içerikler progress bar
-    const contentProgress = document.getElementById('contentProgress');
+    // Yüklenen içerikler için mum barları
+    const lyricsProgress = document.getElementById('lyricsProgress');
+    const melodyProgress = document.getElementById('melodyProgress');
+    const songProgress = document.getElementById('songProgress');
+
+    // Her içerik türü için toplam içerik sayısını ve toplam içerik sayısını ayarlayalım
     const totalContent = lyricsCount + melodyCount + songCount;
-    const progress = (totalContent / 100) * 100; 
-    contentProgress.style.width = `${progress}%`;
+    lyricsProgress.style.width = `${(lyricsCount / totalContent) * 100}%`;
+    melodyProgress.style.width = `${(melodyCount / totalContent) * 100}%`;
+    songProgress.style.width = `${(songCount / totalContent) * 100}%`;
   }
 
   async function loadUserGrowthData() {
