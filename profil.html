@@ -390,13 +390,16 @@ window.deleteAccount = async () => {
     try {
       // Firestore'dan kullanıcıyı sil
       await deleteDoc(doc(db, "users", currentUser.uid));
-      
+
       // Firebase Authentication'dan kullanıcıyı sil
-      await deleteUser(currentUser);  // Firebase Authentication'dan kullanıcının silinmesi
+      await deleteUser(currentUser);  // Kullanıcıyı Firebase Authentication'dan sil
 
       // Kullanıcı başarıyla silindi mesajı
       showMessage(translations[currentLang].deleted, "success");
-      
+
+      // Oturumdan çıkış yap
+      await signOut(auth); // Firebase'den çıkış yap
+
       // Kullanıcıyı çıkış yaparak ana sayfaya yönlendir
       location.href = "index.html";  // Ana sayfaya yönlendir
     } catch (error) {
@@ -409,6 +412,7 @@ window.deleteAccount = async () => {
     }
   }
 }
+
   </script>
 </body>
 </html>
