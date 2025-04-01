@@ -152,14 +152,15 @@ function displayFeedback(feedback) {
   });
 }
 
-    searchInput.addEventListener("input", () => {
-      const keyword = searchInput.value.toLowerCase();
-      const filtered = allFeedback.filter(fb =>
-        fb.text.toLowerCase().includes(keyword) ||
-        fb.username.toLowerCase().includes(keyword)
-      );
-      displayFeedback(filtered);
-    });
+searchInput.addEventListener("input", () => {
+  const keyword = searchInput.value.toLowerCase();
+  const filtered = allFeedback.filter(fb =>
+    fb.text.toLowerCase().includes(keyword) ||
+    fb.username.toLowerCase().includes(keyword)  // Burada da kullanıcı adı üzerinde arama yapılmasını sağlıyoruz.
+  );
+  displayFeedback(filtered);
+});
+
 
     window.deleteFeedback = async function (id) {
       if (!confirm("Bu dilek/şikayeti silmek istediğine emin misin?")) return;
