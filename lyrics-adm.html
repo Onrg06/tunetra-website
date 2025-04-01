@@ -75,7 +75,6 @@
   <a href="adminpanel.html" class="admin-back-btn">⬅️ Yönetim Paneline Dön</a>
 
   <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
     import {
       getFirestore, collection, query, orderBy, onSnapshot,
@@ -93,11 +92,6 @@
       messagingSenderId: "576238823779",
       appId: "1:576238823779:web:b1796f089427e3b6fecb56"
     };
-
-    const supabase = createClient(
-      'https://kqgbdfnqckcgrfizjdgt.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZ2JkZm5xY2tjZ3JmaXpqZGd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5Nzk2NDQsImV4cCI6MjA1ODU1NTY0NH0.oxyfinrgv7AscolwMv6CuTMHBLeNokdERCKH00d1kfo'
-    );
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -137,7 +131,7 @@
             id: docId,
             title: d.title || "",
             lyrics: d.lyrics || "",
-            uploader: d.uploader || "",
+            uploader: d.username || "Bilinmiyor",  // Kullanıcı adı (username) burada gösteriliyor
             timestamp: time,
             canDelete: canDelete
           });
