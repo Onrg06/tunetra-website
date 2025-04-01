@@ -15,6 +15,7 @@
       text-align: center;
       background-image: radial-gradient(circle at top left, #6a11cb33 0%, transparent 70%),
                         radial-gradient(circle at bottom right, #2575fc33 0%, transparent 70%);
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);  /* Yazıya gölge ekleme */
     }
     .lyrics-item {
       background: rgba(255, 255, 255, 0.1);
@@ -117,14 +118,16 @@
           const docId = docSnap.id;
           const time = data.timestamp?.toDate().toLocaleString() || "";
 
+          // Kullanıcı adı verisini doğru şekilde al
+          const username = data.username || "Bilinmiyor"; // Eğer veri yoksa, "Bilinmiyor" yerine "Kullanıcı adı mevcut değil" gibi bir şey yazılabilir
+
           allFeedback.push({
             id: docId,
             text: data.text || "",
-            username: data.username || "Bilinmiyor",
+            username: username,
             timestamp: time,
             uid: data.uid || "Bilinmiyor",
           });
-
         });
 
         displayFeedback(allFeedback);
