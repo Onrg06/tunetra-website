@@ -39,14 +39,15 @@
       text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
     }
 
-    p {
-      font-size: 1.1rem;
-      max-width: 600px;
-      margin-bottom: 20px;
-      padding: 0 10px;
-      white-space: normal; /* Yazının satırlara kaymasını sağlar */
-      word-wrap: break-word; /* Uzun kelimeleri bölerek satırlara kaymasını sağlar */
-    }
+p {
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin-bottom: 20px;
+  padding: 0 10px;
+  white-space: normal; /* Satır atlamasını sağlayan özellik */
+  word-wrap: break-word; /* Uzun kelimelerin satıra kaymasını sağlar */
+  overflow-wrap: break-word; /* Diğer kelimelerin satıra kaymasını sağlar */
+}
 
     .btn, .profile-btn, .friends-btn, .messages-btn, .lang-btn, .extra-btn {
       padding: 12px 20px;
