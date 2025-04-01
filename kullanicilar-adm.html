@@ -248,8 +248,8 @@ async function deleteUserFromFirestore(uid) {
       await deleteDoc(doc(db, "users", uid));
 
       // Firebase Authentication'dan kullanıcıyı sil
-      const userAuth = await getAuth().getUser(uid); // Bu satır gereksiz, çünkü currentUser'ı kullanacağız
-      await deleteUser(auth.currentUser); // Giriş yapmış kullanıcıyı sil
+      const userAuth = await getAuth().getUser(uid);  // Firebase Authentication'dan kullanıcıyı al
+      await deleteUser(userAuth);  // Kullanıcıyı Firebase Authentication'dan sil
 
       // Kullanıcıyı Array'den çıkar
       users = users.filter(user => user.uid !== uid);
