@@ -144,25 +144,9 @@
       });
     }
     
-// Arama input'u için dinleyici
-searchInput.addEventListener("input", () => {
-  const keyword = searchInput.value.toLowerCase();  // Arama kelimesini küçük harfe çeviriyoruz
-  console.log("Arama kelimesi:", keyword);  // Konsola arama kelimesini yazdırıyoruz
-
-  const filtered = allFeedback.filter(fb => {
-    const isTextMatch = fb.text.toLowerCase().includes(keyword);  // Metin üzerinde arama yapıyoruz
-    const isUsernameMatch = fb.username.toLowerCase().includes(keyword);  // Kullanıcı adı üzerinde arama yapıyoruz
-    console.log(`Metin Arama: ${isTextMatch}, Kullanıcı Adı Arama: ${isUsernameMatch}`);  // Hangi alanın eşleştiğini görmek için
-    return isTextMatch || isUsernameMatch;  // Birine eşleşme varsa gösteriyoruz
-  });
-
-  displayFeedback(filtered);  // Filtrelenmiş sonuçları göster
-});
-
-// Geri bildirimleri (feedback) gösteren fonksiyon
-function displayFeedback(feedback) {
+async function displayFeedback(feedback) {
   list.innerHTML = "";  // Listeyi temizliyoruz
-  feedback.forEach(async (fb) => {
+  for (let fb of feedback) {
     // Kullanıcı adını almak için 'users' koleksiyonunu sorguluyoruz (fb.uid üzerinden)
     const userRef = doc(db, "users", fb.uid);  
     const userSnap = await getDoc(userRef);  // Kullanıcı verisini alıyoruz
@@ -177,7 +161,7 @@ function displayFeedback(feedback) {
         ${isAdmin ? `<button class="btn" onclick="deleteFeedback('${fb.id}')">❌ Sil</button>` : ""}
       </div>
     `;
-  });
+  }
 }
 
 
