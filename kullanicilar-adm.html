@@ -371,12 +371,15 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
 
   function updateUserCountChart(dailyCounts) {
     const userCountChart = new Chart(document.getElementById("userCountChart"), {
-      type: "bar",
+      type: "scatter",  // Noktasal grafik
       data: {
         labels: ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'],
         datasets: [{
           label: 'Kullanıcı Sayısı',
-          data: dailyCounts,
+          data: dailyCounts.map((count, index) => ({
+            x: index, // X ekseninde günler (Pazartesi -> Pazar)
+            y: count   // Y ekseninde o günün kullanıcı sayısı
+          })),
           backgroundColor: '#4e73df',
           borderColor: '#2e59d9',
           borderWidth: 1
