@@ -164,7 +164,7 @@
       songs.forEach(song => {
         list.innerHTML += `
           <div class="melody-item" id="song-${song.id}">
-            <p><strong>${song.uploader}</strong> + <strong>${song.collaborator}</strong> (${song.timestamp})</p>
+            <p><strong>${song.uploader}</strong> (${song.timestamp})</p>
             <audio controls src="${song.audioUrl}"></audio>
             <h3>${song.title}</h3>
             <p>${song.lyrics.replace(/\\n/g, "<br>")}</p>
