@@ -285,7 +285,6 @@
     await setInboxHasNew(user.uid, false);
 
     // Kırmızı noktayı DOM'dan tamamen kaldır
-    const msgDot = document.getElementById("msgDot");
     if (msgDot) {
       msgDot.remove(); // Kırmızı noktayı DOM'dan kaldırıyoruz
       msgDot = null; // msgDot'u sıfırlıyoruz
