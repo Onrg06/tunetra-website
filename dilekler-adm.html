@@ -106,7 +106,7 @@
       loadFeedback();
     });
 
-    function loadFeedback() {
+    async function loadFeedback() {
       const q = query(collection(db, "feedback"), orderBy("timestamp", "desc"));
       onSnapshot(q, async (snapshot) => {
         allFeedback = [];
@@ -118,8 +118,12 @@
           // Kullanıcının username bilgisini almak için UID'yi kullanıyoruz
           const userDocRef = doc(db, "users", data.uid);
           const userSnap = await getDoc(userDocRef);
-          const username = userSnap.exists() ? userSnap.data().username : "Bilinmiyor";
 
+          let username = "Bilinmiyor"; // Varsayılan olarak "Bilinmiyor"
+          if (userSnap.exists()) {
+            username = userSnap.data().username;
+          }
+          
           allFeedback.push({
             id: docId,
             text: data.text || "",
@@ -131,7 +135,7 @@
         });
 
         // Verileri ekrana basmadan önce kontrol ediyoruz
-        console.log("All Feedback: ", allFeedback);
+        console.log("Tüm Dilek ve Şikayetler: ", allFeedback);
 
         displayFeedback(allFeedback);
       });
