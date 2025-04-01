@@ -1,89 +1,146 @@
-<!DOCTYPE html>
-<html lang="tr">
+<!DOCTYPE html><html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <title>Şarkı Sözleri | Admin</title>
-  <link rel="icon" type="image/png" href="image.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Yönetici Mesaj Paneli</title>
+  <link rel="icon" type="image/png" href="image.png" />
   <style>
     body {
-      background: #0a0a0a;
+      margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      color: #fff;
-      padding: 30px 20px;
-      min-height: 100vh;
+      background-color: #0d0d0d;
+      color: white;
+      padding: 20px;
+    }
+    h1 {
+      color: #ffcc70;
       text-align: center;
-      background-image: radial-gradient(circle at top left, #6a11cb33 0%, transparent 70%),
-                        radial-gradient(circle at bottom right, #2575fc33 0%, transparent 70%);
+      margin-bottom: 10px;
     }
-    .lyrics-item {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 15px;
-      margin: 15px auto;
-      border-radius: 8px;
-      max-width: 600px;
-      text-align: left;
+    .subtext {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #aaa;
     }
-    .btn {
-      padding: 10px 18px;
-      background: #ff4e4e;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 10px;
+    .user-search {
+      text-align: center;
+      margin-bottom: 20px;
     }
-    .btn:hover {
-      background: #ff2e2e;
-    }
-    .admin-back-btn {
-      display: inline-block;
-      margin-top: 40px;
-      padding: 12px 20px;
-      background: linear-gradient(to right, #6a11cb, #2575fc);
-      color: white;
-      border-radius: 8px;
-      font-weight: bold;
-      text-decoration: none;
-      transition: 0.3s;
-    }
-    .admin-back-btn:hover {
-      background: linear-gradient(to right, #2575fc, #6a11cb);
-    }
-    #uploaderCount {
-      margin: 20px 0;
-      font-weight: bold;
-      color: #c0fffc;
-    }
-    #searchInput {
-      padding: 10px;
+    .user-search input {
       width: 80%;
       max-width: 400px;
-      margin: 20px auto;
-      display: block;
+      padding: 10px;
       border-radius: 6px;
       border: none;
-      font-size: 16px;
+    }
+    .user-list {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #444;
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      background-color: #1c1c1c;
+    }
+    .user-item {
+      padding: 8px;
+      cursor: pointer;
+      border-bottom: 1px solid #333;
+      position: relative;
+    }
+    .user-item:hover {
+      background-color: #292929;
+    }
+    .notification-dot {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      background-color: red;
+      border-radius: 50%;
+    }
+    .selected-user {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .chat-box {
+      border: 1px solid #444;
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+      background-color: #1a1a1a;
+    }
+    .message {
+      margin-bottom: 10px;
+      padding: 8px;
+      border-radius: 6px;
+      background-color: #292929;
+      position: relative;
+    }
+    .message.you {
+      background-color: #2e8b57;
+      text-align: right;
+    }
+    .msg-actions {
+      font-size: 0.8em;
+      color: #ccc;
+      margin-top: 4px;
+    }
+    .msg-actions button {
+      margin-left: 8px;
+      background: transparent;
+      border: none;
+      color: #ccc;
+      cursor: pointer;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 1rem;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      background: linear-gradient(to right, #ff66c4, #ffcc70);
+      border: none;
+      border-radius: 6px;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: linear-gradient(to right, #ffcc70, #ff66c4);
     }
   </style>
 </head>
 <body>
-  <h1>🎶 Yüklenen Şarkı Sözleri (Admin)</h1>
-  <input type="text" id="searchInput" placeholder="Şarkı sözü ara...">
-  <div id="uploaderCount">Yükleniyor...</div>
-  <div id="lyricsList"></div>
-  <a href="adminpanel.html" class="admin-back-btn">⬅️ Yönetim Paneline Dön</a>
-
+  <h1>Yönetici Mesaj Paneli</h1>
+  <div class="subtext">Bir kullanıcı seçin, sohbet edin</div>
+  <div class="user-search">
+    <input type="text" placeholder="Kullanıcı ara..." oninput="filterUsers(this.value)" />
+  </div>
+  <div class="user-list" id="userList">Yükleniyor...</div>
+  <div class="selected-user" id="selectedUser"></div>
+  <div class="chat-box" id="chatBox"></div>
+  <textarea id="messageText" placeholder="Mesaj yaz..." disabled></textarea>
+  <button onclick="sendMessage()" disabled id="sendBtn">Gönder</button>  </div>
+  <a href="adminpanel.html" class="btn" style="margin-top: 25px; text-decoration: none;">
+  ⬅️ Yönetim Paneline Dön
+  </a>
   <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import {
-      getFirestore, collection, query, orderBy, onSnapshot,
-      deleteDoc, doc, getDoc
-    } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
-    import {
-      getAuth, onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
+      getFirestore, collection, query, orderBy, addDoc, doc, getDocs, getDoc, serverTimestamp,
+      onSnapshot, updateDoc, deleteDoc, limit
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -94,98 +151,187 @@
       appId: "1:576238823779:web:b1796f089427e3b6fecb56"
     };
 
-    const supabase = createClient(
-      'https://kqgbdfnqckcgrfizjdgt.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZ2JkZm5xY2tjZ3JmaXpqZGd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5Nzk2NDQsImV4cCI6MjA1ODU1NTY0NH0.oxyfinrgv7AscolwMv6CuTMHBLeNokdERCKH00d1kfo'
-    );
-
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getFirestore(app);
-    const auth = getAuth();
 
-    const list = document.getElementById("lyricsList");
-    const countBox = document.getElementById("uploaderCount");
-    const searchInput = document.getElementById("searchInput");
+    let currentUser = null;
+    let selectedUserId = null;
+    let selectedUsername = "";
 
-    let currentUID = "";
-    let isAdmin = false;
-    let allLyrics = [];
+    const userListDiv = document.getElementById("userList");
+    const selectedUserDiv = document.getElementById("selectedUser");
+    const chatBox = document.getElementById("chatBox");
+    const textarea = document.getElementById("messageText");
+    const sendBtn = document.getElementById("sendBtn");
+
+    window.filterUsers = function(query) {
+      document.querySelectorAll('.user-item').forEach(item => {
+        const name = item.dataset.username.toLowerCase();
+        item.style.display = name.includes(query.toLowerCase()) ? "block" : "none";
+      });
+    }
+
+    function selectUser(uid, username) {
+      selectedUserId = uid;
+      selectedUsername = username;
+      selectedUserDiv.innerText = `Seçilen Kullanıcı: ${username}`;
+      textarea.disabled = false;
+      sendBtn.disabled = false;
+      markMessagesAsSeen();
+      loadMessages();
+    }
+
+    async function markMessagesAsSeen() {
+      const convoId = [currentUser.uid, selectedUserId].sort().join("_");
+      const msgRef = collection(db, "conversations", convoId, "messages");
+      const q = query(msgRef, orderBy("timestamp", "desc"), limit(10));
+      const snap = await getDocs(q);
+      for (const docSnap of snap.docs) {
+        const data = docSnap.data();
+        if (!data.seenBy?.includes(currentUser.uid)) {
+          await updateDoc(doc(msgRef, docSnap.id), {
+            seenBy: [...(data.seenBy || []), currentUser.uid]
+          });
+        }
+      }
+    }
+
+    async function loadMessages() {
+      const convoId = [currentUser.uid, selectedUserId].sort().join("_");
+      const msgRef = collection(db, "conversations", convoId, "messages");
+      const q = query(msgRef, orderBy("timestamp", "asc"));
+      onSnapshot(q, async (snapshot) => {
+        chatBox.innerHTML = "";
+        for (const doc of snapshot.docs) {
+          const data = doc.data();
+          const div = document.createElement("div");
+          div.className = "message" + (data.sender === currentUser.uid ? " you" : "");
+          div.innerHTML = `<div>${data.text}</div><div class='msg-actions'>${new Date(data.timestamp).toLocaleString()}`;
+          if (data.sender === currentUser.uid) {
+            div.innerHTML += `
+              <button onclick=\"editMessage('${doc.id}', '${data.text.replace(/'/g, "\\'")}')\">Düzenle</button>
+              <button onclick=\"deleteMessage('${doc.id}')\">Sil</button>`;
+          }
+          div.innerHTML += `</div>`;
+          chatBox.appendChild(div);
+        }
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+    }
+
+    async function sendMessage() {
+      const text = textarea.value.trim();
+      if (!text || !selectedUserId) return;
+      const convoId = [currentUser.uid, selectedUserId].sort().join("_");
+      const msgRef = collection(db, "conversations", convoId, "messages");
+      await addDoc(msgRef, {
+        sender: currentUser.uid,
+        text,
+        timestamp: Date.now(),
+        seenBy: [currentUser.uid]
+      });
+      textarea.value = "";
+    }
+
+    async function editMessage(id, oldText) {
+      const newText = prompt("Yeni mesaj:", oldText);
+      if (!newText) return;
+      const convoId = [currentUser.uid, selectedUserId].sort().join("_");
+      await updateDoc(doc(db, "conversations", convoId, "messages", id), { text: newText });
+    }
+
+    async function deleteMessage(id) {
+      if (!confirm("Mesaj silinsin mi?")) return;
+      const convoId = [currentUser.uid, selectedUserId].sort().join("_");
+      await deleteDoc(doc(db, "conversations", convoId, "messages", id));
+    }
+
+    function loadUsersRealtime() {
+  const unsubscribes = new Map();
+
+  onSnapshot(collection(db, "users"), (usersSnap) => {
+    const allUsers = [];
+    usersSnap.forEach(docSnap => {
+      if (docSnap.id !== currentUser.uid) {
+        allUsers.push({
+          uid: docSnap.id,
+          username: docSnap.data().username || "Anonim"
+        });
+      }
+    });
+
+    userListDiv.innerHTML = "";
+
+    allUsers.forEach(user => {
+      const convoId = [currentUser.uid, user.uid].sort().join("_");
+      const messagesRef = collection(db, "conversations", convoId, "messages");
+
+      // Her kullanıcı için yalnızca son mesajı dinle
+      const q = query(messagesRef, orderBy("timestamp", "desc"), limit(1));
+
+      const unsubscribe = onSnapshot(q, async (snapshot) => {
+        // Güncelleme olduğunda, önce eski öğeyi kaldır
+        const existing = document.querySelector(`.user-item[data-uid="${user.uid}"]`);
+        if (existing) existing.remove();
+
+        let lastTimestamp = 0;
+        let hasUnread = false;
+
+        if (!snapshot.empty) {
+          const msg = snapshot.docs[0].data();
+          lastTimestamp = msg.timestamp || 0;
+          hasUnread = !msg.seenBy?.includes(currentUser.uid);
+        }
+
+        const div = document.createElement("div");
+        div.className = "user-item";
+        div.dataset.uid = user.uid;
+        div.dataset.username = user.username;
+        div.innerText = user.username;
+
+        if (hasUnread && user.uid !== selectedUserId) {
+          const dot = document.createElement("div");
+          dot.className = "notification-dot";
+          div.appendChild(dot);
+        }
+
+        div.onclick = () => selectUser(user.uid, user.username);
+
+        // Sıralı şekilde eklemek istersen:
+        const items = Array.from(userListDiv.children);
+        let inserted = false;
+        for (let i = 0; i < items.length; i++) {
+          const itemTime = items[i].dataset.timestamp || 0;
+          if (lastTimestamp > itemTime) {
+            userListDiv.insertBefore(div, items[i]);
+            inserted = true;
+            break;
+          }
+        }
+        if (!inserted) userListDiv.appendChild(div);
+
+        div.dataset.timestamp = lastTimestamp;
+      });
+
+      // Her kullanıcıya ait listener'ı kaydet (gerekirse sonra iptal etmek için)
+      unsubscribes.set(user.uid, unsubscribe);
+    });
+  });
+}
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) return window.location.href = "index.html";
-      currentUID = user.uid;
-      const docSnap = await getDoc(doc(db, "users", user.uid));
-      if (docSnap.exists()) {
-        isAdmin = docSnap.data().role === "admin";
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (!userDoc.exists() || userDoc.data().role !== "admin") {
+        return window.location.href = "anasayfa.html";
       }
-      loadLyrics();
+      currentUser = user;
+      loadUsersRealtime();
     });
 
-    function loadLyrics() {
-      const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
-      onSnapshot(q, (snapshot) => {
-        allLyrics = [];
-        const uniqueUploaders = new Set();
-
-        snapshot.forEach(docSnap => {
-          const d = docSnap.data();
-          const docId = docSnap.id;
-          const time = d.timestamp?.toDate().toLocaleString() || "";
-          const canDelete = isAdmin || d.uploaderUID === currentUID;
-
-          allLyrics.push({
-            id: docId,
-            title: d.title || "",
-            lyrics: d.lyrics || "",
-            uploader: d.username || "Bilinmiyor",  // Veritabanındaki 'username' kullanılıyor
-            timestamp: time,
-            canDelete: canDelete
-          });
-
-          uniqueUploaders.add(d.uploaderUID);
-        });
-
-        countBox.innerText = `Toplam ${uniqueUploaders.size} farklı kullanıcı şarkı sözü yükledi.`;
-        displayLyrics(allLyrics);
-      });
-    }
-
-    function displayLyrics(lyrics) {
-      list.innerHTML = "";
-      lyrics.forEach(lyric => {
-        list.innerHTML += `
-          <div class="lyrics-item" id="lyric-${lyric.id}">
-            <p><strong>${lyric.uploader}</strong> (${lyric.timestamp})</p>
-            <h3>${lyric.title}</h3>
-            <p>${lyric.lyrics.replace(/\\n/g, "<br>")}</p>
-            ${lyric.canDelete ? `<button class="btn" onclick="deleteLyric('${lyric.id}')">❌ Sil</button>` : ""}
-          </div>
-        `;
-      });
-    }
-
-    searchInput.addEventListener("input", () => {
-      const keyword = searchInput.value.toLowerCase();
-      const filtered = allLyrics.filter(lyric =>
-        lyric.title.toLowerCase().includes(keyword) ||
-        lyric.lyrics.toLowerCase().includes(keyword) ||
-        lyric.uploader.toLowerCase().includes(keyword)
-      );
-      displayLyrics(filtered);
-    });
-
-    window.deleteLyric = async function (id) {
-      if (!confirm("Bu şarkı sözünü silmek istediğine emin misin?")) return;
-
-      try {
-        const lyricRef = doc(db, "lyrics", id);
-        await deleteDoc(lyricRef);
-        document.getElementById(`lyric-${id}`)?.remove();
-      } catch (e) {
-        console.error("Silme sırasında hata:", e);
-        alert("Silme sırasında bir hata oluştu.");
-      }
-    };
-  </script>
-</body>
+    window.sendMessage = sendMessage;
+    window.editMessage = editMessage;
+    window.deleteMessage = deleteMessage;
+  </script></body>
 </html>
