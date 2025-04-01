@@ -143,27 +143,33 @@
         displayFeedback(allFeedback);
       });
     }
-
+    
+// Arama input'u için dinleyici
 searchInput.addEventListener("input", () => {
   const keyword = searchInput.value.toLowerCase();
-  // Kullanıcı adı ve metin üzerinde arama yapıyoruz
-  const filtered = allFeedback.filter(fb => 
-    fb.text.toLowerCase().includes(keyword) || // Şikayet metninde arama
-    fb.username.toLowerCase().includes(keyword) // Kullanıcı adında arama
-  );
-  displayFeedback(filtered);
+  console.log("Arama kelimesi:", keyword); // Konsola arama kelimesini yazdırıyoruz
+
+  const filtered = allFeedback.filter(fb => {
+    const isTextMatch = fb.text.toLowerCase().includes(keyword);
+    const isUsernameMatch = fb.username.toLowerCase().includes(keyword);
+    console.log(`Metin Arama: ${isTextMatch}, Kullanıcı Adı Arama: ${isUsernameMatch}`); // Hangi alanın eşleştiğini görmek için konsola yazdırıyoruz
+    return isTextMatch || isUsernameMatch;
+  });
+
+  displayFeedback(filtered);  // Filtrelenmiş sonuçları göster
 });
 
+// Geri bildirimleri gösteren fonksiyon
 function displayFeedback(feedback) {
   list.innerHTML = "";
   feedback.forEach(async (fb) => {
-    // Kullanıcı bilgilerini alıyoruz (fb.uid üzerinden)
+    // Kullanıcı bilgilerini almak için 'users' koleksiyonunu sorguluyoruz
     const userRef = doc(db, "users", fb.uid);  
-    const userSnap = await getDoc(userRef);  // Kullanıcı verisini alıyoruz.
+    const userSnap = await getDoc(userRef);  // Kullanıcı verisini alıyoruz
 
-    // Eğer kullanıcı adı varsa, onu alıyoruz; yoksa "Bilinmiyor" yazıyoruz
-    const username = userSnap.exists() ? userSnap.data().username : "Bilinmiyor";  
+    const username = userSnap.exists() ? userSnap.data().username : "Bilinmiyor";  // Eğer kullanıcı adı varsa, onu alıyoruz; yoksa "Bilinmiyor" yazıyoruz
 
+    // Geri bildirim öğesini ekliyoruz
     list.innerHTML += `
       <div class="feedback-item" id="feedback-${fb.id}">
         <p><strong>${username}</strong> (${fb.timestamp})</p>
@@ -173,7 +179,6 @@ function displayFeedback(feedback) {
     `;
   });
 }
-
 
     window.deleteFeedback = async function (id) {
       if (!confirm("Bu dilek/şikayeti silmek istediğine emin misin?")) return;
