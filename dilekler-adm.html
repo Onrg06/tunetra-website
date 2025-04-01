@@ -148,23 +148,18 @@ function loadFeedback() {
 
 function displayFeedback(feedback) {
   list.innerHTML = "";  // Listeyi temizliyoruz
-  feedback.forEach(async (fb) => {
-    // Kullanıcı adını almak için 'users' koleksiyonunu sorguluyoruz (fb.uid üzerinden)
-    const userRef = doc(db, "users", fb.uid);
-    const userSnap = await getDoc(userRef);  // Kullanıcı verisini alıyoruz
-
-    const username = userSnap.exists() ? userSnap.data().username : "Bilinmiyor";  // Eğer kullanıcı adı varsa, onu alıyoruz; yoksa "Bilinmiyor" yazıyoruz
-
+  feedback.forEach(fb => {
     // Her bir feedback öğesini listeye ekliyoruz
     list.innerHTML += `
       <div class="feedback-item" id="feedback-${fb.id}">
-        <p><strong>${username}</strong> (${fb.timestamp})</p>
+        <p><strong>${fb.username}</strong> (${fb.timestamp})</p>
         <p>${fb.text}</p>
         ${isAdmin ? `<button class="btn" onclick="deleteFeedback('${fb.id}')">❌ Sil</button>` : ""}
       </div>
     `;
   });
 }
+
 
 // Arama input'u için dinleyici
 searchInput.addEventListener("input", () => {
@@ -173,13 +168,13 @@ searchInput.addEventListener("input", () => {
 
   // Filtreleme işlemi
   const filtered = allFeedback.filter(fb => {
-    const isTextMatch = fb.text.toLowerCase().includes(keyword);  // Metin üzerinde arama yapıyoruz
     const isUsernameMatch = fb.username.toLowerCase().includes(keyword);  // Kullanıcı adı üzerinde arama yapıyoruz
-    return isTextMatch || isUsernameMatch;  // Birine eşleşme varsa gösteriyoruz
+    return isUsernameMatch;  // Kullanıcı adı eşleşiyorsa gösteriyoruz
   });
 
   displayFeedback(filtered);  // Filtrelenmiş sonuçları göster
 });
+
 
     window.deleteFeedback = async function (id) {
       if (!confirm("Bu dilek/şikayeti silmek istediğine emin misin?")) return;
