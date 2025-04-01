@@ -310,22 +310,29 @@
     }
   });
 
-  // Kullanıcıyı silme fonksiyonu
-  async function deleteUser(uid) {
-    if (confirm("Bu kullanıcıyı silmek istediğinizden emin misiniz?")) {
+async function deleteUser(uid) {
+  if (confirm("Bu kullanıcıyı silmek istediğinizden emin misiniz?")) {
+    try {
       // Kullanıcıyı Firestore'dan silme
       await deleteDoc(doc(db, "users", uid));
 
-      // Kullanıcıyı grafikten silme ve kullanıcı sayısını güncelleme
-      users = users.filter(user => user.uid !== uid); // Array'den kullanıcıyı çıkar
+      // Kullanıcıyı Array'den çıkar
+      users = users.filter(user => user.uid !== uid);
+
+      // Kullanıcı sayısını güncelleme
       updateStats();  // Kullanıcı sayısını güncelle
 
-      // Grafik verilerini güncelle
-      loadUserGrowthData();  // Artış verisi -1 olacak şekilde güncellenecek
+      // Grafik verilerini güncelleme
+      loadUserGrowthData();  // Kullanıcı artış verilerini güncelle
 
+      // Kullanıcı silindiği mesajı
       alert("Kullanıcı silindi.");
+    } catch (error) {
+      console.error("Kullanıcı silinirken hata oluştu:", error);
+      alert("Bir hata oluştu. Lütfen tekrar deneyin.");
     }
   }
+}
 
   // Arama Çubuğu için Fonksiyon
   document.getElementById("searchInput").addEventListener("input", function() {
