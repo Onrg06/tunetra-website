@@ -2,154 +2,87 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Şarkı Sözleri Paylaş</title>
+  <title>Şarkı Sözleri | Admin</title>
   <link rel="icon" type="image/png" href="image.png" />
-
-  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js"></script>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
-      background-size: 400% 400%;
-      animation: gradientShift 15s ease infinite;
-      color: white;
+      background: #0a0a0a;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+      padding: 30px 20px;
       min-height: 100vh;
-      padding: 20px;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    header {
       text-align: center;
-      margin-bottom: 20px;
+      background-image: radial-gradient(circle at top left, #6a11cb33 0%, transparent 70%),
+                        radial-gradient(circle at bottom right, #2575fc33 0%, transparent 70%);
     }
-    .lang-switch {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 15px;
+    .lyrics-item {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      margin: 15px auto;
+      border-radius: 8px;
+      max-width: 600px;
+      text-align: left;
     }
     .btn {
-      padding: 14px 18px;
-      background: linear-gradient(to right, #6a11cb, #2575fc);
-      border: none;
-      border-radius: 10px;
+      padding: 10px 18px;
+      background: #ff4e4e;
       color: white;
-      font-weight: bold;
-      text-decoration: none;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-    input.song-title-input, textarea {
-      width: 100%;
-      max-width: 600px;
-      padding: 10px;
-      margin: 10px auto;
       border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      display: block;
-    }
-    textarea {
-      height: 140px;
-      resize: none;
-    }
-    .action-buttons {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
+      border-radius: 6px;
+      cursor: pointer;
       margin-top: 10px;
     }
-    .shared-lyrics {
-      width: 100%;
-      max-width: 600px;
-      margin: 40px auto 20px;
+    .btn:hover {
+      background: #ff2e2e;
     }
-    .lyric-item {
-      position: relative;
-      background-color: rgba(255, 255, 255, 0.1);
-      padding: 15px 20px 15px 15px;
-      margin-bottom: 15px;
+    .admin-back-btn {
+      display: inline-block;
+      margin-top: 40px;
+      padding: 12px 20px;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: white;
       border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    .lyric-item p {
-      margin: 4px 0;
-    }
-    .username {
       font-weight: bold;
-      font-size: 18px;
-      color: #ffcc70;
+      text-decoration: none;
+      transition: 0.3s;
     }
-    .song-title {
-      font-size: 20px;
+    .admin-back-btn:hover {
+      background: linear-gradient(to right, #2575fc, #6a11cb);
+    }
+    #uploaderCount {
+      margin: 20px 0;
       font-weight: bold;
-      color: #ffffff;
-      margin: 6px 0;
+      color: #c0fffc;
     }
-    .timestamp {
-      font-size: 0.9em;
-      color: #ffffffcc;
-      font-style: italic;
-    }
-    .delete-btn {
-  background-color: #ff3b3b;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  padding: 6px 12px;
-  font-size: 20px;
-  font-weight: bold;
-  margin-top: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-.delete-btn:hover {
-  background-color: #cc0000;
-}
-    @media (max-width: 600px) {
-      .lang-switch { flex-direction: column; }
-      .btn { width: 100%; }
+    #searchInput {
+      padding: 10px;
+      width: 80%;
+      max-width: 400px;
+      margin: 20px auto;
+      display: block;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
-  <header>
-    <div class="lang-switch">
-      <button class="btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
-      <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
-    </div>
-    <h1 id="page-title">Şarkı Sözlerini Paylaş</h1>
-    <p id="info-text">Söz / Şiirlerinizi yazın ve paylaşın! (Telif hakkınız saklıdır)</p>
-  </header>
-
-  <input type="text" id="song-title" class="song-title-input" placeholder="Şarkı başlığını yazın..." />
-  <textarea id="song-lyrics" placeholder="Şarkı sözlerinizi yazın..."></textarea>
-
-  <div class="action-buttons">
-    <button class="btn" id="share-button">Paylaş</button>
-    <button class="btn" id="home" onclick="window.location.href='anasayfa.html'">Anasayfa</button>
-  </div>
-
-  <div class="shared-lyrics">
-    <h2 id="shared-title">Paylaşılan Sözler</h2>
-    <div id="lyrics-list"></div>
-  </div>
+  <h1>🎶 Yüklenen Şarkı Sözleri (Admin)</h1>
+  <input type="text" id="searchInput" placeholder="Şarkı sözü ara...">
+  <div id="uploaderCount">Yükleniyor...</div>
+  <div id="lyricsList"></div>
+  <a href="adminpanel.html" class="admin-back-btn">⬅️ Yönetim Paneline Dön</a>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
+    import {
+      getFirestore, collection, query, orderBy, onSnapshot,
+      deleteDoc, doc, getDoc
+    } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/9.7.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -164,128 +97,89 @@
     const db = getFirestore(app);
     const auth = getAuth();
 
-    let currentUsername = "";
-    let currentLang = "tr";
+    const list = document.getElementById("lyricsList");
+    const countBox = document.getElementById("uploaderCount");
+    const searchInput = document.getElementById("searchInput");
+
+    let currentUID = "";
+    let isAdmin = false;
+    let allLyrics = [];
 
     onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    const userRef = doc(db, "users", user.uid);
-    const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) {
-      currentUsername = userSnap.data().username || "Anonim";
+      if (!user) return window.location.href = "index.html";
+      currentUID = user.uid;
+      const docSnap = await getDoc(doc(db, "users", user.uid));
+      if (docSnap.exists()) {
+        isAdmin = docSnap.data().role === "admin";
+      }
+      loadLyrics();
+    });
 
-      // Kullanıcı belirlendikten sonra listeleme başlasın
+    function loadLyrics() {
       const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
       onSnapshot(q, (snapshot) => {
-        lyricsList.innerHTML = "";
+        allLyrics = [];
+        const uniqueUploaders = new Set();
+
         snapshot.forEach(docSnap => {
-          const data = docSnap.data();
+          const d = docSnap.data();
           const docId = docSnap.id;
+          const time = d.timestamp?.toDate().toLocaleString() || "";
+          const canDelete = isAdmin || d.uploaderUID === currentUID;
 
-          const isOwn = auth.currentUser?.uid === data.uploaderUID 
-                     || (!data.uploaderUID && data.username === currentUsername);
+          allLyrics.push({
+            id: docId,
+            title: d.title || "",
+            lyrics: d.lyrics || "",
+            uploader: d.username || "Bilinmiyor",  // Kullanıcı adı (username) burada gösteriliyor
+            timestamp: time,
+            canDelete: canDelete
+          });
 
-          const deleteBtnHTML = isOwn
-            ? `<button class="delete-btn" onclick="deleteLyric('${docId}')">&times;</button>`
-            : "";
-
-          const lyricElement = document.createElement("div");
-          lyricElement.classList.add("lyric-item");
-          lyricElement.innerHTML = `
-            <p class="username">${data.username}</p>
-            <p class="song-title">${data.title || "(Başlıksız)"}</p>
-            <p>${data.lyrics}</p>
-            <p class="timestamp">${data.timestamp?.toDate().toLocaleString()}</p>
-            ${deleteBtnHTML}
-          `;
-          lyricsList.appendChild(lyricElement);
+          uniqueUploaders.add(d.uploaderUID);
         });
+
+        countBox.innerText = `Toplam ${uniqueUploaders.size} farklı kullanıcı şarkı sözü yükledi.`;
+        displayLyrics(allLyrics);
       });
     }
-  }
-});
-    document.getElementById("share-button").addEventListener("click", async () => {
-      const title = document.getElementById("song-title").value.trim();
-      const lyrics = document.getElementById("song-lyrics").value.trim();
 
-      if (title === "" || lyrics === "") {
-        alert(currentLang === "tr" ? "Lütfen başlık ve sözleri yazın." : "Please enter both title and lyrics.");
-        return;
-      }
+    function displayLyrics(lyrics) {
+      list.innerHTML = "";
+      lyrics.forEach(lyric => {
+        list.innerHTML += `
+          <div class="lyrics-item" id="lyric-${lyric.id}">
+            <p><strong>${lyric.uploader}</strong> (${lyric.timestamp})</p>
+            <h3>${lyric.title}</h3>
+            <p>${lyric.lyrics.replace(/\\n/g, "<br>")}</p>
+            ${lyric.canDelete ? `<button class="btn" onclick="deleteLyric('${lyric.id}')">❌ Sil</button>` : ""}
+          </div>
+        `;
+      });
+    }
 
-      try {
-        await addDoc(collection(db, "lyrics"), {
-          title,
-          lyrics,
-          username: currentUsername,
-          uploaderUID: auth.currentUser.uid,
-          timestamp: serverTimestamp()
-        });
-        alert(currentLang === "tr" ? "Paylaşım başarılı!" : "Shared successfully!");
-        document.getElementById("song-title").value = "";
-        document.getElementById("song-lyrics").value = "";
-      } catch (error) {
-        alert(currentLang === "tr" ? "Hata oluştu." : "An error occurred.");
-      }
+    searchInput.addEventListener("input", () => {
+      const keyword = searchInput.value.toLowerCase();
+      const filtered = allLyrics.filter(lyric =>
+        lyric.title.toLowerCase().includes(keyword) ||
+        lyric.lyrics.toLowerCase().includes(keyword) ||
+        lyric.uploader.toLowerCase().includes(keyword)
+      );
+      displayLyrics(filtered);
     });
 
-    const lyricsList = document.getElementById("lyrics-list");
-    const q = query(collection(db, "lyrics"), orderBy("timestamp", "desc"));
-
-    onSnapshot(q, (snapshot) => {
-  lyricsList.innerHTML = "";
-  snapshot.forEach(docSnap => {
-    const data = docSnap.data();
-    const docId = docSnap.id;
-
-    const lyricElement = document.createElement("div");
-    lyricElement.classList.add("lyric-item");
-
-    const isOwn = auth.currentUser?.uid === data.uploaderUID 
-               || (!data.uploaderUID && data.username === currentUsername);
-
-    const deleteBtnHTML = data.username === currentUsername
-  ? `<button class="delete-btn" onclick="deleteLyric('${docId}')">&times;</button>`
-  : "";
-
-    lyricElement.innerHTML = `
-      <p class="username">${data.username}</p>
-      <p class="song-title">${data.title || "(Başlıksız)"}</p>
-      <p>${data.lyrics}</p>
-      <p class="timestamp">${data.timestamp?.toDate().toLocaleString()}</p>
-      ${deleteBtnHTML}
-    `;
-    lyricsList.appendChild(lyricElement);
-  });
-});
-
-    window.deleteLyric = async function (docId) {
-      const confirmDelete = confirm(currentLang === "tr" ? "Bu paylaşımı silmek istediğinizden emin misiniz?" : "Are you sure you want to delete this lyric?");
-      if (!confirmDelete) return;
+    window.deleteLyric = async function (id) {
+      if (!confirm("Bu şarkı sözünü silmek istediğine emin misin?")) return;
 
       try {
-        await deleteDoc(doc(db, "lyrics", docId));
-        alert(currentLang === "tr" ? "Paylaşım silindi." : "Lyric deleted.");
-      } catch (error) {
-        alert(currentLang === "tr" ? "Silme işlemi başarısız." : "Failed to delete lyric.");
-        console.error("Silme hatası:", error);
+        const lyricRef = doc(db, "lyrics", id);
+        await deleteDoc(lyricRef);
+        document.getElementById(`lyric-${id}`)?.remove();
+      } catch (e) {
+        console.error("Silme sırasında hata:", e);
+        alert("Silme sırasında bir hata oluştu.");
       }
     };
-
-    window.setLang = function(lang) {
-      currentLang = lang;
-      document.getElementById("page-title").innerText = lang === "tr" ? "Şarkı Sözlerini Paylaş" : "Share Your Lyrics";
-      document.getElementById("info-text").innerText = lang === "tr" ? "Söz / Şiirlerinizi yazın ve paylaşın! (Telif hakkınız saklıdır)" : "Write your lyrics and share! (Your copyright is protected)";
-      document.getElementById("shared-title").innerText = lang === "tr" ? "Paylaşılan Sözler" : "Shared Lyrics";
-      document.getElementById("share-button").innerText = lang === "tr" ? "Paylaş" : "Share";
-      document.getElementById("home").innerText = lang === "tr" ? "Anasayfa" : "Home Page";
-      document.getElementById("song-title").placeholder = lang === "tr" ? "Şarkı başlığını yazın..." : "Enter the song title...";
-      document.getElementById("song-lyrics").placeholder = lang === "tr" ? "Şarkı sözlerinizi yazın..." : "Write your lyrics here...";
-    };
-
-    window.addEventListener("DOMContentLoaded", () => {
-      setLang("tr");
-    });
   </script>
 </body>
 </html>
