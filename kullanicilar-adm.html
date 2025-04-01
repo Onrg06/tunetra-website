@@ -121,6 +121,27 @@
         flex: 1 1 100%;
       }
     }
+
+    /* Yüklenen İçerikler için Mum Bar */
+    .progress-bar {
+      height: 30px;
+      border-radius: 8px;
+      background-color: #4e73df;
+      margin-top: 15px;
+    }
+    .progress-bar span {
+      display: block;
+      height: 100%;
+      border-radius: 8px;
+      background-color: #ff5733;
+    }
+
+    /* Kullanıcı Bilgileri - Büyük Sayılar */
+    .big-number {
+      font-size: 32px;
+      font-weight: bold;
+      color: #ff5733;
+    }
   </style>
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Grafikler için Chart.js -->
@@ -130,12 +151,12 @@
     <div class="top-row">
       <div class="top-left">
         <h2>💼 Toplam Kullanıcı Sayısı</h2>
-        <p id="userCount">0</p>
+        <p class="big-number" id="userCount">0</p>
         <canvas id="userCountChart"></canvas>
       </div>
       <div class="top-middle">
         <h2>📝 Toplam Dilek-Şikayet Sayısı</h2>
-        <p id="complaintCount">0</p>
+        <p class="big-number" id="complaintCount">0</p>
         <canvas id="complaintCountChart"></canvas>
       </div>
       <div class="top-right">
@@ -147,7 +168,9 @@
     <div class="bottom-row">
       <div class="bottom-left">
         <h2>📈 Yüklenen İçerikler</h2>
-        <canvas id="songsStatsChart"></canvas>
+        <div class="progress-bar">
+          <span id="contentProgress" style="width: 60%;"></span> <!-- Burada bar yüzdesi ayarlanacak -->
+        </div>
       </div>
       <div class="bottom-right">
         <h2>👥 Kullanıcı Bilgileri</h2>
@@ -220,8 +243,8 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
     const songsSnapshot = await getDocs(collection(db, "songs"));
     songCount = songsSnapshot.size;
 
-    const complaintsSnapshot = await getDocs(collection(db, "complaints")); // Yeni eklenen kod
-    complaintCount = complaintsSnapshot.size; // Dilek ve şikayet sayısını alıyoruz
+    const complaintsSnapshot = await getDocs(collection(db, "complaints"));
+    complaintCount = complaintsSnapshot.size;
 
     updateStats();
     loadUserGrowthData();
@@ -250,35 +273,22 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
     });
   }
 
-  // Kullanıcıyı silme işlemi
   async function deleteUserFromFirestore(uid) {
     if (confirm("Bu kullanıcıyı silmek istediğinizden emin misiniz?")) {
       try {
-        // Firestore'dan kullanıcıyı sil
         await deleteDoc(doc(db, "users", uid));
+        const userAuth = await auth.getUser(uid);  
+        await deleteUser(userAuth);  
 
-        // Firebase Authentication'dan kullanıcıyı sil
-        const userAuth = await auth.getUser(uid);  // Kullanıcıyı Firebase Authentication'dan al
-        await deleteUser(userAuth);  // Kullanıcıyı Firebase Authentication'dan sil
-
-        // Kullanıcıyı Array'den çıkar
         users = users.filter(user => user.uid !== uid);
-
-        // Kullanıcı sayısını güncelle
         updateStats();
-
-        // Grafik verilerini güncelle
         loadUserGrowthData();
 
-        // Kullanıcı silindiği mesajı
-        alert("Kullanıcı başarıyla silindi,lütfen sayfayı yenileyin.");
-
-        // Kullanıcılar listesini yeniden yükleyin
-        displayUsers(users);  // Kullanıcılar listesini güncelle
-
+        alert("Kullanıcı başarıyla silindi, lütfen sayfayı yenileyin.");
+        displayUsers(users);  
       } catch (error) {
         console.error("Kullanıcı silinirken hata oluştu:", error);
-        alert("Kullanıcı başarıyla silindi,lütfen sayfayı yenileyin.");
+        alert("Kullanıcı başarıyla silindi, lütfen sayfayı yenileyin.");
       }
     }
   }
@@ -288,6 +298,12 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
     document.getElementById("complaintCount").textContent = complaintCount;
     songsStatsChart.data.datasets[0].data = [lyricsCount, melodyCount, songCount];
     songsStatsChart.update();
+
+    // Yüklenen içerikler progress bar
+    const contentProgress = document.getElementById('contentProgress');
+    const totalContent = lyricsCount + melodyCount + songCount;
+    const progress = (totalContent / 100) * 100; // 100'ü değiştirebilirsiniz
+    contentProgress.style.width = `${progress}%`;
   }
 
   async function loadUserGrowthData() {
@@ -305,15 +321,14 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
     });
 
     updateUserGrowthChart(months);
-    updateUserCountChart(); // Yeni grafik güncellemesi
+    updateUserCountChart();
   }
 
-  // Kullanıcı artışı grafiği
   function updateUserGrowthChart(months) {
     const userGrowthChart = new Chart(document.getElementById("userGrowthChart"), {
       type: "line",
       data: {
-        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+        labels: ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"],
         datasets: [{
           label: 'Kullanıcı Artışı',
           data: months,
@@ -325,7 +340,6 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
     });
   }
 
-  // Kullanıcı sayısı grafiği
   function updateUserCountChart() {
     const userCountChart = new Chart(document.getElementById("userCountChart"), {
       type: "scatter",
