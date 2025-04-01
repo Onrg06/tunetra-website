@@ -222,8 +222,9 @@
 
   <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, updatePassword as firebaseUpdatePassword, deleteUser, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";  // Burada deleteDoc ekleniyor
+import { getAuth, updatePassword as firebaseUpdatePassword, deleteUser, onAuthStateChanged, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";  // Burada EmailAuthProvider ekleniyor
+import { getFirestore, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -388,17 +389,17 @@ window.updatePassword = async () => {
 window.deleteAccount = async () => {
   if (confirm("Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz!")) {
     try {
-      // Giriş yapmış kullanıcıyı yeniden kimlik doğrulaması yapmaya zorla
+      // Kullanıcıyı yeniden kimlik doğrulaması yapmaya zorla
       const credential = EmailAuthProvider.credential(currentUser.email, prompt("Şifrenizi girin:"));
       await reauthenticateWithCredential(currentUser, credential);  // Reauthentication işlemi
 
       // Firestore'dan kullanıcıyı sil
-      await deleteDoc(doc(db, "users", currentUser.uid));
+      await deleteDoc(doc(db, "users", currentUser.uid));  // Firestore'dan silme işlemi yapılır
 
       // Firebase Authentication'dan kullanıcıyı sil
       await deleteUser(currentUser);  // Firebase Authentication'dan kullanıcıyı sil
 
-      // Kullanıcıyı başarıyla silindi mesajı
+      // Kullanıcıyı başarıyla sildik
       showMessage(translations[currentLang].deleted, "success");
 
       // Oturumdan çıkış yap
