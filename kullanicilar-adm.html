@@ -345,8 +345,9 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
       const registrationDate = data.registrationDate?.toDate();
 
       if (registrationDate) {
-        const dayOfWeek = registrationDate.getDay(); // 0 = Pazar, 1 = Pazartesi, ...
-        dailyCounts[dayOfWeek]++;
+        const dayOfWeek = registrationDate.getDay(); // 1 = Pazartesi, 2 = Salı, ..., 7 = Pazar
+        if (dayOfWeek === 0) dayOfWeek = 7;  // Pazar'ı 7'ye çeviriyoruz
+        dailyCounts[dayOfWeek - 1]++;
       }
     });
 
@@ -377,7 +378,7 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
         datasets: [{
           label: 'Kullanıcı Sayısı',
           data: dailyCounts.map((count, index) => ({
-            x: index, // X ekseninde günler (Pazartesi -> Pazar)
+            x: index + 1, // 1-7 arasındaki değerler için
             y: count   // Y ekseninde o günün kullanıcı sayısı
           })),
           backgroundColor: '#4e73df',
