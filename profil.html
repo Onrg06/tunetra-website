@@ -221,9 +221,9 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, updatePassword as firebaseUpdatePassword, deleteUser, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, updatePassword as firebaseUpdatePassword, deleteUser, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";  // Burada deleteDoc ekleniyor
 
     const firebaseConfig = {
       apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -389,24 +389,33 @@ window.deleteAccount = async () => {
   if (confirm("Hesabınızı silmek istediğinize emin misiniz? Bu işlem geri alınamaz!")) {
     try {
       // Firestore'dan kullanıcıyı sil
-      await deleteDoc(doc(db, "users", currentUser.uid));
+      await deleteDoc(doc(db, "users", currentUser.uid));  // Burada Firestore'dan silme işlemi yapılır
 
       // Firebase Authentication'dan kullanıcıyı sil
-      await deleteUser(currentUser);  // Kullanıcıyı Firebase Authentication'dan sil
+      await deleteUser(currentUser);  // Firebase Authentication'dan kullanıcıyı sil
 
-      // Kullanıcı başarıyla silindi mesajı
+      // Kullanıcıyı başarıyla silindi mesajı
       showMessage(translations[currentLang].deleted, "success");
 
       // Oturumdan çıkış yap
       await signOut(auth); // Firebase'den çıkış yap
 
-      // Kullanıcıyı çıkış yaparak ana sayfaya yönlendir
+      // Yönlendirme
       location.href = "index.html";  // Ana sayfaya yönlendir
     } catch (error) {
+      // Hata oluşursa, hata mesajını konsola yazdır ve kullanıcıya bildir
       console.error("Hesap silinirken hata oluştu:", error);
       let msg = "Bir hata oluştu. Hesabınız silinemedi.";
+
+      // Hata koduna göre mesajı özelleştirelim
       if (error.code === "auth/requires-recent-login") {
         msg = "Bu işlemi yapabilmek için tekrar giriş yapmanız gerekiyor.";
+      } else if (error.code === "auth/too-many-requests") {
+        msg = "Çok fazla işlem yapıldı. Lütfen biraz sonra tekrar deneyin.";
+      } else if (error.code === "auth/user-not-found") {
+        msg = "Kullanıcı bulunamadı.";
+      } else if (error.code === "auth/network-request-failed") {
+        msg = "Ağ hatası oluştu. Lütfen internet bağlantınızı kontrol edin.";
       }
       showMessage(msg, "error");
     }
