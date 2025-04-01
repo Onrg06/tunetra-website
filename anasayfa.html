@@ -244,60 +244,91 @@
   };
 
   // Update UI
-  async function updateUI() {
-    const user = auth.currentUser;
-    if (!user) return;
+async function updateUI() {
+  const user = auth.currentUser;
+  if (!user) return;
 
-    const docRef = doc(db, "users", user.uid);
-    const userDoc = await getDoc(docRef);
-    if (!userDoc.exists()) return;
+  const docRef = doc(db, "users", user.uid);
+  const userDoc = await getDoc(docRef);
+  if (!userDoc.exists()) return;
 
-    const username = userDoc.data().username;
-    const inboxHasNew = userDoc.data().inboxHasNew || false;
+  const username = userDoc.data().username;
+  const inboxHasNew = userDoc.data().inboxHasNew || false; // Yeni mesaj var mı?
 
-    // UI'yı güncelle
-    document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
-    document.getElementById("introText").innerHTML = translations[currentLang].intro;
-    document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
-    document.getElementById("btnProfile").innerText = translations[currentLang].profile;
-    document.getElementById("btnFeedback").innerText = translations[currentLang].feedback;
-    document.getElementById("btnAbout").innerText = translations[currentLang].about;
-    document.getElementById("btnLyrics").innerText = translations[currentLang].lyrics;
-    document.getElementById("btnMelody").innerText = translations[currentLang].melody;
-    document.getElementById("btnSongs").innerText = translations[currentLang].songs;
-    document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
-    document.getElementById("btnFriends").innerText = translations[currentLang].friends;
-    document.getElementById("btnMessagesText").textContent = translations[currentLang].messages;
+  // UI'yı güncelle
+  document.getElementById("welcomeMessage").innerHTML = "🎶 Hoş Geldin, " + username + "!";
+  document.getElementById("introText").innerHTML = "Hayalindeki şarkıyı oluşturmak için doğru yerdesin.<br><br>Sözlerini veya melodini paylaş, diğer kullanıcılarla birlikte şarkılara dönüştür.<br><br>Tunetra'da müzik, iş birliğiyle doğar!";
+  document.getElementById("logoutBtn").innerText = "Çıkış Yap";
+  document.getElementById("btnProfile").innerText = "👤 Profilim";
+  document.getElementById("btnFeedback").innerText = "📮 Dilek & Şikayet Kutusu";
+  document.getElementById("btnAbout").innerText = "ℹ️ Hakkımızda";
+  document.getElementById("btnLyrics").innerText = "✍️ Sözler / Şiirler";
+  document.getElementById("btnMelody").innerText = "🎵 Melodi";
+  document.getElementById("btnSongs").innerText = "🎶 Hazır Şarkılar";
+  document.getElementById("btnAnnouncements").innerText = "📢 Duyurular";
+  document.getElementById("btnFriends").innerText = "🧑‍🤝‍🧑 Arkadaşlarım";
+  document.getElementById("btnMessagesText").textContent = "Mesajlarım";
 
-    // Kırmızı nokta kontrolü
-    const msgDot = document.getElementById("msgDot");
-    if (inboxHasNew) {
-      msgDot.style.display = "inline-block";
-    } else {
-      msgDot.style.display = "none";
-    }
+  // Kırmızı nokta kontrolü
+  const msgDot = document.getElementById("msgDot");
+  if (inboxHasNew) {
+    msgDot.style.display = "inline-block";
+  } else {
+    msgDot.style.display = "none"; // Eğer yeni mesaj yoksa, kırmızı nokta gizlensin
   }
+}
 
   // Set inboxHasNew
   async function setInboxHasNew(uid, value) {
-    const userRef = doc(db, "users", uid);
-    await updateDoc(userRef, {
-      inboxHasNew: value
-    });
-  }
-
-  // Mesajlar tıklandığında inboxHasNew sıfırlanacak
-  document.getElementById("btnMessages").addEventListener("click", async () => {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    // Firestore'daki inboxHasNew alanını false yap
-    await setInboxHasNew(user.uid, false);
-
-    // Kırmızı noktayı hemen gizle
-    const msgDot = document.getElementById("msgDot");
-    msgDot.style.display = "none";
+  const userRef = doc(db, "users", uid);
+  await updateDoc(userRef, {
+    inboxHasNew: value // Yeni mesaj varsa true, okunduysa false
   });
+}
+
+
+  function listenInboxChanges(uid) {
+  const userRef = doc(db, "users", uid);
+  
+  // Firestore'dan veri dinleyerek mesaj sayısı değiştikçe kırmızı noktayı güncelle
+  onSnapshot(userRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const hasUnseen = data.inboxHasNew === true; // Yeni mesaj var mı?
+
+      // Kırmızı noktanın görünürlüğünü güncelle
+      const msgDot = document.getElementById("msgDot");
+
+      // Eğer yeni mesaj varsa, kırmızı noktayı göster
+      msgDot.style.display = hasUnseen ? "inline-block" : "none";
+    }
+  });
+}
+
+  
+  // Mesajlar tıklandığında inboxHasNew sıfırlanacak
+document.getElementById("btnMessages").addEventListener("click", async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  // Mesajlar sayfasına gidildiğinde inboxHasNew alanını false yap
+  await setInboxHasNew(user.uid, false);
+
+  // Kırmızı noktayı hemen gizle
+  const msgDot = document.getElementById("msgDot");
+  msgDot.style.display = "none"; // Kırmızı nokta gizlendi
+
+  // Sayfada yeni mesaj olup olmadığını tekrar kontrol et
+  const docRef = doc(db, "users", user.uid);
+  const userDoc = await getDoc(docRef);
+  if (userDoc.exists()) {
+    const inboxHasNew = userDoc.data().inboxHasNew || false;
+    const msgDot = document.getElementById("msgDot");
+
+    // Eğer yeni mesaj varsa kırmızı nokta gösterilecek
+    msgDot.style.display = inboxHasNew ? "inline-block" : "none";
+  }
+});
 
   // Kullanıcı çıkışı
   window.logout = function () {
