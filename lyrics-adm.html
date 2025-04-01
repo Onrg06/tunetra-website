@@ -138,7 +138,6 @@
             title: d.title || "",
             lyrics: d.lyrics || "",
             uploader: d.uploader || "",
-            collaborator: d.collaborator || "",
             timestamp: time,
             canDelete: canDelete
           });
@@ -156,7 +155,7 @@
       lyrics.forEach(lyric => {
         list.innerHTML += `
           <div class="lyrics-item" id="lyric-${lyric.id}">
-            <p><strong>${lyric.uploader}</strong> + <strong>${lyric.collaborator}</strong> (${lyric.timestamp})</p>
+            <p><strong>${lyric.uploader}</strong> (${lyric.timestamp})</p>
             <h3>${lyric.title}</h3>
             <p>${lyric.lyrics.replace(/\\n/g, "<br>")}</p>
             ${lyric.canDelete ? `<button class="btn" onclick="deleteLyric('${lyric.id}')">❌ Sil</button>` : ""}
@@ -170,8 +169,7 @@
       const filtered = allLyrics.filter(lyric =>
         lyric.title.toLowerCase().includes(keyword) ||
         lyric.lyrics.toLowerCase().includes(keyword) ||
-        lyric.uploader.toLowerCase().includes(keyword) ||
-        lyric.collaborator.toLowerCase().includes(keyword)
+        lyric.uploader.toLowerCase().includes(keyword)
       );
       displayLyrics(filtered);
     });
