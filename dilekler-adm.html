@@ -123,7 +123,7 @@
           if (userSnap.exists()) {
             username = userSnap.data().username;
           }
-          
+
           allFeedback.push({
             id: docId,
             text: data.text || "",
@@ -131,7 +131,6 @@
             timestamp: time,
             uid: data.uid || "Bilinmiyor",
           });
-
         });
 
         // Verileri ekrana basmadan önce kontrol ediyoruz
