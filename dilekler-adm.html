@@ -119,50 +119,61 @@
       loadFeedback();
     });
 
-    function loadFeedback() {
-      const q = query(collection(db, "feedback"), orderBy("timestamp", "desc"));
-      onSnapshot(q, (snapshot) => {
-        allFeedback = [];
-        snapshot.forEach(docSnap => {
-          const data = docSnap.data();
-          const docId = docSnap.id;
-          const time = data.timestamp?.toDate().toLocaleString() || "";
+function loadFeedback() {
+  const q = query(collection(db, "feedback"), orderBy("timestamp", "desc"));
+  onSnapshot(q, (snapshot) => {
+    allFeedback = [];  // Önceki verileri temizle
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const docId = docSnap.id;
+      const time = data.timestamp?.toDate().toLocaleString() || "";
 
-          // Kullanıcı adı verisini doğru şekilde al
-          const username = data.username || "Bilinmiyor"; // Eğer veri yoksa, "Bilinmiyor" yerine "Kullanıcı adı mevcut değil" gibi bir şey yazılabilir
+      // Kullanıcı adı verisini doğru şekilde al
+      const username = data.username || "Bilinmiyor"; // Eğer veri yoksa, "Bilinmiyor" yazalım
 
-          allFeedback.push({
-            id: docId,
-            text: data.text || "",
-            username: username,
-            timestamp: time,
-            uid: data.uid || "Bilinmiyor",
-          });
-        });
-
-        displayFeedback(allFeedback);
+      allFeedback.push({
+        id: docId,
+        text: data.text || "",
+        username: username,
+        timestamp: time,
+        uid: data.uid || "Bilinmiyor",
       });
-    }
-    
-async function displayFeedback(feedback) {
+    });
+
+    // İlk yüklendikten sonra tüm verileri göster
+    displayFeedback(allFeedback);
+  });
+}
+
+function displayFeedback(feedback) {
   list.innerHTML = "";  // Listeyi temizliyoruz
-  for (let fb of feedback) {
-    // Kullanıcı adını almak için 'users' koleksiyonunu sorguluyoruz (fb.uid üzerinden)
-    const userRef = doc(db, "users", fb.uid);  
-    const userSnap = await getDoc(userRef);  // Kullanıcı verisini alıyoruz
-
-    const username = userSnap.exists() ? userSnap.data().username : "Bilinmiyor";  // Eğer kullanıcı adı varsa, onu alıyoruz; yoksa "Bilinmiyor" yazıyoruz
-
+  feedback.forEach(fb => {
     // Her bir feedback öğesini listeye ekliyoruz
     list.innerHTML += `
       <div class="feedback-item" id="feedback-${fb.id}">
-        <p><strong>${username}</strong> (${fb.timestamp})</p>
+        <p><strong>${fb.username}</strong> (${fb.timestamp})</p>
         <p>${fb.text}</p>
         ${isAdmin ? `<button class="btn" onclick="deleteFeedback('${fb.id}')">❌ Sil</button>` : ""}
       </div>
     `;
-  }
+  });
 }
+
+
+    // Arama input'u için dinleyici
+searchInput.addEventListener("input", () => {
+  const keyword = searchInput.value.toLowerCase();  // Arama kelimesini küçük harfe çeviriyoruz
+  console.log("Arama kelimesi:", keyword);  // Konsola arama kelimesini yazdırıyoruz
+
+  // Filtreleme işlemi
+  const filtered = allFeedback.filter(fb => {
+    const isTextMatch = fb.text.toLowerCase().includes(keyword);  // Metin üzerinde arama yapıyoruz
+    const isUsernameMatch = fb.username.toLowerCase().includes(keyword);  // Kullanıcı adı üzerinde arama yapıyoruz
+    return isTextMatch || isUsernameMatch;  // Birine eşleşme varsa gösteriyoruz
+  });
+
+  displayFeedback(filtered);  // Filtrelenmiş sonuçları göster
+});
 
 
     window.deleteFeedback = async function (id) {
