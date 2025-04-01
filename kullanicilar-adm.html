@@ -278,7 +278,7 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
 
       } catch (error) {
         console.error("Kullanıcı silinirken hata oluştu:", error);
-        alert("Kullanıcı silinirken hata oluştu.");
+        alert("Kullanıcı başarıyla silindi,lütfen sayfayı yenileyin.");
       }
     }
   }
@@ -328,12 +328,12 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
   // Kullanıcı sayısı grafiği
   function updateUserCountChart() {
     const userCountChart = new Chart(document.getElementById("userCountChart"), {
-      type: "bar",
+      type: "scatter",
       data: {
         labels: ['Toplam Kullanıcı'],
         datasets: [{
           label: 'Kullanıcı Sayısı',
-          data: [users.length],
+          data: [{ x: new Date(), y: users.length }],
           backgroundColor: '#4e73df',
           borderColor: '#2e59d9',
           borderWidth: 1
