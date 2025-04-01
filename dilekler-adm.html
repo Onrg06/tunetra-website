@@ -97,13 +97,13 @@
     let allFeedback = [];
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) return window.location.href = "index.html";
+      if (!user) return window.location.href = "index.html";  // Eğer kullanıcı giriş yapmadıysa ana sayfaya yönlendir
       currentUID = user.uid;
       const docSnap = await getDoc(doc(db, "users", user.uid));
       if (docSnap.exists()) {
-        isAdmin = docSnap.data().role === "admin";
+        isAdmin = docSnap.data().role === "admin";  // Admin mi kontrolü yapılıyor
       }
-      loadFeedback();
+      loadFeedback();  // Veriyi yükleme işlemi
     });
 
     async function loadFeedback() {
@@ -115,7 +115,7 @@
           const docId = docSnap.id;
           const time = data.timestamp?.toDate().toLocaleString() || "";
 
-          // Kullanıcının username bilgisini almak için UID'yi kullanıyoruz
+          // Kullanıcı bilgilerini almak için UID'yi kullanıyoruz
           const userDocRef = doc(db, "users", data.uid);
           const userSnap = await getDoc(userDocRef);
 
@@ -136,7 +136,7 @@
         // Verileri ekrana basmadan önce kontrol ediyoruz
         console.log("Tüm Dilek ve Şikayetler: ", allFeedback);
 
-        displayFeedback(allFeedback);
+        displayFeedback(allFeedback);  // Verileri ekrana bastırıyoruz
       });
     }
 
@@ -159,7 +159,7 @@
         fb.text.toLowerCase().includes(keyword) ||
         fb.username.toLowerCase().includes(keyword)
       );
-      displayFeedback(filtered);
+      displayFeedback(filtered);  // Arama sonuçlarını tekrar ekrana basıyoruz
     });
 
     window.deleteFeedback = async function (id) {
@@ -167,8 +167,8 @@
 
       try {
         const feedbackRef = doc(db, "feedback", id);
-        await deleteDoc(feedbackRef);
-        document.getElementById(`feedback-${id}`)?.remove();
+        await deleteDoc(feedbackRef);  // Dilek/şikayet verisini silme
+        document.getElementById(`feedback-${id}`)?.remove();  // UI'dan da kaldırma
       } catch (e) {
         console.error("Silme sırasında hata:", e);
         alert("Silme sırasında bir hata oluştu.");
