@@ -134,18 +134,23 @@
       });
     }
 
-    function displayFeedback(feedback) {
-      list.innerHTML = "";
-      feedback.forEach(fb => {
-        list.innerHTML += `
-          <div class="feedback-item" id="feedback-${fb.id}">
-            <p><strong>${fb.username}</strong> (${fb.timestamp})</p>
-            <p>${fb.text}</p>
-            ${isAdmin ? `<button class="btn" onclick="deleteFeedback('${fb.id}')">❌ Sil</button>` : ""}
-          </div>
-        `;
-      });
-    }
+function displayFeedback(feedback) {
+  list.innerHTML = "";
+  feedback.forEach(async (fb) => {
+    const userRef = doc(db, "users", fb.uid);  // Feedback'teki uid'yi kullanarak users koleksiyonundan veriyi alıyoruz.
+    const userSnap = await getDoc(userRef);  // Kullanıcı verisini alıyoruz.
+
+    const username = userSnap.exists() ? userSnap.data().username : "Bilinmiyor";  // Eğer kullanıcı adı varsa, onu alıyoruz, yoksa "Bilinmiyor" yazıyoruz.
+
+    list.innerHTML += `
+      <div class="feedback-item" id="feedback-${fb.id}">
+        <p><strong>${username}</strong> (${fb.timestamp})</p>
+        <p>${fb.text}</p>
+        ${isAdmin ? `<button class="btn" onclick="deleteFeedback('${fb.id}')">❌ Sil</button>` : ""}
+      </div>
+    `;
+  });
+}
 
     searchInput.addEventListener("input", () => {
       const keyword = searchInput.value.toLowerCase();
