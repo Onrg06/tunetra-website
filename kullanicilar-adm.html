@@ -153,19 +153,20 @@
       <div class="bottom-right">
         <h2>👥 Kullanıcı Bilgileri</h2>
         <input type="text" id="searchInput" placeholder="Kullanıcı adı veya isimle ara..." class="search-input">
-        <table id="user-list">
-          <thead>
-            <tr>
-              <th>Kullanıcı Adı</th>
-              <th>İsim Soyisim</th>
-              <th>UID</th>
-              <th>Sil</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Kullanıcılar buraya yüklenecek -->
-          </tbody>
-        </table>
+<!-- Kullanıcılar Tablosu ve Silme Butonu -->
+<table id="user-list">
+  <thead>
+    <tr>
+      <th>Kullanıcı Adı</th>
+      <th>İsim Soyisim</th>
+      <th>UID</th>
+      <th>Sil</th> <!-- Silme Butonu Eklendi -->
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Kullanıcılar buraya yüklenecek -->
+  </tbody>
+</table>
       </div>
     </div>
   </div>
@@ -235,20 +236,20 @@
     loadUserGrowthData();
   }
 
-  function displayUsers(users) {
-    const tbody = document.querySelector("#user-list tbody");
-    tbody.innerHTML = "";
-    users.forEach(user => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${user.username}</td>
-          <td>${user.fullName}</td>
-          <td>${user.uid}</td>
-          <td><button class="delete-btn" onclick="deleteUser('${user.uid}')">Sil</button></td>
-        </tr>
-      `;
-    });
-  }
+function displayUsers(users) {
+  const tbody = document.querySelector("#user-list tbody");
+  tbody.innerHTML = "";
+  users.forEach(user => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${user.username}</td>
+        <td>${user.fullName}</td>
+        <td>${user.uid}</td>
+        <td><button class="delete-btn" onclick="deleteUser('${user.uid}')">Sil</button></td>
+      </tr>
+    `;
+  });
+}
 
   function updateStats() {
     // Kullanıcı sayısını güncelle
@@ -310,20 +311,27 @@
     }
   });
 
-// Kullanıcıyı silme fonksiyonu
 async function deleteUser(uid) {
   if (confirm("Bu kullanıcıyı silmek istediğinizden emin misiniz?")) {
     try {
-      // Kullanıcıyı Firestore'dan silme
+      // Kullanıcıyı Firestore'dan sil
       await deleteDoc(doc(db, "users", uid));
+
+      // Firebase Authentication'dan kullanıcıyı sil
+      const userRef = await getDoc(doc(db, "users", uid));
+      if (userRef.exists()) {
+        const user = userRef.data();
+        const userAuth = await getAuth().getUser(uid);
+        await deleteUser(userAuth);
+      }
 
       // Kullanıcıyı Array'den çıkar
       users = users.filter(user => user.uid !== uid);
 
-      // Kullanıcı sayısını güncelleme
+      // Kullanıcı sayısını güncelle
       updateStats();  // Kullanıcı sayısını güncelle
 
-      // Grafik verilerini güncelleme
+      // Grafik verilerini güncelle
       loadUserGrowthData();  // Kullanıcı artış verilerini güncelle
 
       // Kullanıcı silindiği mesajı
