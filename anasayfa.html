@@ -272,14 +272,14 @@ async function updateUI() {
   // Kırmızı nokta kontrolü
   const msgDot = document.getElementById("msgDot");
   if (inboxHasNew) {
-    msgDot.style.display = "inline-block";
+    msgDot.style.display = "inline-block"; // Kırmızı nokta gösterilecek
   } else {
-    msgDot.style.display = "none"; // Eğer yeni mesaj yoksa, kırmızı nokta gizlensin
+    msgDot.style.display = "none"; // Kırmızı nokta gizlenecek
   }
 }
 
   // Set inboxHasNew
-  async function setInboxHasNew(uid, value) {
+async function setInboxHasNew(uid, value) {
   const userRef = doc(db, "users", uid);
   await updateDoc(userRef, {
     inboxHasNew: value // Yeni mesaj varsa true, okunduysa false
@@ -317,6 +317,7 @@ document.getElementById("btnMessages").addEventListener("click", async () => {
   // Kırmızı noktayı hemen gizle
   const msgDot = document.getElementById("msgDot");
   msgDot.style.display = "none"; // Kırmızı nokta gizlendi
+});
 
   // Sayfada yeni mesaj olup olmadığını tekrar kontrol et
   const docRef = doc(db, "users", user.uid);
@@ -337,18 +338,26 @@ document.getElementById("btnMessages").addEventListener("click", async () => {
     });
   };
 
-  // Listen for auth state change
-  window.addEventListener("DOMContentLoaded", () => {
-    setLang("tr");
+window.addEventListener("DOMContentLoaded", () => {
+  setLang("tr");
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return window.location.href = "index.html"; // Eğer kullanıcı yoksa giriş sayfasına yönlendir
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) return window.location.href = "index.html"; // Eğer kullanıcı yoksa giriş sayfasına yönlendir
 
-      await updateUI();
+    await updateUI();
 
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      let hasUnseen = userDoc.exists() && userDoc.data().inboxHasNew === true;
-    });
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    let hasUnseen = userDoc.exists() && userDoc.data().inboxHasNew === true;
+
+    // Ana sayfaya geri dönerken kırmızı nokta kontrolü
+    if (hasUnseen) {
+      const msgDot = document.getElementById("msgDot");
+      msgDot.style.display = "inline-block"; // Kırmızı nokta gösterilecek
+    } else {
+      const msgDot = document.getElementById("msgDot");
+      msgDot.style.display = "none"; // Kırmızı nokta gizlenecek
+    }
   });
+});
 </script>
 
