@@ -345,8 +345,8 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
       const registrationDate = data.registrationDate?.toDate();
 
       if (registrationDate) {
-        const dayOfWeek = registrationDate.getDay(); // 1 = Pazartesi, 2 = Salı, ..., 7 = Pazar
-        if (dayOfWeek === 0) dayOfWeek = 7;  // Pazar'ı 7'ye çeviriyoruz
+        const dayOfWeek = registrationDate.getDay(); // 0 = Pazar, 1 = Pazartesi, ...
+        if (dayOfWeek === 0) dayOfWeek = 7; // Pazar'ı 7'ye eşitle
         dailyCounts[dayOfWeek - 1]++;
       }
     });
@@ -372,17 +372,14 @@ import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.g
 
   function updateUserCountChart(dailyCounts) {
     const userCountChart = new Chart(document.getElementById("userCountChart"), {
-      type: "scatter",  // Noktasal grafik
+      type: "line",  // Çizgisel grafik
       data: {
         labels: ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'],
         datasets: [{
           label: 'Kullanıcı Sayısı',
-          data: dailyCounts.map((count, index) => ({
-            x: index + 1, // 1-7 arasındaki değerler için
-            y: count   // Y ekseninde o günün kullanıcı sayısı
-          })),
-          backgroundColor: '#4e73df',
-          borderColor: '#2e59d9',
+          data: dailyCounts,
+          fill: false,
+          borderColor: '#4e73df',
           borderWidth: 1
         }]
       }
