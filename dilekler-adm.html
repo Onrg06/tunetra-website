@@ -165,21 +165,31 @@ function displayFeedback(feedback) {
   });
 }
 
-// Arama input'u için dinleyici
-searchInput.addEventListener("input", () => {
+searchInput.addEventListener("input", async () => {
   const keyword = searchInput.value.toLowerCase();  // Arama kelimesini küçük harfe çeviriyoruz
   console.log("Arama kelimesi:", keyword);  // Konsola arama kelimesini yazdırıyoruz
 
-  // Filtreleme işlemi
-  const filtered = allFeedback.filter(fb => {
-    // Kullanıcı adı üzerinde arama yapıyoruz veya uid üzerinde arama yapıyoruz
-    const isUsernameMatch = fb.username.toLowerCase().includes(keyword);
-    const isUidMatch = fb.uid.toLowerCase().includes(keyword);  // UID'yi de kontrol et
-    return isUsernameMatch || isUidMatch;  // Eğer kullanıcı adı ya da uid eşleşiyorsa gösteriyoruz
-  });
+  // Arama yaparken, admin'in girdiği kullanıcı adına göre uid'yi bulalım
+  const userRef = query(collection(db, "users"), where("username", "==", keyword));  // Kullanıcı adıyla sorgulama
+  const userSnap = await getDocs(userRef);  // Kullanıcıları çekiyoruz
 
-  displayFeedback(filtered);  // Filtrelenmiş sonuçları göster
+  // Eğer kullanıcı adı eşleşmesi varsa, uid'yi alalım
+  let userUid = "";
+  if (!userSnap.empty) {
+    userSnap.forEach(doc => {
+      userUid = doc.id;  // Kullanıcı id'sini (uid) alıyoruz
+    });
+  }
+
+  // Eğer uid bulunursa, bu uid'ye ait olan şikayetleri filtrele
+  if (userUid) {
+    const filtered = allFeedback.filter(fb => fb.uid === userUid);  // uid'yi karşılaştırıyoruz
+    displayFeedback(filtered);  // Filtrelenmiş sonuçları göster
+  } else {
+    displayFeedback([]);  // Eğer kullanıcı bulunamazsa, listeyi temizle
+  }
 });
+
 
 
 
