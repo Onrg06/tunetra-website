@@ -169,19 +169,24 @@ searchInput.addEventListener("input", async () => {
   const keyword = searchInput.value.toLowerCase();  // Arama kelimesini küçük harfe çeviriyoruz
   console.log("Arama kelimesi:", keyword);  // Konsola arama kelimesini yazdırıyoruz
 
-  // Arama metninin sadece uid'ye ait olup olmadığını kontrol et
-  const filteredByUid = allFeedback.filter(fb => fb.uid.toLowerCase().includes(keyword));  // uid'yi küçük harfe çeviriyoruz ve kontrol ediyoruz
+  if (keyword === "") {
+    // Arama çubuğu temizlendiğinde, tüm verileri tekrar göster
+    displayFeedback(allFeedback);
+  } else {
+    // Arama kelimesi girildiğinde filtrele
+    const filteredByUid = allFeedback.filter(fb => fb.uid.toLowerCase().includes(keyword));  // uid'yi küçük harfe çeviriyoruz ve kontrol ediyoruz
 
-  // Ayrıca dilek/şikayet metni üzerinden de arama yapalım
-  const filteredByText = allFeedback.filter(fb => {
-    return fb.text.toLowerCase().includes(keyword);  // Metin içinde arama yapıyoruz
-  });
+    // Ayrıca dilek/şikayet metni üzerinden de arama yapalım
+    const filteredByText = allFeedback.filter(fb => {
+      return fb.text.toLowerCase().includes(keyword);  // Metin içinde arama yapıyoruz
+    });
 
-  // Filtrelenmiş sonuçları birleştiriyoruz (uid veya metin eşleşmesi)
-  const finalFilteredFeedback = [...filteredByUid, ...filteredByText];
+    // Filtrelenmiş sonuçları birleştiriyoruz (uid veya metin eşleşmesi)
+    const finalFilteredFeedback = [...filteredByUid, ...filteredByText];
 
-  // Filtrelenmiş sonuçları göster
-  displayFeedback(finalFilteredFeedback);
+    // Filtrelenmiş sonuçları göster
+    displayFeedback(finalFilteredFeedback);
+  }
 });
 
     window.deleteFeedback = async function (id) {
