@@ -236,15 +236,17 @@
     deleteButtons.forEach(button => {
       button.addEventListener('click', (event) => {
         const uid = event.target.getAttribute('data-uid');
-        deleteUser(uid);
+        deleteUserFromFirestore(uid);
       });
     });
   }
 
-  async function deleteUser(uid) {
+  async function deleteUserFromFirestore(uid) {
     if (confirm("Bu kullanıcıyı silmek istediğinizden emin misiniz?")) {
       try {
         await deleteDoc(doc(db, "users", uid));
+        
+        // Firebase Authentication'dan kullanıcıyı silme işlemi
         const userAuth = await getAuth().getUser(uid);
         await deleteUser(userAuth);
 
