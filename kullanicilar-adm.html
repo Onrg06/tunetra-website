@@ -311,16 +311,40 @@ function displayUsers(users) {
     }
   });
 
-// Silme Fonksiyonu (Admin Paneli)
+async function displayUsers(users) {
+  const tbody = document.querySelector("#user-list tbody");
+  tbody.innerHTML = "";
+
+  users.forEach(user => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${user.username}</td>
+        <td>${user.fullName}</td>
+        <td>${user.uid}</td>
+        <td><button class="delete-btn" data-uid="${user.uid}">Sil</button></td>
+      </tr>
+    `;
+  });
+
+  // Event listener'ları ekleyin
+  const deleteButtons = document.querySelectorAll('.delete-btn');
+  deleteButtons.forEach(button => {
+    button.addEventListener('click', (event) => {
+      const uid = event.target.getAttribute('data-uid');
+      deleteUser(uid);
+    });
+  });
+}
+
 async function deleteUser(uid) {
   if (confirm("Bu kullanıcıyı silmek istediğinizden emin misiniz?")) {
     try {
-      // Kullanıcıyı Firestore'dan sil
+      // Firestore'dan kullanıcıyı sil
       await deleteDoc(doc(db, "users", uid));
 
       // Firebase Authentication'dan kullanıcıyı sil
-      const userAuth = await getAuth().getUser(uid);  // uid ile kullanıcıyı alın
-      await deleteUser(userAuth);  // Firebase'den kullanıcıyı sil
+      const userAuth = await getAuth().getUser(uid);
+      await deleteUser(userAuth); // Firebase'den kullanıcıyı sil
 
       // Kullanıcıyı Array'den çıkar
       users = users.filter(user => user.uid !== uid);
@@ -332,17 +356,18 @@ async function deleteUser(uid) {
       loadUserGrowthData();  // Kullanıcı artış verilerini güncelle
 
       // Kullanıcı silindiği mesajı
-      showMessage("Kullanıcı başarıyla silindi.", "success");
+      alert("Kullanıcı başarıyla silindi.");
 
       // Kullanıcılar listesini yeniden yükleyin
       displayUsers(users);  // Kullanıcılar listesini güncelle
 
     } catch (error) {
       console.error("Kullanıcı silinirken hata oluştu:", error);
-      showMessage("Bir hata oluştu. Lütfen tekrar deneyin.", "error");
+      alert("Bir hata oluştu. Lütfen tekrar deneyin.");
     }
   }
 }
+
 
   // Arama Çubuğu için Fonksiyon
   document.getElementById("searchInput").addEventListener("input", function() {
