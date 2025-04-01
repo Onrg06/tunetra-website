@@ -67,9 +67,15 @@
   <h1>Hakkımızda ve İntro Yazısı Düzenle</h1>
   <div class="subtext">Her iki dilde de metni düzenleyebilirsiniz.</div>
   
-  <!-- Hakkımızda ve Intro yazıları için metin alanları -->
-  <textarea id="textTR" placeholder="Türkçe Hakkımızda ve Intro Metni"></textarea>
-  <textarea id="textEN" placeholder="English About & Intro Text"></textarea>
+  <!-- Hakkımızda metni düzenleme alanı -->
+  <h2>Hakkımızda Metni</h2>
+  <textarea id="textTR" placeholder="Türkçe Hakkımızda Metni"></textarea>
+  <textarea id="textEN" placeholder="English About Text"></textarea>
+  
+  <h2>Intro Yazısı</h2>
+  <!-- Intro yazısı düzenleme alanı -->
+  <textarea id="introTR" placeholder="Türkçe Intro Yazısı"></textarea>
+  <textarea id="introEN" placeholder="English Intro Text"></textarea>
   
   <button class="btn" onclick="saveAbout()">Kaydet</button>
   
@@ -98,8 +104,11 @@
     const db = getFirestore(app);
     const aboutRef = doc(db, "siteSettings", "aboutPage");
     
+    // Metin alanlarını almak
     const trText = document.getElementById("textTR");
     const enText = document.getElementById("textEN");
+    const introTRText = document.getElementById("introTR");
+    const introENText = document.getElementById("introEN");
     const status = document.getElementById("status");
     
     // Metni Firebase'ten yükleme
@@ -109,6 +118,8 @@
         const data = docSnap.data();
         trText.value = data.textTR || "";
         enText.value = data.textEN || "";
+        introTRText.value = data.introTR || "";
+        introENText.value = data.introEN || "";
       }
     }
     
@@ -116,16 +127,20 @@
     async function saveAbout() {
       const tr = trText.value.trim();
       const en = enText.value.trim();
+      const introTR = introTRText.value.trim();
+      const introEN = introENText.value.trim();
       
-      if (!tr || !en) {
-        status.innerText = "Her iki dil de boş bırakılamaz.";
+      if (!tr || !en || !introTR || !introEN) {
+        status.innerText = "Her iki dilde de metinler boş bırakılamaz.";
         status.style.color = "orange";
         return;
       }
       
       await setDoc(aboutRef, {
         textTR: tr,
-        textEN: en
+        textEN: en,
+        introTR: introTR,
+        introEN: introEN
       });
       
       status.innerText = "Hakkımızda ve Intro metinleri başarıyla güncellendi!";
