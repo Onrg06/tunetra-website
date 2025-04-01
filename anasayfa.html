@@ -280,7 +280,7 @@
     }
   }
 
-  // Mesajlar tıklandığında inboxHasNew sıfırlanacak ve kırmızı nokta gizlenecek
+  // Mesajlar tıklandığında inboxHasNew sıfırlanacak ve kırmızı nokta DOM'dan kaldırılacak
   document.getElementById("btnMessages").addEventListener("click", async () => {
     const user = auth.currentUser;
     if (!user) return;
@@ -290,8 +290,8 @@
 
     // Kırmızı noktayı DOM'dan tamamen kaldır
     if (msgDot) {
-      msgDot.remove();
-      msgDot = null; // msgDot'u sıfırla
+      msgDot.remove(); // msgDot'u DOM'dan kaldırıyoruz
+      msgDot = null; // msgDot değişkenini sıfırlıyoruz
     }
   });
 
@@ -349,6 +349,3 @@
     });
   });
 </script>
-
-
-
