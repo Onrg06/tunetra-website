@@ -144,13 +144,25 @@
       });
     }
 
+searchInput.addEventListener("input", () => {
+  const keyword = searchInput.value.toLowerCase();
+  // Kullanıcı adı ve metin üzerinde arama yapıyoruz
+  const filtered = allFeedback.filter(fb => 
+    fb.text.toLowerCase().includes(keyword) || // Şikayet metninde arama
+    fb.username.toLowerCase().includes(keyword) // Kullanıcı adında arama
+  );
+  displayFeedback(filtered);
+});
+
 function displayFeedback(feedback) {
   list.innerHTML = "";
   feedback.forEach(async (fb) => {
-    const userRef = doc(db, "users", fb.uid);  // Feedback'teki uid'yi kullanarak users koleksiyonundan veriyi alıyoruz.
+    // Kullanıcı bilgilerini alıyoruz (fb.uid üzerinden)
+    const userRef = doc(db, "users", fb.uid);  
     const userSnap = await getDoc(userRef);  // Kullanıcı verisini alıyoruz.
 
-    const username = userSnap.exists() ? userSnap.data().username : "Bilinmiyor";  // Eğer kullanıcı adı varsa, onu alıyoruz, yoksa "Bilinmiyor" yazıyoruz.
+    // Eğer kullanıcı adı varsa, onu alıyoruz; yoksa "Bilinmiyor" yazıyoruz
+    const username = userSnap.exists() ? userSnap.data().username : "Bilinmiyor";  
 
     list.innerHTML += `
       <div class="feedback-item" id="feedback-${fb.id}">
@@ -161,15 +173,6 @@ function displayFeedback(feedback) {
     `;
   });
 }
-
-searchInput.addEventListener("input", () => {
-  const keyword = searchInput.value.toLowerCase();
-  const filtered = allFeedback.filter(fb =>
-    fb.text.toLowerCase().includes(keyword) ||
-    fb.username.toLowerCase().includes(keyword)  // Burada da kullanıcı adı üzerinde arama yapılmasını sağlıyoruz.
-  );
-  displayFeedback(filtered);
-});
 
 
     window.deleteFeedback = async function (id) {
