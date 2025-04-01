@@ -202,7 +202,7 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  const msgDot = document.getElementById("msgDot");
+  let msgDot = document.getElementById("msgDot");
 
   const translations = {
     tr: {
@@ -265,9 +265,18 @@
 
     // Kırmızı nokta kontrolü
     if (inboxHasNew) {
+      if (!msgDot) {
+        msgDot = document.createElement("span");
+        msgDot.id = "msgDot";
+        msgDot.classList.add("dot");
+        document.getElementById("btnMessages").appendChild(msgDot);
+      }
       msgDot.style.display = "inline-block"; // Kırmızı nokta gösterilecek
     } else {
-      msgDot.style.display = "none"; // Kırmızı nokta gizlenecek
+      if (msgDot) {
+        msgDot.remove(); // Kırmızı noktayı DOM'dan kaldır
+        msgDot = null; // msgDot'u sıfırla
+      }
     }
   }
 
@@ -279,8 +288,11 @@
     // Mesajlar sayfasına gidildiğinde inboxHasNew alanını false yap
     await setInboxHasNew(user.uid, false);
 
-    // Kırmızı noktayı hemen gizle
-    msgDot.style.display = "none"; // Kırmızı nokta gizlendi
+    // Kırmızı noktayı DOM'dan tamamen kaldır
+    if (msgDot) {
+      msgDot.remove();
+      msgDot = null; // msgDot'u sıfırla
+    }
   });
 
   // Firebase'deki inboxHasNew değerini güncelle
@@ -301,10 +313,21 @@
       if (docSnap.exists()) {
         const inboxHasNew = docSnap.data().inboxHasNew || false;
 
-        const msgDot = document.getElementById("msgDot");
-
-        // Eğer yeni mesaj varsa, kırmızı nokta gösterilecek
-        msgDot.style.display = inboxHasNew ? "inline-block" : "none";
+        // Eğer yeni mesaj varsa, kırmızı nokta oluşturulacak
+        if (inboxHasNew) {
+          if (!msgDot) {
+            msgDot = document.createElement("span");
+            msgDot.id = "msgDot";
+            msgDot.classList.add("dot");
+            document.getElementById("btnMessages").appendChild(msgDot);
+          }
+          msgDot.style.display = "inline-block"; // Kırmızı nokta gösterilecek
+        } else {
+          if (msgDot) {
+            msgDot.remove(); // Kırmızı noktayı DOM'dan kaldır
+            msgDot = null; // msgDot'u sıfırla
+          }
+        }
       }
     });
   });
@@ -326,5 +349,6 @@
     });
   });
 </script>
+
 
 
