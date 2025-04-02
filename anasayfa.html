@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TuneTRa | Ana Sayfa</title>
   <link rel="icon" type="image/png" href="image.png" />
-    <style>
+  <style>
     * {
       box-sizing: border-box; 
       margin: 0; 
@@ -142,7 +142,7 @@ p {
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
       }
     }
-    </style>
+  </style>
 </head>
 <body>
   <div class="language-buttons">
@@ -177,9 +177,7 @@ p {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-// Firebase Yapılandırması ve Başlangıç
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
@@ -194,18 +192,36 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Kullanıcı, dil ve intro verisi
-
 let currentLang = "tr";
 let currentUID = "";
 
-let unreadMessageCount = 0;
-let friendRequestCount = 0;
-
-// Tercümeler ve UI güncellemeleri
 const translations = {
-  tr: { welcome: "🎶 Hoş Geldin, ", profile: "👤 Profilim", friends: "🧑‍🤝‍🧑 Arkadaşlarım", messages: "📨 Mesajlarım", feedback: "📮 Dilek & Şikayet Kutusu", announcements: "📢 Duyurular", about: "ℹ️ Hakkımızda", lyrics: "✍️ Sözler / Şiirler", melody: "🎵 Melodi", songs: "🎶 Hazır Şarkılar", logout: "Çıkış Yap" },
-  en: { welcome: "🎶 Welcome, ", profile: "👤 My Profile", friends: "🧑‍🤝‍🧑 My Friends", messages: "📨 My Messages", feedback: "📮 Feedback & Complaints", announcements: "📢 Announcements", about: "ℹ️ About", lyrics: "✍️ Lyrics", melody: "🎵 Melody", songs: "🎶 Ready Songs", logout: "Log Out" }
+  tr: {
+    welcome: "🎶 Hoş Geldin, ",
+    profile: "👤 Profilim",
+    friends: "🧑‍🤝‍🧑 Arkadaşlarım",
+    messages: "📨 Mesajlarım",
+    feedback: "📮 Dilek & Şikayet Kutusu",
+    announcements: "📢 Duyurular",
+    about: "ℹ️ Hakkımızda",
+    lyrics: "✍️ Sözler / Şiirler",
+    melody: "🎵 Melodi",
+    songs: "🎶 Hazır Şarkılar",
+    logout: "Çıkış Yap"
+  },
+  en: {
+    welcome: "🎶 Welcome, ",
+    profile: "👤 My Profile",
+    friends: "🧑‍🤝‍🧑 My Friends",
+    messages: "📨 My Messages",
+    feedback: "📮 Feedback & Complaints",
+    announcements: "📢 Announcements",
+    about: "ℹ️ About",
+    lyrics: "✍️ Lyrics",
+    melody: "🎵 Melody",
+    songs: "🎶 Ready Songs",
+    logout: "Log Out"
+  }
 };
 
 window.setLang = function (lang) {
@@ -213,19 +229,45 @@ window.setLang = function (lang) {
   updateUI();
 };
 
-function updateUI() {
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    window.location.href = "index.html";
+  } else {
+    currentUID = user.uid;
+    updateUI();
+  }
+});
+
+async function updateUI() {
   const user = auth.currentUser;
   if (!user) return;
 
   const docRef = doc(db, "users", user.uid);
-  const userDoc = getDoc(docRef);
-  userDoc.then(async (userSnap) => {
-    if (userSnap.exists()) {
-      const username = userSnap.data().username;
-      document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
-    }
-  });
+  const userDoc = await getDoc(docRef);
 
+  if (userDoc.exists()) {
+    const username = userDoc.data().username;
+    document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
+
+    // Admin kontrolü
+    const role = userDoc.data().role;
+    if (role === "admin") {
+      document.getElementById("btnAdmin").style.display = "block";
+    } else {
+      document.getElementById("btnAdmin").style.display = "none";
+    }
+  }
+
+  // Firebase'ten Intro yazısını çekiyoruz
+  const introRef = doc(db, "siteSettings", "introPage");
+  const introDoc = await getDoc(introRef);
+  if (introDoc.exists()) {
+    const introData = introDoc.data();
+    const introText = introData[`intro${currentLang.toUpperCase()}`];
+    document.getElementById("introContent").innerHTML = introText;
+  }
+
+  // Diğer metinleri dil seçimine göre ayarlıyoruz
   document.getElementById("btnProfile").innerText = translations[currentLang].profile;
   document.getElementById("btnFriends").innerText = translations[currentLang].friends;
   document.getElementById("btnMessages").innerText = translations[currentLang].messages;
@@ -236,66 +278,17 @@ function updateUI() {
   document.getElementById("btnMelody").innerText = translations[currentLang].melody;
   document.getElementById("btnSongs").innerText = translations[currentLang].songs;
   document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
-
-  loadIntroText();
-}
-
-async function loadIntroText() {
-  const introRef = doc(db, "siteSettings", "introPage");
-  const introDoc = await getDoc(introRef);
-  if (introDoc.exists()) {
-    const introData = introDoc.data();
-    const introText = introData[`intro${currentLang.toUpperCase()}`];
-    document.getElementById("introContent").innerHTML = introText;
-  }
-}
-
-function setupRealtimeFriendRequestCount(uid) {
-  const friendReqRef = collection(db, "friendRequests");
-  const queryFriendRequests = query(friendReqRef, where("to", "==", uid), where("status", "==", "pending"));
-  
-  onSnapshot(queryFriendRequests, (snapshot) => {
-    friendRequestCount = snapshot.size;
-    updateFriendRequestButton();
-  });
-}
-
-function updateFriendRequestButton() {
-  const friendButton = document.getElementById("btnFriends");
-  friendButton.innerText = `🧑‍🤝‍🧑 Arkadaşlarım ${friendRequestCount > 0 ? `(${friendRequestCount})` : ""}`;
-}
-
-function setupRealtimeMessageCount(uid) {
-  const messagesRef = collection(db, "conversations");
-  const queryMessages = query(messagesRef, where("participants", "array-contains", uid));
-  
-  onSnapshot(queryMessages, (snapshot) => {
-    unreadMessageCount = 0;
-    snapshot.docs.forEach(doc => {
-      const messagesCol = collection(db, "conversations", doc.id, "messages");
-      onSnapshot(messagesCol, (messagesSnapshot) => {
-        messagesSnapshot.docs.forEach(msgDoc => {
-          const msg = msgDoc.data();
-          if (!msg.seenBy || !msg.seenBy.includes(uid)) {
-            unreadMessageCount++;
-          }
-        });
-      });
-    });
-    updateMessageButton();
-  });
-}
-
-function updateMessageButton() {
-  const messageButton = document.getElementById("btnMessages");
-  messageButton.innerText = `📨 Mesajlarım ${unreadMessageCount > 0 ? `(${unreadMessageCount})` : ""}`;
 }
 
 function logout() {
   signOut(auth).then(() => {
     window.location.href = "index.html";
   });
-}
+};
+
+window.addEventListener("DOMContentLoaded", () => {
+  setLang("tr");
+});
 </script>
 </body>
 </html>
