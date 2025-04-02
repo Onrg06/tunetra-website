@@ -39,9 +39,8 @@
 
 .top-row {
   display: flex;
-  justify-content: center; /* Grafik kutularını ortalar */
+  justify-content: space-between;
   gap: 20px;
-  flex-wrap: wrap; /* Grafikler alt satıra geçebilir */
 }
 
 .top-middle, .top-right {
@@ -51,12 +50,12 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* Başlıkları yukarıda tutar */
-  align-items: center; /* Grafiklerin ortalanması */
+  justify-content: center;  /* Grafiklerin ortalanması için */
+  align-items: center;  /* Grafiklerin ortalanması için */
   width: 100%;
   box-sizing: border-box;
-  min-width: 350px; /* Grafik kutularının minimum genişliği */
-  max-width: 48%; /* Grafik kutularının maksimum genişliği */
+  min-width: 300px;
+  max-width: 48%;  /* Grafik kutularının genişliğini ayarlıyoruz */
 }
 
 canvas {
@@ -65,7 +64,6 @@ canvas {
 }
 
 h2 {
-  margin-top: 0;  /* Başlıkları yukarıya hizalar */
   margin-bottom: 15px;
   font-size: 18px;
   text-align: center;
