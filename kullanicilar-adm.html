@@ -44,13 +44,21 @@
       margin-bottom: 10px;
     }
 
-    .top-middle, .top-right {
-      background-color: rgba(0, 0, 0, 0.7);
-      padding: 20px;
-      border-radius: 8px;
-      flex: 1;
-    }
+.top-middle, .top-right {
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 20px;
+  border-radius: 8px;
+  flex: 1;
+  display: flex; /* Flexbox ekledik */
+  justify-content: center; /* İçeriği yatayda ortaladık */
+  align-items: center; /* İçeriği dikeyde ortaladık */
+}
 
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+    
     h2 {
       margin-bottom: 15px;
     }
