@@ -95,7 +95,7 @@
       gap: 20px;
     }
 
-/* Tabloyu içeren div'leri ortalamak için */
+/* Tabloları içeren div'leri ortalamak için */
 .bottom-left, .bottom-right {
   background-color: rgba(0, 0, 0, 0.7);
   padding: 20px;
@@ -121,43 +121,46 @@
   text-align: center;  /* İçeriği ortalar */
 }
 
-    .search-input {
-      padding: 10px;
-      margin-bottom: 20px;
-      width: 100%;
-      max-width: 400px;
-      border-radius: 6px;
-      border: none;
-      font-size: 16px;
-    }
+/* Kullanıcı Bilgileri kısmı (arama çubuğu düzeni) */
+.search-input {
+  padding: 10px;
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 6px;
+  border: none;
+  font-size: 16px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto; /* Arama çubuğunu da ortalar */
+}
 
-    /* Buton Tasarımı */
-    .admin-back-btn {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 12px 20px;
-      background: linear-gradient(to right, #6a11cb, #2575fc);
-      color: white;
-      border-radius: 8px;
-      font-weight: bold;
-      text-decoration: none;
-      transition: 0.3s;
-    }
+/* Tabloyu içeren kutunun stilini düzeltmek */
+.bottom-left, .bottom-right {
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 20px;
+  border-radius: 8px;
+  flex: 1;
+  display: flex;
+  justify-content: center; /* Ortalar */
+  align-items: center;     /* Dikeyde ortalar */
+}
+
+/* Stilini düzelttiğimiz butonlar */
+.delete-btn {
+  padding: 6px 12px;
+  background-color: #ff4b4b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
 
     .admin-back-btn:hover {
       background: linear-gradient(to right, #2575fc, #6a11cb);
     }
 
-    /* Silme Butonu Kırmızı */
-    .delete-btn {
-      padding: 6px 12px;
-      background-color: #ff4b4b;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-    }
 
     .delete-btn:hover {
       background-color: #e63946;
