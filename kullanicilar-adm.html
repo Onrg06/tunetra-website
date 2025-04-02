@@ -22,13 +22,6 @@
       gap: 20px;
     }
 
-    /* Üst Kısım */
-    .top-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 20px;
-    }
-
     .top-left {
       background-color: rgba(0, 0, 0, 0.7);
       padding: 20px;
@@ -44,28 +37,37 @@
       margin-bottom: 10px;
     }
 
+.top-row {
+  display: flex;
+  justify-content: center; /* Grafiklerin ortalanması için */
+  align-items: center; /* Grafiklerin dikeyde ortalanması için */
+  gap: 20px;
+  flex-wrap: wrap; /* Eğer grafikler taşarsa alt satıra geçsin */
+}
+
 .top-middle, .top-right {
   background-color: rgba(0, 0, 0, 0.7);
   padding: 20px;
   border-radius: 8px;
   flex: 1;
   display: flex;
-  flex-direction: column;  /* Yönü dikey yapalım */
-  justify-content: space-between; /* Başlık ve grafik arasındaki boşluğu ayarlayalım */
-  align-items: center; /* İçeriği dikeyde ortalayalım */
-  width: 100%;  /* Genişliği 100% yapalım */
+  flex-direction: column;
+  justify-content: flex-start; 
+  align-items: center; /* Grafiklerin ortalanması için */
+  width: 100%;
   box-sizing: border-box;
+  min-width: 300px;
+}
+
+canvas {
+  width: 100%;
+  height: auto;
 }
 
 h2 {
   margin-bottom: 15px;
   font-size: 18px;
-  text-align: center;  /* Başlıkları ortalayalım */
-}
-
-canvas {
-  max-width: 90%;  /* Grafik genişliğini sınırlayalım */
-  height: auto;
+  text-align: center;
 }
 
 
