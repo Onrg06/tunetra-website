@@ -39,24 +39,22 @@
 
 .top-row {
   display: flex;
-  justify-content: center; /* Grafiklerin ortalanması için */
-  align-items: center; /* Grafiklerin dikeyde ortalanması için */
+  justify-content: space-between;
   gap: 20px;
-  flex-wrap: wrap; /* Eğer grafikler taşarsa alt satıra geçsin */
+  flex-wrap: wrap;
 }
 
 .top-middle, .top-right {
   background-color: rgba(0, 0, 0, 0.7);
   padding: 20px;
   border-radius: 8px;
-  flex: 1;
+  flex: 1 1 45%; /* Her iki kutunun genişliğini eski boyutuna getiriyoruz */
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; 
-  align-items: center; /* Grafiklerin ortalanması için */
-  width: 100%;
+  justify-content: flex-start;
+  align-items: center;
   box-sizing: border-box;
-  min-width: 300px;
+  min-width: 300px; /* Minimum genişlik sınırı */
 }
 
 canvas {
