@@ -241,6 +241,8 @@ import { getFirestore, doc, getDoc, updateDoc, deleteDoc } from "https://www.gst
 
     let currentUser;
     let currentLang = localStorage.getItem("lang") || "tr";
+   
+    window.goHome = () => location.href = "anasayfa.html";
 
     const translations = {
       tr: {
