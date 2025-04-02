@@ -39,8 +39,9 @@
 
 .top-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: center; /* Grafik kutularını ortalayacağız */
   gap: 20px;
+  flex-wrap: wrap; /* Grafikler alt satıra geçebilir */
 }
 
 .top-middle, .top-right {
@@ -50,24 +51,24 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* Grafiklerin yukarıda yer almasını sağlıyoruz */
-  align-items: center;
+  justify-content: flex-start; /* Başlıkları yukarıda tutar */
+  align-items: center; /* Grafiklerin ortalanması için */
   width: 100%;
   box-sizing: border-box;
   min-width: 300px;
-  max-width: 48%; /* Grafik kutularının genişliğini koruyoruz */
-}
-
-h2 {
-  margin-top: 20px;  /* Başlıkların üst kısmına biraz boşluk ekliyoruz */
-  margin-bottom: 15px;
-  font-size: 18px;
-  text-align: center;
+  max-width: 48%; /* Grafik kutularının genişliğini ayarlıyoruz */
 }
 
 canvas {
   width: 100%;
   height: auto;
+}
+
+h2 {
+  margin-top: 0;  /* Başlıkları yukarıya hizalar */
+  margin-bottom: 15px;
+  font-size: 18px;
+  text-align: center;
 }
 
     .big-number {
