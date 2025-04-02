@@ -50,23 +50,24 @@
   border-radius: 8px;
   flex: 1;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%; /* Genişlik 100% yapıldı */
-  box-sizing: border-box; /* Kutuların padding ile taşmaması için */
-  overflow: hidden; /* Taşmayı engellemek için */
-}
-
-canvas {
-  max-width: 90%; /* Grafiklerin genişliğini sınırladık */
-  height: auto;
+  flex-direction: column;  /* Yönü dikey yapalım */
+  justify-content: space-between; /* Başlık ve grafik arasındaki boşluğu ayarlayalım */
+  align-items: center; /* İçeriği dikeyde ortalayalım */
+  width: 100%;  /* Genişliği 100% yapalım */
+  box-sizing: border-box;
 }
 
 h2 {
   margin-bottom: 15px;
   font-size: 18px;
-  text-align: center; /* Başlıkları ortaladık */
+  text-align: center;  /* Başlıkları ortalayalım */
 }
+
+canvas {
+  max-width: 90%;  /* Grafik genişliğini sınırlayalım */
+  height: auto;
+}
+
 
     .big-number {
       font-size: 32px;
