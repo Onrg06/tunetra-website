@@ -49,19 +49,24 @@
   padding: 20px;
   border-radius: 8px;
   flex: 1;
-  display: flex; /* Flexbox ekledik */
-  justify-content: center; /* İçeriği yatayda ortaladık */
-  align-items: center; /* İçeriği dikeyde ortaladık */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%; /* Genişlik 100% yapıldı */
+  box-sizing: border-box; /* Kutuların padding ile taşmaması için */
+  overflow: hidden; /* Taşmayı engellemek için */
 }
 
 canvas {
-  max-width: 100%;
+  max-width: 90%; /* Grafiklerin genişliğini sınırladık */
   height: auto;
 }
-    
-    h2 {
-      margin-bottom: 15px;
-    }
+
+h2 {
+  margin-bottom: 15px;
+  font-size: 18px;
+  text-align: center; /* Başlıkları ortaladık */
+}
 
     .big-number {
       font-size: 32px;
