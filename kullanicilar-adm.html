@@ -179,17 +179,53 @@ h2 {
     color: #ff5733; /* Kırmızı renk */
     }
 
-    /* Mobil Uyumlu */
-    @media (max-width: 768px) {
-      .top-row, .bottom-row {
-        flex-direction: column;
-      }
+@media (max-width: 768px) {
+  .top-row {
+    flex-direction: column; /* Tüm öğeleri dikey sıralar */
+    gap: 20px; /* Aralarındaki boşluğu artırır */
+  }
 
-      .top-left, .top-middle, .top-right, .bottom-left, .bottom-right {
-        flex: 1 1 100%;
-      }
-    }
+  .top-middle, .top-right, .top-left {
+    flex: 1 1 100%; /* Her öğe tam genişlikte olacak */
+    max-width: 100%;
+  }
 
+  /* Grafik kutuları için */
+  .chart-container {
+    height: 250px; /* Grafik boyutunu mobilde küçültüyoruz */
+  }
+
+  /* Başlıklar için */
+  .top-middle h2, .top-right h2, .top-left h2 {
+    font-size: 18px; /* Başlık font büyüklüğünü mobilde biraz küçültüyoruz */
+    margin-top: 10px;
+    margin-bottom: 15px;
+  }
+
+  /* Tablolar ve içeriklerin mobil uyumlu olması için */
+  #user-list {
+    font-size: 14px; /* Yazı boyutunu küçültüyoruz */
+    margin-bottom: 20px;
+  }
+
+  #user-list th, #user-list td {
+    padding: 10px;
+    border: 1px solid #444;
+  }
+
+  /* Kullanıcı listeleme için arama alanı */
+  .search-input {
+    width: 100%;
+    max-width: 100%;
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  /* Grafik başlıklarının hizalanması */
+  .top-middle h2, .top-right h2 {
+    text-align: center; /* Başlıkları ortalayalım */
+  }
+}
   </style>
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Grafikler için Chart.js -->
