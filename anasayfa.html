@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TuneTRa | Ana Sayfa</title>
   <link rel="icon" type="image/png" href="image.png" />
-  <style>
+    <style>
     * {
       box-sizing: border-box; 
       margin: 0; 
@@ -142,7 +142,7 @@ p {
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
       }
     }
-  </style>
+    </style>
 </head>
 <body>
   <div class="language-buttons">
@@ -179,6 +179,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, updateDoc, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+// Firebase Yapılandırması ve Başlangıç
+
 const firebaseConfig = {
   apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
   authDomain: "tunetra-2579b.firebaseapp.com",
@@ -192,39 +194,18 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// Kullanıcı, dil ve intro verisi
+
 let currentLang = "tr";
 let currentUID = "";
 
 let unreadMessageCount = 0;
 let friendRequestCount = 0;
 
+// Tercümeler ve UI güncellemeleri
 const translations = {
-  tr: {
-    welcome: "🎶 Hoş Geldin, ",
-    profile: "👤 Profilim",
-    friends: "🧑‍🤝‍🧑 Arkadaşlarım",
-    messages: "📨 Mesajlarım",
-    feedback: "📮 Dilek & Şikayet Kutusu",
-    announcements: "📢 Duyurular",
-    about: "ℹ️ Hakkımızda",
-    lyrics: "✍️ Sözler / Şiirler",
-    melody: "🎵 Melodi",
-    songs: "🎶 Hazır Şarkılar",
-    logout: "Çıkış Yap"
-  },
-  en: {
-    welcome: "🎶 Welcome, ",
-    profile: "👤 My Profile",
-    friends: "🧑‍🤝‍🧑 My Friends",
-    messages: "📨 My Messages",
-    feedback: "📮 Feedback & Complaints",
-    announcements: "📢 Announcements",
-    about: "ℹ️ About",
-    lyrics: "✍️ Lyrics",
-    melody: "🎵 Melody",
-    songs: "🎶 Ready Songs",
-    logout: "Log Out"
-  }
+  tr: { welcome: "🎶 Hoş Geldin, ", profile: "👤 Profilim", friends: "🧑‍🤝‍🧑 Arkadaşlarım", messages: "📨 Mesajlarım", feedback: "📮 Dilek & Şikayet Kutusu", announcements: "📢 Duyurular", about: "ℹ️ Hakkımızda", lyrics: "✍️ Sözler / Şiirler", melody: "🎵 Melodi", songs: "🎶 Hazır Şarkılar", logout: "Çıkış Yap" },
+  en: { welcome: "🎶 Welcome, ", profile: "👤 My Profile", friends: "🧑‍🤝‍🧑 My Friends", messages: "📨 My Messages", feedback: "📮 Feedback & Complaints", announcements: "📢 Announcements", about: "ℹ️ About", lyrics: "✍️ Lyrics", melody: "🎵 Melody", songs: "🎶 Ready Songs", logout: "Log Out" }
 };
 
 window.setLang = function (lang) {
@@ -232,40 +213,41 @@ window.setLang = function (lang) {
   updateUI();
 };
 
-onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    window.location.href = "index.html";
-  } else {
-    currentUID = user.uid;
-    updateUI();
-    setupRealtimeFriendRequestCount(currentUID);
-    setupRealtimeMessageCount(currentUID);
-  }
-});
-
-async function updateUI() {
+function updateUI() {
   const user = auth.currentUser;
   if (!user) return;
 
   const docRef = doc(db, "users", user.uid);
-  const userDoc = await getDoc(docRef);
-
-  if (userDoc.exists()) {
-    const username = userDoc.data().username;
-    document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
-
-    // Admin kontrolü
-    const role = userDoc.data().role;
-    if (role === "admin") {
-      document.getElementById("btnAdmin").style.display = "block";
-    } else {
-      document.getElementById("btnAdmin").style.display = "none";
+  const userDoc = getDoc(docRef);
+  userDoc.then(async (userSnap) => {
+    if (userSnap.exists()) {
+      const username = userSnap.data().username;
+      document.getElementById("welcomeMessage").innerHTML = translations[currentLang].welcome + username + "!";
     }
-  }
+  });
 
-  // Arkadaşlar ve Mesajlar butonları güncelleniyor
-  updateFriendRequestButton();
-  updateMessageButton();
+  document.getElementById("btnProfile").innerText = translations[currentLang].profile;
+  document.getElementById("btnFriends").innerText = translations[currentLang].friends;
+  document.getElementById("btnMessages").innerText = translations[currentLang].messages;
+  document.getElementById("btnFeedback").innerText = translations[currentLang].feedback;
+  document.getElementById("btnAnnouncements").innerText = translations[currentLang].announcements;
+  document.getElementById("btnAbout").innerText = translations[currentLang].about;
+  document.getElementById("btnLyrics").innerText = translations[currentLang].lyrics;
+  document.getElementById("btnMelody").innerText = translations[currentLang].melody;
+  document.getElementById("btnSongs").innerText = translations[currentLang].songs;
+  document.getElementById("logoutBtn").innerText = translations[currentLang].logout;
+
+  loadIntroText();
+}
+
+async function loadIntroText() {
+  const introRef = doc(db, "siteSettings", "introPage");
+  const introDoc = await getDoc(introRef);
+  if (introDoc.exists()) {
+    const introData = introDoc.data();
+    const introText = introData[`intro${currentLang.toUpperCase()}`];
+    document.getElementById("introContent").innerHTML = introText;
+  }
 }
 
 function setupRealtimeFriendRequestCount(uid) {
@@ -313,7 +295,7 @@ function logout() {
   signOut(auth).then(() => {
     window.location.href = "index.html";
   });
-};
+}
 </script>
 </body>
 </html>
