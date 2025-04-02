@@ -1,173 +1,159 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TuneTRa | Kullanıcı Adımı Unuttum</title>
-  <link rel="icon" type="image/png" href="image.png" />
-  <style>
-    body {
-      background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      color: white;
-      margin: 0;
-      text-align: center;
-    }
-    .container {
-      background: rgba(0, 0, 0, 0.7);
-      padding: 30px;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 400px;
-      box-shadow: 0 0 10px rgba(255,255,255,0.2);
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 6px;
-      background: #2a2a2a;
-      color: white;
-    }
-    button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 6px;
-      background: linear-gradient(to right, #6a11cb, #2575fc);
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover {
-      background: linear-gradient(to right, #ffcc70, #6a11cb);
-    }
-    .language-buttons {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      display: flex;
-      gap: 10px;
-    }
-    #result {
-      margin-top: 15px;
-      font-weight: bold;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Economentor | Kullanıcı Adımı Unuttum</title>
+    <link rel="icon" href="image1.png">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #001f3d;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: -1;
+            background-image: url('image2.png');
+            background-position: center;
+            background-size: cover;
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            font-size: 26px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border: none;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #errorMsg {
+            color: #ffcccc;
+            background: rgba(255, 0, 0, 0.2);
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            display: none;
+        }
+
+        .link {
+            color: #fff;
+            text-decoration: none;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .link:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
+    <div class="background"></div>
+    <div class="container">
+        <h2>Kullanıcı Adımı Unuttum</h2>
+        <form id="usernameRecoveryForm">
+            <div id="errorMsg"></div>
+            
+            <input type="email" id="email" placeholder="E-Posta Adresi" required>
+            <input type="password" id="password" placeholder="Şifre" required>
+            
+            <button type="submit">Kullanıcı Adımı Gönder</button>
+        </form>
+        <a href="index.html" class="link">Geri Dön</a>
+    </div>
 
-  <div class="language-buttons">
-    <button onclick="setLang('tr')">🇹🇷 Türkçe</button>
-    <button onclick="setLang('en')">🇬🇧 English</button>
-  </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  <div class="container">
-    <h1 id="forgotUsernameTitle">Kullanıcı Adımı Unuttum</h1>
-    <form id="forgotUsernameForm">
-      <input type="email" id="email" placeholder="E-posta" required>
-      <input type="password" id="password" placeholder="Şifre" required>
-      <button id="recoverBtn" type="submit">Kullanıcı Adını Bul</button>
-      <button id="loginBtn" type="button" onclick="window.location.href='index.html'">Giriş Yap</button>
-    </form>
-    <p id="result"></p>
-  </div>
+        const firebaseConfig = {
+            apiKey: "AIzaSyADPBpJhZ9UKR1NFC42bqEqgKHyLaWunIQ",
+            authDomain: "economentor-8ddc4.firebaseapp.com",
+            projectId: "economentor-8ddc4",
+            storageBucket: "economentor-8ddc4.firebasestorage.app",
+            messagingSenderId: "835370350520",
+            appId: "1:835370350520:web:d9bb275eb4b7502997814d",
+            measurementId: "G-FS3FMPYVPD"
+        };
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAZCCTKPRJRpGGkboQR7IYlV1VNkH73ldg",
-      authDomain: "tunetra-2579b.firebaseapp.com",
-      projectId: "tunetra-2579b",
-      storageBucket: "tunetra-2579b.appspot.com",
-      messagingSenderId: "576238823779",
-      appId: "1:576238823779:web:b1796f089427e3b6fecb56",
-      measurementId: "G-LRQGNS7B8X"
-    };
+        document.getElementById("usernameRecoveryForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const errorBox = document.getElementById("errorMsg");
+            errorBox.innerText = "";
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
 
-    const translations = {
-      tr: {
-        forgotUsernameTitle: "Kullanıcı Adımı Unuttum",
-        email: "E-posta",
-        password: "Şifre",
-        recoverBtn: "Kullanıcı Adını Bul",
-        loginBtn: "Giriş Yap",
-        notFound: "E-posta veya şifre hatalı!",
-        found: "Kullanıcı adınız: "
-      },
-      en: {
-        forgotUsernameTitle: "Forgot Username",
-        email: "Email",
-        password: "Password",
-        recoverBtn: "Find Username",
-        loginBtn: "Log In",
-        notFound: "Incorrect email or password!",
-        found: "Your username is: "
-      }
-    };
+            try {
+                // Firestore'da e-posta ile kullanıcıyı bul
+                const q = query(collection(db, "users"), where("email", "==", email));
+                const querySnapshot = await getDocs(q);
 
-    let currentLang = "tr";
+                if (querySnapshot.empty) {
+                    errorBox.innerText = "E-posta adresiyle ilgili kayıt bulunamadı!";
+                    return;
+                }
 
-    window.setLang = function(lang) {
-      currentLang = lang;
-      const t = translations[lang];
-      document.getElementById("forgotUsernameTitle").innerText = t.forgotUsernameTitle;
-      document.getElementById("email").placeholder = t.email;
-      document.getElementById("password").placeholder = t.password;
-      document.getElementById("recoverBtn").innerText = t.recoverBtn;
-      document.getElementById("loginBtn").innerText = t.loginBtn;
-      document.getElementById("result").innerText = "";
-    };
+                // Kullanıcıyı bulduktan sonra kullanıcı adını al
+                const userData = querySnapshot.docs[0].data();
+                const username = userData.username;
 
-    window.addEventListener("DOMContentLoaded", () => {
-      setLang("tr");
-
-      document.getElementById("forgotUsernameForm").addEventListener("submit", async function(e) {
-        e.preventDefault();
-        const emailInput = document.getElementById("email").value.trim().toLowerCase();
-        const passwordInput = document.getElementById("password").value;
-        const resultBox = document.getElementById("result");
-
-        try {
-          // Şifre doğrulama
-          await signInWithEmailAndPassword(auth, emailInput, passwordInput);
-
-          // Eğer şifre doğruysa Firestore'dan username'i bul
-          const querySnapshot = await getDocs(collection(db, "users"));
-          let usernameFound = null;
-
-          querySnapshot.forEach((doc) => {
-            const user = doc.data();
-            if (user.email.toLowerCase() === emailInput) {
-              usernameFound = user.username;
+                // Kullanıcı adına bir mesaj gönderme (Burada sadece alert gösteriyoruz, ama mail gönderebilirsiniz)
+                alert("Kullanıcı adınız: " + username);
+                window.location.href = "index.html"; // Giriş sayfasına yönlendirme
+            } catch (error) {
+                console.error("Hata: ", error);
+                errorBox.innerText = "Bir hata oluştu!";
             }
-          });
-
-          if (usernameFound) {
-            resultBox.innerText = translations[currentLang].found + usernameFound;
-          } else {
-            resultBox.innerText = translations[currentLang].notFound;
-          }
-
-        } catch (error) {
-          console.error("Doğrulama hatası:", error);
-          resultBox.innerText = translations[currentLang].notFound;
-        }
-      });
-    });
-  </script>
+        });
+    </script>
 </body>
 </html>
