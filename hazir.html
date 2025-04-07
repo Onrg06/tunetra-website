@@ -220,7 +220,7 @@ function setupRealtimeListener() {
           <p><strong>${d.uploader}</strong> + <strong>${d.collaborator}</strong> (${time})</p>
           <audio controls src="${d.audioUrl}"></audio>
           <h3>${d.title}</h3>
-          <p>${d.lyrics.replace(/\\n/g, "<br>")}</p>
+          <p>${d.lyrics.replace(/\n/g, "<br>")}</p>
           ${showDelete ? `<button class="btn" onclick="deleteSong('${docId}')">❌ Sil</button>` : ""}
         </div>
       `;
