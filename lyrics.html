@@ -194,7 +194,7 @@
           lyricElement.innerHTML = `
             <p class="username">${data.username}</p>
             <p class="song-title">${data.title || "(Başlıksız)"}</p>
-            <p>${data.lyrics}</p>
+            <p>${data.lyrics.replace(/\n/g, "<br>")}</p>
             <p class="timestamp">${data.timestamp?.toDate().toLocaleString()}</p>
             ${deleteBtnHTML}
           `;
@@ -248,13 +248,14 @@
   ? `<button class="delete-btn" onclick="deleteLyric('${docId}')">&times;</button>`
   : "";
 
-    lyricElement.innerHTML = `
-      <p class="username">${data.username}</p>
-      <p class="song-title">${data.title || "(Başlıksız)"}</p>
-      <p>${data.lyrics}</p>
-      <p class="timestamp">${data.timestamp?.toDate().toLocaleString()}</p>
-      ${deleteBtnHTML}
-    `;
+lyricElement.innerHTML = `
+  <p class="username">${data.username}</p>
+  <p class="song-title">${data.title || "(Başlıksız)"}</p>
+  <p>${data.lyrics.replace(/\n/g, "<br>")}</p>
+  <p class="timestamp">${data.timestamp?.toDate().toLocaleString()}</p>
+  ${deleteBtnHTML}
+`;
+
     lyricsList.appendChild(lyricElement);
   });
 });
