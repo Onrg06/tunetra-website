@@ -1,9 +1,14 @@
-<!DOCTYPE html><html lang="tr">
+<!DOCTYPE html>
+<html lang="tr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Melodi Yükle</title>
-  <link rel="icon" type="image/png" href="image.png" />  <!-- Firebase -->  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore-compat.js"></script>  <style>
+  <link rel="icon" type="image/png" href="image.png" />  
+  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-app-compat.js"></script>  
+  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-auth-compat.js"></script>  
+  <script src="https://www.gstatic.com/firebasejs/9.7.0/firebase-firestore-compat.js"></script>  
+  <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       background: linear-gradient(to right, #6a11cb, #ffcc70, #2575fc);
@@ -24,6 +29,18 @@
     .btn {
       padding: 12px 20px;
       background: linear-gradient(to right, #6a11cb, #2575fc);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: bold;
+      margin: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .file-btn {
+      padding: 12px 20px;
+      background-color: #2575fc; /* blue background */
       border: none;
       border-radius: 10px;
       color: white;
@@ -64,15 +81,20 @@
       width: 100%;
       margin-top: 10px;
     }
-  </style></head>
-<body>  <div>
+  </style>
+</head>
+<body>
+  <div>
     <button class="btn" onclick="setLang('tr')">🇹🇷 Türkçe</button>
     <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
-  </div>  <h1 id="title">Melodi Yükle</h1>
-  <button class="btn" input type="file" id="melodyInput" accept="audio/*" />
-  <button class="btn" onclick="document.getElementById('melodyInput').click()" id="file-label">Ses Dosyası Seç</button>
-  <button class="btn" onclick="location.href='anasayfa.html'" id="home-btn">Anasayfa</button>  <h2 id="melody-title">Yüklenen Melodiler</h2>
-  <div id="melodyList"></div>  <script type="module">
+  </div>
+  <h1 id="title">Melodi Yükle</h1>
+  <input type="file" id="melodyInput" accept="audio/*" style="display:none;" />
+  <button class="file-btn" onclick="document.getElementById('melodyInput').click()" id="file-label">Ses Dosyası Seç</button>
+  <button class="btn" onclick="location.href='anasayfa.html'" id="home-btn">Anasayfa</button>
+  <h2 id="melody-title">Yüklenen Melodiler</h2>
+  <div id="melodyList"></div>
+  <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
     const firebaseConfig = {
@@ -178,6 +200,7 @@
       document.getElementById("home-btn").innerText = texts[lang].home;
       document.getElementById("melody-title").innerText = texts[lang].list;
     };
+
     function getText(key) {
       const lang = document.documentElement.lang || "tr";
       return texts[lang][key];
@@ -207,5 +230,6 @@
         deleted: "Melody deleted successfully!"
       }
     };
-  </script></body>
+  </script>
+</body>
 </html>
