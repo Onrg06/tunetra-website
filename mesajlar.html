@@ -178,11 +178,13 @@
     <h2 id="pageTitle">Mesajlar</h2>
     <div>
       <button class="lang-btn" onclick="goHome()" id="homeBtn">Ana Sayfa</button>
+      <button class="lang-btn" onclick="setLang('tr')">Türkçe</button>
+      <button class="lang-btn" onclick="setLang('en')">English</button>
     </div>
   </header>
   <div class="container">
     <div class="chat-list" id="chatList">
-      <input type="text" class="search-bar" id="searchBar" placeholder="Kişi ara..." oninput="filterChatList()">
+      <input type="text" class="search-bar" id="searchBar" placeholder="Kişi ara.../Search user..." oninput="filterChatList()">
       Yükleniyor...
     </div>
     <div class="chat-window">
@@ -230,6 +232,11 @@ const t = {
     home: "Ana Sayfa", turkish: "🇹🇷 Türkçe", english: "🇬🇧 English",
     sentAt: "Gönderildi", you: "Sen"
   },
+  en: {
+    pageTitle: "Messages", placeholder: "Type a message...", send: "Send",
+    home: "Home", turkish: "🇹🇷 Turkish", english: "🇬🇧 English",
+    sentAt: "Sent at", you: "You"
+  }
 };
 
 function updateTexts() {
@@ -252,6 +259,7 @@ function setLang(l) {
   localStorage.setItem("lang", lang);
   updateTexts();
 }
+
 window.setLang = setLang;
 
 function formatTimestamp(ts) {
