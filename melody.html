@@ -92,6 +92,7 @@
   <input type="file" id="melodyInput" accept="audio/*" style="display:none;" />
   <button class="file-btn" onclick="document.getElementById('melodyInput').click()" id="file-label">Ses Dosyası Seç</button>
   <button class="btn" onclick="location.href='anasayfa.html'" id="home-btn">Anasayfa</button>
+  <button class="btn" onclick="shareMelody()">Paylaş</button>  <!-- Paylaş butonu eklendi -->
   <h2 id="melody-title">Yüklenen Melodiler</h2>
   <div id="melodyList"></div>
   <script type="module">
@@ -196,9 +197,16 @@
     window.setLang = function (lang) {
       document.documentElement.lang = lang;
       document.getElementById("title").innerText = texts[lang].title;
-      document.getElementById("upload-btn").innerText = texts[lang].upload;
+      document.getElementById("file-label").innerText = texts[lang].upload;
       document.getElementById("home-btn").innerText = texts[lang].home;
       document.getElementById("melody-title").innerText = texts[lang].list;
+      document.getElementById("file-label").innerText = texts[lang].selectFile;
+      document.getElementById("home-btn").innerText = texts[lang].home;
+      document.getElementById("file-label").innerText = texts[lang].selectFile;
+    };
+
+    window.shareMelody = function () {
+      alert("Paylaşım yapılacak bir özellik eklemek üzereyiz!");
     };
 
     function getText(key) {
