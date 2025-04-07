@@ -70,7 +70,7 @@
     <button class="btn" onclick="setLang('en')">🇬🇧 English</button>
   </div>  <h1 id="title">Melodi Yükle</h1>
   <input type="file" id="melodyInput" accept="audio/*" />
-  <button class="btn" onclick="uploadMelody()" id="upload-btn">Yükle</button>
+  <button class="btn" onclick="document.getElementById('melodyInput').click()" id="file-label">Ses Dosyası Seç</button>
   <button class="btn" onclick="location.href='anasayfa.html'" id="home-btn">Anasayfa</button>  <h2 id="melody-title">Yüklenen Melodiler</h2>
   <div id="melodyList"></div>  <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
